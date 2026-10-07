@@ -1,0 +1,1668 @@
+{
+  "teams": [
+    {
+      "id": "team-1",
+      "name": "The Rovers FC (U10s)",
+      "ageGroup": "U10",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [
+        "coach.sarah@gmail.com"
+      ],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1 (Standard)",
+        "customFormations": [],
+        "seasons": [
+          "2025/2026",
+          "2026/2027",
+          "2027/2028"
+        ],
+        "currentSeason": "2027/2028"
+      },
+      "createdAt": "2026-10-07T19:43:57.081Z",
+      "updatedAt": "2026-10-07T21:30:59.692Z"
+    },
+    {
+      "id": "team-2",
+      "name": "The Rovers FC (U12s)",
+      "ageGroup": "U12",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 9,
+        "matchdaySquadCap": 12,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 30,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "3-3-2",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-07T19:43:57.081Z"
+    }
+  ],
+  "players": [
+    {
+      "id": "p1",
+      "teamId": "team-1",
+      "name": "Leo Davies",
+      "squadNumber": 1,
+      "preferredPositions": [
+        "Goalkeeper",
+        "Defence"
+      ],
+      "specificPositions": [
+        "Goalkeeper",
+        "Centre Back"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 8,
+      "totalMinutesPlayed": 320
+    },
+    {
+      "id": "p2",
+      "teamId": "team-1",
+      "name": "Archie Smith",
+      "squadNumber": 2,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [
+        "Right Back",
+        "Centre Back"
+      ],
+      "unavailableDates": [
+        "2026-10-04"
+      ],
+      "matchesPlayed": 8,
+      "totalMinutesPlayed": 300
+    },
+    {
+      "id": "p3",
+      "teamId": "team-1",
+      "name": "Noah Taylor",
+      "squadNumber": 3,
+      "preferredPositions": [
+        "Defence",
+        "Midfield"
+      ],
+      "specificPositions": [
+        "Left Back",
+        "Left Midfield"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 7,
+      "totalMinutesPlayed": 265
+    },
+    {
+      "id": "p4",
+      "teamId": "team-1",
+      "name": "Oliver Wilson",
+      "squadNumber": 4,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [
+        "Centre Back"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 8,
+      "totalMinutesPlayed": 310
+    },
+    {
+      "id": "p5",
+      "teamId": "team-1",
+      "name": "Harry Brown",
+      "squadNumber": 5,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [
+        "Centre Midfield"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 8,
+      "totalMinutesPlayed": 325
+    },
+    {
+      "id": "p6",
+      "teamId": "team-1",
+      "name": "Jack Evans",
+      "squadNumber": 6,
+      "preferredPositions": [
+        "Midfield",
+        "Goalkeeper"
+      ],
+      "specificPositions": [
+        "Right Midfield",
+        "Goalkeeper"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 8,
+      "totalMinutesPlayed": 290
+    },
+    {
+      "id": "p7",
+      "teamId": "team-1",
+      "name": "Charlie Thomas",
+      "squadNumber": 7,
+      "preferredPositions": [
+        "Midfield",
+        "Attack"
+      ],
+      "specificPositions": [
+        "Left Midfield",
+        "Striker"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 7,
+      "totalMinutesPlayed": 275
+    },
+    {
+      "id": "p8",
+      "teamId": "team-1",
+      "name": "Alfie Roberts",
+      "squadNumber": 8,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [
+        "Centre Midfield",
+        "Right Midfield"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 8,
+      "totalMinutesPlayed": 310
+    },
+    {
+      "id": "p9",
+      "teamId": "team-1",
+      "name": "George Walker",
+      "squadNumber": 9,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [
+        "Striker"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 8,
+      "totalMinutesPlayed": 320
+    },
+    {
+      "id": "p10",
+      "teamId": "team-1",
+      "name": "Freddie Johnson",
+      "squadNumber": 10,
+      "preferredPositions": [
+        "Attack",
+        "Midfield"
+      ],
+      "specificPositions": [
+        "Striker",
+        "Attacking Midfield"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 8,
+      "totalMinutesPlayed": 300
+    },
+    {
+      "id": "p11",
+      "teamId": "team-1",
+      "name": "Oscar Wright",
+      "squadNumber": 11,
+      "preferredPositions": [
+        "Attack",
+        "Midfield"
+      ],
+      "specificPositions": [
+        "Left Wing",
+        "Striker"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 7,
+      "totalMinutesPlayed": 260
+    },
+    {
+      "id": "p12",
+      "teamId": "team-1",
+      "name": "Theo Green",
+      "squadNumber": 12,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [
+        "Centre Back",
+        "Right Back"
+      ],
+      "unavailableDates": [
+        "2026-10-18"
+      ],
+      "matchesPlayed": 6,
+      "totalMinutesPlayed": 220
+    },
+    {
+      "id": "p13",
+      "teamId": "team-1",
+      "name": "Lucas Hall",
+      "squadNumber": 13,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [
+        "Centre Midfield"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 6,
+      "totalMinutesPlayed": 230
+    },
+    {
+      "id": "p201",
+      "teamId": "team-2",
+      "name": "Ethan Miller",
+      "squadNumber": 1,
+      "preferredPositions": [
+        "Goalkeeper"
+      ],
+      "specificPositions": [
+        "Goalkeeper"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 9,
+      "totalMinutesPlayed": 540
+    },
+    {
+      "id": "p202",
+      "teamId": "team-2",
+      "name": "Mason Clarke",
+      "squadNumber": 2,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [
+        "Centre Back"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 9,
+      "totalMinutesPlayed": 510
+    },
+    {
+      "id": "p203",
+      "teamId": "team-2",
+      "name": "Logan Hughes",
+      "squadNumber": 3,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [
+        "Left Back"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 8,
+      "totalMinutesPlayed": 450
+    },
+    {
+      "id": "p204",
+      "teamId": "team-2",
+      "name": "James Foster",
+      "squadNumber": 4,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [
+        "Right Back"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 9,
+      "totalMinutesPlayed": 500
+    },
+    {
+      "id": "p205",
+      "teamId": "team-2",
+      "name": "Daniel Brooks",
+      "squadNumber": 5,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [
+        "Centre Midfield"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 9,
+      "totalMinutesPlayed": 520
+    },
+    {
+      "id": "p206",
+      "teamId": "team-2",
+      "name": "Henry Cooper",
+      "squadNumber": 6,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [
+        "Left Midfield"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 8,
+      "totalMinutesPlayed": 440
+    },
+    {
+      "id": "p207",
+      "teamId": "team-2",
+      "name": "Samuel Bennett",
+      "squadNumber": 7,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [
+        "Right Midfield"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 9,
+      "totalMinutesPlayed": 530
+    },
+    {
+      "id": "p208",
+      "teamId": "team-2",
+      "name": "Benjamin Ross",
+      "squadNumber": 9,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [
+        "Striker"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 9,
+      "totalMinutesPlayed": 540
+    },
+    {
+      "id": "p209",
+      "teamId": "team-2",
+      "name": "Alexander Ward",
+      "squadNumber": 10,
+      "preferredPositions": [
+        "Attack",
+        "Midfield"
+      ],
+      "specificPositions": [
+        "Striker"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 8,
+      "totalMinutesPlayed": 460
+    },
+    {
+      "id": "p210",
+      "teamId": "team-2",
+      "name": "Harrison Price",
+      "squadNumber": 11,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [
+        "Left Forward"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 7,
+      "totalMinutesPlayed": 400
+    },
+    {
+      "id": "p211",
+      "teamId": "team-2",
+      "name": "Toby Sanders",
+      "squadNumber": 12,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [
+        "Centre Midfield"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 8,
+      "totalMinutesPlayed": 420
+    },
+    {
+      "id": "p212",
+      "teamId": "team-2",
+      "name": "Max Campbell",
+      "squadNumber": 14,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [
+        "Right Back"
+      ],
+      "unavailableDates": [],
+      "matchesPlayed": 7,
+      "totalMinutesPlayed": 390
+    },
+    {
+      "id": "p_1791405071699_pine",
+      "teamId": "team-1",
+      "name": "Future Star (Not Signed)",
+      "squadNumber": 99,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791405071707_6s07",
+      "teamId": "team-1",
+      "name": "Past Legend (Left Squad)",
+      "squadNumber": 98,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791405071721_7k0q",
+      "teamId": "team-1",
+      "name": "Eligible Sign-on Player",
+      "squadNumber": 97,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    }
+  ],
+  "settings": {
+    "pitchPlayerCount": 7,
+    "matchdaySquadCap": 10,
+    "subCount": 3,
+    "matchPeriodCount": 2,
+    "periodDurationMinutes": 25,
+    "targetGameTimePercent": 50,
+    "defaultFormation": "2-3-1",
+    "customFormations": []
+  },
+  "fixtures": [
+    {
+      "id": "fix_1791405071658_kfn5",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-15",
+      "kickOffTime": "10:30",
+      "opponent": "AFC Test Stars",
+      "venue": "Home",
+      "status": "Completed",
+      "matchSquad": {
+        "fixtureId": "fix_1791405071658_kfn5",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2"
+        ],
+        "restedPlayerIds": [
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p12",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p11",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p3",
+              "p7",
+              "p2"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p3",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p2",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p7",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p12",
+              "p13",
+              "p11"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      },
+      "postMatchRecording": {
+        "trackingMode": "full_credit",
+        "playerMinutes": {},
+        "coachNotes": "Great teamwork everyone played full match"
+      },
+      "captainId": "p4"
+    },
+    {
+      "id": "fix_1791405050402_irvz",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-15",
+      "kickOffTime": "10:30",
+      "opponent": "AFC Test Stars",
+      "venue": "Home",
+      "status": "Completed",
+      "matchSquad": {
+        "fixtureId": "fix_1791405050402_irvz",
+        "selectedPlayerIds": [
+          "p6",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8"
+        ],
+        "restedPlayerIds": [
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p12",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p3",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p11",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p7",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p2",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p10",
+              "p4",
+              "p8"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p4",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p12",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p10",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p8",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p11",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p3",
+              "p7",
+              "p2"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      },
+      "postMatchRecording": {
+        "trackingMode": "full_credit",
+        "playerMinutes": {},
+        "coachNotes": "Great teamwork everyone played full match"
+      },
+      "captainId": "p1"
+    },
+    {
+      "id": "fix_1791405030828_93dc",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-15",
+      "kickOffTime": "10:30",
+      "opponent": "AFC Test Stars",
+      "venue": "Home",
+      "status": "Completed",
+      "matchSquad": {
+        "fixtureId": "fix_1791405030828_93dc",
+        "selectedPlayerIds": [
+          "p6",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8"
+        ],
+        "restedPlayerIds": [
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p12",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p3",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p11",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p7",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p2",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p10",
+              "p4",
+              "p8"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p4",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p12",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p10",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p8",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p11",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p3",
+              "p7",
+              "p2"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      },
+      "postMatchRecording": {
+        "trackingMode": "full_credit",
+        "playerMinutes": {
+          "p6": 50,
+          "p12": 50,
+          "p13": 50,
+          "p11": 50,
+          "p3": 50,
+          "p7": 50,
+          "p2": 50,
+          "p10": 50,
+          "p4": 50,
+          "p8": 50
+        },
+        "recordedAt": "2026-10-07T21:14:22.602Z",
+        "notes": ""
+      },
+      "captainId": "p2"
+    },
+    {
+      "id": "fix_1791404993623_zve0",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-15",
+      "kickOffTime": "10:30",
+      "opponent": "AFC Test Stars",
+      "venue": "Home",
+      "status": "Completed",
+      "matchSquad": {
+        "fixtureId": "fix_1791404993623_zve0",
+        "selectedPlayerIds": [
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p6",
+          "p2"
+        ],
+        "restedPlayerIds": [
+          "p1",
+          "p4",
+          "p5",
+          "p8",
+          "p9",
+          "p10"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p12",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p11",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p3",
+              "p7",
+              "p2"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p3",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p2",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p7",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p12",
+              "p13",
+              "p11"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      },
+      "postMatchRecording": {
+        "trackingMode": "full_credit",
+        "playerMinutes": {
+          "p_1791405071699_pine": 50,
+          "p_1791405071707_6s07": 50,
+          "p_1791405071721_7k0q": 50,
+          "p12": 50,
+          "p13": 50,
+          "p11": 50,
+          "p3": 50,
+          "p7": 50,
+          "p6": 50,
+          "p2": 50
+        },
+        "recordedAt": "2026-10-07T21:17:36.801Z",
+        "notes": ""
+      },
+      "playerOfTheMatchId": "p12"
+    },
+    {
+      "id": "fix_1791403631778_3ssk",
+      "teamId": "team-1",
+      "season": "2026/2027",
+      "date": "2026-10-25",
+      "kickOffTime": "10:30",
+      "opponent": "St Andrews Colts",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791403631778_3ssk",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2"
+        ],
+        "restedPlayerIds": [
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p12",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p11",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p3",
+              "p7",
+              "p2"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p3",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p2",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p7",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p12",
+              "p13",
+              "p11"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791402797339_ehgx",
+      "teamId": "team-2",
+      "date": "2026-10-18",
+      "kickOffTime": "10:00",
+      "opponent": "Tekkers",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791402797339_ehgx",
+        "selectedPlayerIds": [
+          "p201",
+          "p212",
+          "p210",
+          "p211",
+          "p206",
+          "p203",
+          "p209",
+          "p204",
+          "p202",
+          "p205",
+          "p207",
+          "p208"
+        ],
+        "restedPlayerIds": [],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p201",
+                "position": "GK"
+              },
+              {
+                "playerId": "p212",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p203",
+                "position": "DEF_C"
+              },
+              {
+                "playerId": "p204",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p211",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p206",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p209",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p210",
+                "position": "ATT_L"
+              },
+              {
+                "playerId": "p202",
+                "position": "ATT_R"
+              }
+            ],
+            "subs": [
+              "p205",
+              "p207",
+              "p208"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p201",
+                "position": "GK"
+              },
+              {
+                "playerId": "p212",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p203",
+                "position": "DEF_C"
+              },
+              {
+                "playerId": "p205",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p207",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p211",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p206",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p208",
+                "position": "ATT_L"
+              },
+              {
+                "playerId": "p210",
+                "position": "ATT_R"
+              }
+            ],
+            "subs": [
+              "p209",
+              "p204",
+              "p202"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix-1",
+      "teamId": "team-1",
+      "date": "2026-10-11",
+      "kickOffTime": "10:00",
+      "opponent": "Oakridge Youth Tigers",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix-1",
+        "selectedPlayerIds": [
+          "p6",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8"
+        ],
+        "restedPlayerIds": [
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p12",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p3",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p11",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p7",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p2",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p10",
+              "p4",
+              "p8"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p4",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p12",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p10",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p8",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p11",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p3",
+              "p7",
+              "p2"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix-2",
+      "teamId": "team-1",
+      "date": "2026-10-04",
+      "kickOffTime": "11:30",
+      "opponent": "Meadowbrook Athletic",
+      "venue": "Away",
+      "status": "Completed",
+      "matchSquad": {
+        "fixtureId": "fix-2",
+        "selectedPlayerIds": [
+          "p6",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8"
+        ],
+        "restedPlayerIds": [
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p12",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p3",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p11",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p7",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p2",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p10",
+              "p4",
+              "p8"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p4",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p12",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p10",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p8",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p11",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p3",
+              "p7",
+              "p2"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix-3",
+      "teamId": "team-1",
+      "date": "2026-10-18",
+      "kickOffTime": "09:30",
+      "opponent": "Riverside Colts",
+      "venue": "Away",
+      "status": "Draft",
+      "matchSquad": {
+        "fixtureId": "fix-3",
+        "selectedPlayerIds": [
+          "p6",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1"
+        ],
+        "restedPlayerIds": [
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p3",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p2",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p11",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p7",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p10",
+                "position": "MID_R"
+              }
+            ],
+            "subs": [
+              "p4",
+              "p8",
+              "p1"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p1",
+                "position": "GK"
+              },
+              {
+                "playerId": "p4",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p3",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p8",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p13",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p11",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p7",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p6",
+              "p2",
+              "p10"
+            ]
+          }
+        ],
+        "manualOverrides": true
+      }
+    },
+    {
+      "id": "fix-201",
+      "teamId": "team-2",
+      "date": "2026-10-11",
+      "kickOffTime": "12:00",
+      "opponent": "Westbrook United U12",
+      "venue": "Away",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix-201",
+        "selectedPlayerIds": [
+          "p201",
+          "p212",
+          "p210",
+          "p211",
+          "p206",
+          "p203",
+          "p209",
+          "p204",
+          "p202",
+          "p205",
+          "p207",
+          "p208"
+        ],
+        "restedPlayerIds": [],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p201",
+                "position": "GK"
+              },
+              {
+                "playerId": "p212",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p203",
+                "position": "DEF_C"
+              },
+              {
+                "playerId": "p204",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p211",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p206",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p209",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p210",
+                "position": "ATT_L"
+              },
+              {
+                "playerId": "p202",
+                "position": "ATT_R"
+              }
+            ],
+            "subs": [
+              "p205",
+              "p207",
+              "p208"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p201",
+                "position": "GK"
+              },
+              {
+                "playerId": "p212",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p203",
+                "position": "DEF_C"
+              },
+              {
+                "playerId": "p205",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p207",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p211",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p206",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p208",
+                "position": "ATT_L"
+              },
+              {
+                "playerId": "p210",
+                "position": "ATT_R"
+              }
+            ],
+            "subs": [
+              "p209",
+              "p204",
+              "p202"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    }
+  ]
+}
