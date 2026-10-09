@@ -23,6 +23,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setFormData(settings);
   }, [settings]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const availableFormations = getFormationsForTeamSize(
@@ -59,13 +70,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 space-y-5">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 space-y-5"
+      >
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-              <Sliders className="w-5 h-5" />
-            </div>
+            <img src="/logo-icon.png" alt="SubShuffle" className="w-8 h-8 object-contain drop-shadow-md" />
             <div>
               <h3 className="text-base font-bold text-white">Team & League Settings</h3>
               <p className="text-xs text-slate-400">
@@ -209,6 +224,98 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-indigo-500"
             />
             <span className="text-[10px] text-slate-500">Youth fair play target (50% for 2 halves)</span>
+          </div>
+
+          {/* Club Kit Colours */}
+          <div className="pt-2 border-t border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-slate-300 font-semibold">
+                  Club Kit Colours (Design System)
+                </label>
+                <span className="text-[10px] text-slate-500">
+                  Styles jersey icons, pitch tokens and club accents
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div
+                  className="w-5 h-5 rounded-full border border-white/40 shadow-sm"
+                  style={{ backgroundColor: formData.kitPrimaryColor || '#1e3a8a' }}
+                  title="Primary Kit"
+                />
+                <div
+                  className="w-5 h-5 rounded-full border border-white/40 shadow-sm"
+                  style={{ backgroundColor: formData.kitSecondaryColor || '#f59e0b' }}
+                  title="Secondary Trim"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Primary Colour</label>
+                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800">
+                  <input
+                    type="color"
+                    value={formData.kitPrimaryColor || '#1e3a8a'}
+                    onChange={(e) =>
+                      setFormData({ ...formData, kitPrimaryColor: e.target.value })
+                    }
+                    className="w-6 h-6 rounded border-0 bg-transparent cursor-pointer"
+                  />
+                  <span className="font-mono text-slate-300 text-[11px]">
+                    {formData.kitPrimaryColor || '#1e3a8a'}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Secondary / Trim</label>
+                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800">
+                  <input
+                    type="color"
+                    value={formData.kitSecondaryColor || '#f59e0b'}
+                    onChange={(e) =>
+                      setFormData({ ...formData, kitSecondaryColor: e.target.value })
+                    }
+                    className="w-6 h-6 rounded border-0 bg-transparent cursor-pointer"
+                  />
+                  <span className="font-mono text-slate-300 text-[11px]">
+                    {formData.kitSecondaryColor || '#f59e0b'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Kit Presets */}
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {[
+                { name: 'Royal/Gold', p: '#1e3a8a', s: '#f59e0b' },
+                { name: 'Crimson/White', p: '#dc2626', s: '#ffffff' },
+                { name: 'Sky/Navy', p: '#0284c7', s: '#0f172a' },
+                { name: 'Emerald/Gold', p: '#059669', s: '#fbbf24' },
+                { name: 'Onyx/Amber', p: '#18181b', s: '#f59e0b' },
+              ].map((preset) => (
+                <button
+                  key={preset.name}
+                  type="button"
+                  onClick={() =>
+                    setFormData({
+                      ...formData,
+                      kitPrimaryColor: preset.p,
+                      kitSecondaryColor: preset.s,
+                    })
+                  }
+                  className="px-2 py-1 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-[10px] text-slate-400 hover:text-white flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full border border-black/30"
+                    style={{ backgroundColor: preset.p }}
+                  />
+                  <span>{preset.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">

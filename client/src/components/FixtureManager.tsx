@@ -4,6 +4,7 @@ import { Fixture, Player } from '../types';
 import { PostMatchModal } from './PostMatchModal';
 import { SuggestedSubsModal } from './SuggestedSubsModal';
 import { AllFixturesTable } from './AllFixturesTable';
+import { EditFixtureModal } from './EditFixtureModal';
 import {
   Calendar,
   Plus,
@@ -23,6 +24,7 @@ import {
   LayoutGrid,
   ExternalLink,
   Crown,
+  Edit3,
 } from 'lucide-react';
 
 export const FixtureManager: React.FC = () => {
@@ -84,6 +86,7 @@ export const FixtureManager: React.FC = () => {
   // Modals for post-match and suggested substitutions
   const [postMatchFixture, setPostMatchFixture] = useState<Fixture | null>(null);
   const [suggestedSubsFixture, setSuggestedSubsFixture] = useState<Fixture | null>(null);
+  const [editingFixture, setEditingFixture] = useState<Fixture | null>(null);
 
   const filteredFixtures = fixtures.filter((f) => {
     if (selectedSeasonFilter === 'ALL') return true;
@@ -659,17 +662,27 @@ export const FixtureManager: React.FC = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (confirm(`Delete fixture vs ${fixture.opponent}?`)) {
+                      setEditingFixture(fixture);
+                    }}
+                    className="p-1 rounded text-slate-400 hover:text-indigo-300 hover:bg-slate-800 transition cursor-pointer"
+                    title="Edit fixture logistics & details"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm(`Delete fixture vs ${fixture.opponent}? This action cannot be undone.`)) {
                         deleteFixture(fixture.id);
                       }
                     }}
-                    className="p-1 rounded text-slate-500 hover:text-rose-400 transition"
+                    className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer"
                     title="Delete fixture"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                   <span className="text-sky-400 font-semibold flex items-center text-[11px]">
-                    <span>Manage Lineup</span>
+                    <span>Lineup</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
@@ -794,6 +807,13 @@ export const FixtureManager: React.FC = () => {
         fixture={suggestedSubsFixture}
         isOpen={Boolean(suggestedSubsFixture)}
         onClose={() => setSuggestedSubsFixture(null)}
+      />
+
+      {/* Edit Fixture Modal */}
+      <EditFixtureModal
+        fixture={editingFixture}
+        isOpen={Boolean(editingFixture)}
+        onClose={() => setEditingFixture(null)}
       />
     </div>
   );

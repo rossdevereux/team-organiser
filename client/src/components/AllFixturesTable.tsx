@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
 import { Fixture, Player } from '../types';
+import { EditFixtureModal } from './EditFixtureModal';
 import {
   Calendar,
   Users,
@@ -14,6 +15,8 @@ import {
   Filter,
   CheckCircle2,
   FileSpreadsheet,
+  Edit3,
+  Trash2,
 } from 'lucide-react';
 
 interface AllFixturesTableProps {
@@ -21,11 +24,22 @@ interface AllFixturesTableProps {
 }
 
 export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeason }) => {
-  const { fixtures, players, settings, setActiveFixtureId, setActiveTab } = useMatchday();
+  const { fixtures, players, settings, setActiveFixtureId, setActiveTab, deleteFixture } = useMatchday();
   const [copied, setCopied] = useState<boolean>(false);
+  const [editingFixture, setEditingFixture] = useState<Fixture | null>(null);
 
   const playerMap = new Map(players.map((p) => [p.id, p]));
   const currentDefaultSeason = settings.currentSeason || '2026/2027';
+
+  // Sort helper: order by squad number ascending, then name alphabetically
+  const sortPlayersByNumberAndName = (a: Player, b: Player): number => {
+    const numA = typeof a.squadNumber === 'number' && !isNaN(a.squadNumber) ? a.squadNumber : 9999;
+    const numB = typeof b.squadNumber === 'number' && !isNaN(b.squadNumber) ? b.squadNumber : 9999;
+    if (numA !== numB) {
+      return numA - numB;
+    }
+    return a.name.localeCompare(b.name);
+  };
 
   // Filter fixtures by selected season
   const filteredFixtures = fixtures.filter((f) => {
@@ -59,11 +73,13 @@ export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeas
       if (selectedIds.length === 0) {
         output += `  (No squad selected yet)\n`;
       } else {
-        selectedIds.forEach((id) => {
-          const p = playerMap.get(id);
-          if (p) {
-            output += `  #${p.squadNumber || '—'} ${p.name}\n`;
-          }
+        const sortedSelected = selectedIds
+          .map((id) => playerMap.get(id))
+          .filter((p): p is Player => Boolean(p))
+          .sort(sortPlayersByNumberAndName);
+
+        sortedSelected.forEach((p) => {
+          output += `  #${p.squadNumber || '—'} ${p.name}\n`;
         });
       }
       output += `\n`;
@@ -73,7 +89,9 @@ export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeas
     output += `--- ROW 2: RESTED & ABSENT PLAYERS ---\n\n`;
     sortedFixtures.forEach((f) => {
       const selectedIds = new Set(f.matchSquad?.selectedPlayerIds || []);
-      const restedPlayers = players.filter((p) => !selectedIds.has(p.id));
+      const restedPlayers = players
+        .filter((p) => !selectedIds.has(p.id))
+        .sort(sortPlayersByNumberAndName);
 
       output += `MATCH: vs ${f.opponent} (${f.date})\n`;
       if (restedPlayers.length === 0) {
@@ -181,9 +199,34 @@ export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeas
                           </span>
                         </div>
 
-                        <div className="font-extrabold text-sm text-white hover:text-sky-400 transition flex items-center justify-between">
+                        <div className="font-extrabold text-sm text-white hover:text-sky-400 transition flex items-center justify-between gap-1">
                           <span className="truncate">vs {fixture.opponent}</span>
-                          <ArrowRight className="w-3 h-3 text-slate-500 shrink-0 ml-1" />
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingFixture(fixture);
+                              }}
+                              className="p-1 rounded text-slate-400 hover:text-indigo-300 hover:bg-slate-800 transition cursor-pointer"
+                              title="Edit fixture logistics"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm(`Delete fixture vs ${fixture.opponent}? This action cannot be undone.`)) {
+                                  deleteFixture(fixture.id);
+                                }
+                              }}
+                              className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer"
+                              title="Delete fixture"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
 
                         <div className="text-[11px] text-slate-400 font-mono flex items-center gap-1.5">
@@ -219,7 +262,8 @@ export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeas
                   const selectedIds = fixture.matchSquad?.selectedPlayerIds || [];
                   const selectedPlayers = selectedIds
                     .map((id) => playerMap.get(id))
-                    .filter((p): p is Player => Boolean(p));
+                    .filter((p): p is Player => Boolean(p))
+                    .sort(sortPlayersByNumberAndName);
 
                   return (
                     <td
@@ -279,7 +323,9 @@ export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeas
 
                 {sortedFixtures.map((fixture) => {
                   const selectedSet = new Set(fixture.matchSquad?.selectedPlayerIds || []);
-                  const restedPlayers = players.filter((p) => !selectedSet.has(p.id));
+                  const restedPlayers = players
+                    .filter((p) => !selectedSet.has(p.id))
+                    .sort(sortPlayersByNumberAndName);
 
                   return (
                     <td
@@ -346,6 +392,13 @@ export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeas
           </table>
         </div>
       </div>
+
+      {/* Edit Fixture Modal */}
+      <EditFixtureModal
+        fixture={editingFixture}
+        isOpen={Boolean(editingFixture)}
+        onClose={() => setEditingFixture(null)}
+      />
     </div>
   );
 };

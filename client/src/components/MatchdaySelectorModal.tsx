@@ -72,8 +72,10 @@ export const MatchdaySelectorModal: React.FC<MatchdaySelectorModalProps> = ({
 
     const { isEligible, reason } = getPlayerEligibility(player);
     if (!isEligible && !selectedIds.includes(id)) {
-      alert(`${player.name} cannot be selected: ${reason}.`);
-      return;
+      const confirmOverride = window.confirm(
+        `${player.name} is marked as unavailable: ${reason}.\n\nDo you want to select them anyway as a matchday override (e.g. called in, emergency sub)?`
+      );
+      if (!confirmOverride) return;
     }
 
     if (selectedIds.includes(id)) {
@@ -81,6 +83,8 @@ export const MatchdaySelectorModal: React.FC<MatchdaySelectorModalProps> = ({
     } else {
       if (selectedIds.length < squadCap) {
         setSelectedIds([...selectedIds, id]);
+      } else {
+        alert(`Matchday squad is full (${squadCap}/${squadCap}). Please unselect a sick/absent player first, or swap them directly.`);
       }
     }
   };

@@ -21,8 +21,8 @@ import {
 } from '../types';
 import { getFormationsForTeamSize, findFormation, DEFAULT_FORMATIONS } from '../utils/formations';
 
-interface SwapSource {
-  type: 'pitch' | 'sub';
+export interface SwapSource {
+  type: 'pitch' | 'sub' | 'rested';
   playerId: string;
   position?: string;
 }
@@ -51,6 +51,9 @@ interface MatchdayContextType {
   setActiveFixtureId: (id: string) => void;
   selectSwapSource: (source: SwapSource | null) => void;
   handleSwap: (target: SwapSource) => void;
+  replaceSquadPlayer: (outgoingPlayerId: string, incomingPlayerId: string) => Promise<void>;
+  addPlayerToSquad: (playerId: string) => Promise<void>;
+  removePlayerFromSquad: (playerId: string) => Promise<void>;
   autoRotateCurrentFixture: (selectedPlayerIds?: string[]) => Promise<void>;
   updateMatchSquad: (newSquad: MatchSquad) => Promise<void>;
   // Team actions
@@ -85,18 +88,40 @@ interface MatchdayContextType {
 
 const MatchdayContext = createContext<MatchdayContextType | null>(null);
 
+const getInitialUrlState = () => {
+  if (typeof window === 'undefined') return { teamId: '', fixtureId: '', tab: 'lineup' as const };
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const teamId = params.get('team') || '';
+    const fixtureId = params.get('fixture') || '';
+    const rawTab = params.get('tab');
+    const validTabs = ['lineup', 'matrix', 'squad', 'fixtures', 'stats', 'teams'];
+    const tab = (rawTab && validTabs.includes(rawTab) ? rawTab : 'lineup') as
+      | 'lineup'
+      | 'matrix'
+      | 'squad'
+      | 'fixtures'
+      | 'stats'
+      | 'teams';
+    return { teamId, fixtureId, tab };
+  } catch (_) {
+    return { teamId: '', fixtureId: '', tab: 'lineup' as const };
+  }
+};
+
 export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const initialUrl = getInitialUrlState();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
-  const [activeTeamId, setActiveTeamId] = useState<string>('');
+  const [activeTeamId, setActiveTeamId] = useState<string>(initialUrl.teamId);
   const [players, setPlayers] = useState<Player[]>([]);
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
-  const [activeFixtureId, setActiveFixtureId] = useState<string>('');
+  const [activeFixtureId, setActiveFixtureId] = useState<string>(initialUrl.fixtureId);
   const [activePeriod, setActivePeriod] = useState<number>(1);
   const [selectedSwapSource, setSelectedSwapSource] = useState<SwapSource | null>(null);
   const [activeTab, setActiveTab] = useState<
     'lineup' | 'matrix' | 'squad' | 'fixtures' | 'stats' | 'teams'
-  >('lineup');
+  >(initialUrl.tab);
   const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,6 +144,47 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setCurrentUser(user);
     });
     return () => unsub();
+  }, []);
+
+  // Keep URL updated with team, fixture, and active tab for bookmarking and sharing
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (activeTeamId) params.set('team', activeTeamId);
+      if (activeTab) params.set('tab', activeTab);
+      if (activeFixtureId) {
+        params.set('fixture', activeFixtureId);
+      } else {
+        params.delete('fixture');
+      }
+
+      const newQuery = `?${params.toString()}`;
+      if (window.location.search !== newQuery) {
+        window.history.replaceState(null, '', `${window.location.pathname}${newQuery}`);
+      }
+    } catch (e) {
+      console.warn('Failed to update URL search params:', e);
+    }
+  }, [activeTeamId, activeTab, activeFixtureId]);
+
+  // Sync browser back/forward buttons (popstate)
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const urlTeam = params.get('team');
+      const urlTab = params.get('tab');
+      const urlFixture = params.get('fixture');
+
+      if (urlTeam) setActiveTeamId(urlTeam);
+      if (urlTab && ['lineup', 'matrix', 'squad', 'fixtures', 'stats', 'teams'].includes(urlTab)) {
+        setActiveTab(urlTab as any);
+      }
+      if (urlFixture) setActiveFixtureId(urlFixture);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   // Helper to build headers with auth token or dev fallback
@@ -159,8 +225,14 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         try {
           localStorage.setItem('subshuffle_cached_teams', JSON.stringify(data));
         } catch (_) {}
-        if (data.length > 0 && (!activeTeamId || !data.some((t) => t.id === activeTeamId))) {
-          setActiveTeamId(data[0].id);
+        if (data.length > 0) {
+          const urlTeam = new URLSearchParams(window.location.search).get('team');
+          const matched = data.find((t) => t.id === urlTeam);
+          if (matched) {
+            setActiveTeamId(matched.id);
+          } else if (!activeTeamId || !data.some((t) => t.id === activeTeamId)) {
+            setActiveTeamId(data[0].id);
+          }
         }
         return;
       }
@@ -174,8 +246,14 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (cached) {
         const data: Team[] = JSON.parse(cached);
         setTeams(data);
-        if (data.length > 0 && (!activeTeamId || !data.some((t) => t.id === activeTeamId))) {
-          setActiveTeamId(data[0].id);
+        if (data.length > 0) {
+          const urlTeam = new URLSearchParams(window.location.search).get('team');
+          const matched = data.find((t) => t.id === urlTeam);
+          if (matched) {
+            setActiveTeamId(matched.id);
+          } else if (!activeTeamId || !data.some((t) => t.id === activeTeamId)) {
+            setActiveTeamId(data[0].id);
+          }
         }
       }
     } catch (e) {
@@ -233,7 +311,11 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           localStorage.setItem(`subshuffle_cached_fixtures_${activeTeamId}`, JSON.stringify(fData));
         } catch (_) {}
         if (fData.length > 0) {
-          if (!activeFixtureId || !fData.some((f) => f.id === activeFixtureId)) {
+          const urlFixture = new URLSearchParams(window.location.search).get('fixture');
+          const matched = fData.find((f) => f.id === urlFixture);
+          if (matched) {
+            setActiveFixtureId(matched.id);
+          } else if (!activeFixtureId || !fData.some((f) => f.id === activeFixtureId)) {
             const upcoming = fData.find((f) => f.status === 'Upcoming') || fData[0];
             setActiveFixtureId(upcoming.id);
           }
@@ -422,11 +504,136 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Swap players on pitch/sub
+  // Replace a player in the matchday squad (e.g. sick / call-off replaced by rested player)
+  const replaceSquadPlayer = async (outgoingPlayerId: string, incomingPlayerId: string) => {
+    if (!activeFixture || !activeFixture.matchSquad) return;
+    const currentSquad = activeFixture.matchSquad;
+
+    // 1. Update selectedPlayerIds: replace outgoing with incoming
+    const updatedSelected = currentSquad.selectedPlayerIds.map((id) =>
+      id === outgoingPlayerId ? incomingPlayerId : id
+    );
+    if (!updatedSelected.includes(incomingPlayerId)) {
+      updatedSelected.push(incomingPlayerId);
+    }
+
+    // 2. Update restedPlayerIds: remove incoming, add outgoing
+    const currentRested = currentSquad.restedPlayerIds || [];
+    const updatedRested = currentRested
+      .filter((id) => id !== incomingPlayerId)
+      .concat(outgoingPlayerId);
+
+    // 3. Update lineupsByPeriod across all periods (preserving pitch positions and bench slots)
+    const updatedLineups = currentSquad.lineupsByPeriod.map((lineup) => ({
+      ...lineup,
+      onPitch: lineup.onPitch.map((p) =>
+        p.playerId === outgoingPlayerId ? { ...p, playerId: incomingPlayerId } : p
+      ),
+      subs: lineup.subs.map((id) => (id === outgoingPlayerId ? incomingPlayerId : id)),
+    }));
+
+    const updatedSquad: MatchSquad = {
+      ...currentSquad,
+      selectedPlayerIds: updatedSelected,
+      restedPlayerIds: updatedRested,
+      lineupsByPeriod: updatedLineups,
+      manualOverrides: true,
+    };
+
+    // If outgoing was captain, transfer captaincy to incoming
+    if (activeFixture.captainId === outgoingPlayerId) {
+      await setMatchCaptain(activeFixture.id, incomingPlayerId);
+    }
+
+    setSelectedSwapSource(null);
+    await updateMatchSquad(updatedSquad);
+  };
+
+  // Add a player directly to squad (e.g. from rested to bench)
+  const addPlayerToSquad = async (playerId: string) => {
+    if (!activeFixture || !activeFixture.matchSquad) return;
+    const currentSquad = activeFixture.matchSquad;
+    if (currentSquad.selectedPlayerIds.includes(playerId)) return;
+
+    const updatedSelected = [...currentSquad.selectedPlayerIds, playerId];
+    const updatedRested = (currentSquad.restedPlayerIds || []).filter((id) => id !== playerId);
+
+    // Add to all periods as substitute if not already present
+    const updatedLineups = currentSquad.lineupsByPeriod.map((lineup) => {
+      const isOnPitch = lineup.onPitch.some((p) => p.playerId === playerId);
+      const isSub = lineup.subs.includes(playerId);
+      if (!isOnPitch && !isSub) {
+        return {
+          ...lineup,
+          subs: [...lineup.subs, playerId],
+        };
+      }
+      return lineup;
+    });
+
+    const updatedSquad: MatchSquad = {
+      ...currentSquad,
+      selectedPlayerIds: updatedSelected,
+      restedPlayerIds: updatedRested,
+      lineupsByPeriod: updatedLineups,
+      manualOverrides: true,
+    };
+
+    setSelectedSwapSource(null);
+    await updateMatchSquad(updatedSquad);
+  };
+
+  // Remove a player from squad (move to rested)
+  const removePlayerFromSquad = async (playerId: string) => {
+    if (!activeFixture || !activeFixture.matchSquad) return;
+    const currentSquad = activeFixture.matchSquad;
+    if (!currentSquad.selectedPlayerIds.includes(playerId)) return;
+
+    const updatedSelected = currentSquad.selectedPlayerIds.filter((id) => id !== playerId);
+    const updatedRested = Array.from(new Set([...(currentSquad.restedPlayerIds || []), playerId]));
+
+    // Remove from pitch and bench across all periods
+    const updatedLineups = currentSquad.lineupsByPeriod.map((l) => ({
+      ...l,
+      onPitch: l.onPitch.filter((p) => p.playerId !== playerId),
+      subs: l.subs.filter((id) => id !== playerId),
+    }));
+
+    const updatedSquad: MatchSquad = {
+      ...currentSquad,
+      selectedPlayerIds: updatedSelected,
+      restedPlayerIds: updatedRested,
+      lineupsByPeriod: updatedLineups,
+      manualOverrides: true,
+    };
+
+    if (activeFixture.captainId === playerId) {
+      await setMatchCaptain(activeFixture.id, undefined);
+    }
+
+    setSelectedSwapSource(null);
+    await updateMatchSquad(updatedSquad);
+  };
+
+  // Swap players on pitch/sub/rested
   const handleSwap = (target: SwapSource) => {
     if (!selectedSwapSource || !activeFixture || !activeFixture.matchSquad) return;
     if (selectedSwapSource.playerId === target.playerId) {
       setSelectedSwapSource(null);
+      return;
+    }
+
+    const source = selectedSwapSource;
+
+    // Rested <-> Pitch or Sub
+    if (source.type === 'rested' && (target.type === 'pitch' || target.type === 'sub')) {
+      replaceSquadPlayer(target.playerId, source.playerId);
+      return;
+    }
+
+    // Pitch or Sub <-> Rested
+    if ((source.type === 'pitch' || source.type === 'sub') && target.type === 'rested') {
+      replaceSquadPlayer(source.playerId, target.playerId);
       return;
     }
 
@@ -437,7 +644,6 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const currentLineup = { ...currentSquad.lineupsByPeriod[periodIdx] };
     const onPitch = [...currentLineup.onPitch];
     const subs = [...currentLineup.subs];
-    const source = selectedSwapSource;
 
     // Pitch <-> Pitch
     if (source.type === 'pitch' && target.type === 'pitch') {
@@ -848,6 +1054,9 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setActiveFixtureId,
         selectSwapSource: setSelectedSwapSource,
         handleSwap,
+        replaceSquadPlayer,
+        addPlayerToSquad,
+        removePlayerFromSquad,
         autoRotateCurrentFixture,
         updateMatchSquad,
         createTeam,

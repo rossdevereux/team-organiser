@@ -54,6 +54,8 @@ export interface TeamSettings {
   currentSeason?: string; // e.g. '2026/2027'
   seasons?: string[]; // list of seasons created for the team, e.g. ['2025/2026', '2026/2027']
   defaultSubIntervalMinutes?: number; // default rotation interval, e.g. 10
+  kitPrimaryColor?: string; // Club primary kit colour (hex, e.g. '#1e3a8a')
+  kitSecondaryColor?: string; // Club secondary/trim kit colour (hex, e.g. '#f59e0b')
 }
 
 export interface Team {

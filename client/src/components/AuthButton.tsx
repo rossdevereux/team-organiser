@@ -70,39 +70,40 @@ export const AuthButton: React.FC<AuthButtonProps> = ({ onUserChange }) => {
   return (
     <div className="relative flex items-center shrink-0">
       {user ? (
-        <div className="h-9 flex items-center gap-2 bg-slate-900/80 border border-slate-800 rounded-xl px-2.5 shadow-md backdrop-blur-md shrink-0">
+        <div className="h-9 flex items-center gap-1.5 sm:gap-2 bg-slate-900/80 border border-slate-800 rounded-xl px-2 sm:px-2.5 shadow-md backdrop-blur-md shrink-0">
           {user.photoURL ? (
             <img
               src={user.photoURL}
               alt={user.displayName || 'User Avatar'}
-              className="w-6 h-6 rounded-lg object-cover ring-1 ring-sky-500/30 shrink-0"
+              className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg object-cover ring-1 ring-sky-500/30 shrink-0"
               referrerPolicy="no-referrer"
             />
           ) : (
-            <div className="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-[10px] ring-1 ring-sky-500/30 shrink-0">
-              <UserIcon className="w-3.5 h-3.5" />
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-[10px] ring-1 ring-sky-500/30 shrink-0">
+              <UserIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </div>
           )}
 
-          <div className="flex flex-col text-left">
-            <span className="text-[11px] font-semibold text-slate-200 leading-tight truncate max-w-[110px]">
+          <div className="hidden sm:flex flex-col text-left">
+            <span className="text-[11px] font-semibold text-slate-200 leading-tight truncate max-w-[65px] sm:max-w-[110px]">
               {user.displayName || 'Coach'}
             </span>
           </div>
 
           <button
             onClick={handleSignOut}
-            className="ml-1 flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium text-rose-300 hover:text-white bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className="ml-0.5 sm:ml-1 flex items-center gap-1 px-1.5 sm:px-2 py-0.5 text-[10px] font-medium text-rose-300 hover:text-white bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0"
             title="Sign out of Firebase"
           >
             <LogOut className="w-3 h-3 shrink-0" />
-            <span className="hidden sm:inline">Sign Out</span>
+            <span className="hidden md:inline">Sign Out</span>
           </button>
         </div>
       ) : (
         <button
           onClick={handleSignIn}
-          className="group relative h-9 flex items-center gap-2 px-3 text-xs font-semibold text-slate-100 bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 hover:border-sky-500/50 rounded-xl shadow-md hover:shadow-sky-500/10 transition-all cursor-pointer overflow-hidden whitespace-nowrap shrink-0"
+          className="group relative h-9 flex items-center justify-center gap-1.5 sm:gap-2 w-9 sm:w-auto px-0 sm:px-3 text-xs font-semibold text-slate-100 bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 hover:border-sky-500/50 rounded-xl shadow-md hover:shadow-sky-500/10 transition-all cursor-pointer overflow-hidden whitespace-nowrap shrink-0"
+          title="Sign in with Google"
         >
           {/* Subtle Google colored icon */}
           <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
@@ -123,8 +124,9 @@ export const AuthButton: React.FC<AuthButtonProps> = ({ onUserChange }) => {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          <span>Sign In with Google</span>
-          <LogIn className="w-3.5 h-3.5 text-slate-400 group-hover:text-sky-400 transition-colors shrink-0" />
+          <span className="hidden xl:inline">Sign In with Google</span>
+          <span className="hidden lg:inline xl:hidden text-xs">Sign In</span>
+          <LogIn className="w-3.5 h-3.5 text-slate-400 group-hover:text-sky-400 transition-colors shrink-0 hidden xl:inline" />
         </button>
       )}
 

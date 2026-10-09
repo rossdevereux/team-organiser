@@ -1,0 +1,210 @@
+/* ==========================================================================
+   DESIGN TOKEN ARCHITECTURE (SubShuffle Football Design System)
+   Context-driven CSS Custom Properties for Clubhouse, Touchline & Print modes
+   ========================================================================== */
+
+:root {
+  /* Brand / Kit Palette (Dynamically overridable by team settings) */
+  --kit-primary: #1e3a8a;       /* Club primary (e.g. Royal Blue) */
+  --kit-secondary: #f59e0b;     /* Club accent/trim (e.g. Amber Gold) */
+  --kit-primary-contrast: #ffffff;
+  --kit-secondary-contrast: #0f172a;
+
+  /* Context: Clubhouse (Default Admin) */
+  --surface-base: #f8fafc;
+  --surface-card: #ffffff;
+  --surface-card-hover: #f1f5f9;
+  --surface-card-subtle: #f8fafc;
+  --surface-border: #e2e8f0;
+  --surface-border-subtle: #cbd5e1;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --touch-target-min: 40px;
+  --density-padding: 0.75rem;
+  --density-gap: 0.75rem;
+
+  /* Football Position Category Tokens */
+  --pos-gk: #f59e0b;
+  --pos-gk-bg: rgba(245, 158, 11, 0.16);
+  --pos-gk-border: rgba(245, 158, 11, 0.45);
+  --pos-gk-text: #fbbf24;
+
+  --pos-def: #10b981;
+  --pos-def-bg: rgba(16, 185, 129, 0.16);
+  --pos-def-border: rgba(16, 185, 129, 0.45);
+  --pos-def-text: #34d399;
+
+  --pos-mid: #0ea5e9;
+  --pos-mid-bg: rgba(14, 165, 233, 0.16);
+  --pos-mid-border: rgba(14, 165, 233, 0.45);
+  --pos-mid-text: #38bdf8;
+
+  --pos-att: #f43f5e;
+  --pos-att-bg: rgba(244, 63, 94, 0.16);
+  --pos-att-border: rgba(244, 63, 94, 0.45);
+  --pos-att-text: #fb7185;
+
+  /* Tactical Pitch Tokens */
+  --pitch-turf-1: #113a1a;
+  --pitch-turf-2: #0d2e15;
+  --pitch-turf-3: #0a2310;
+  --pitch-border: #064e3b;
+  --pitch-line: rgba(255, 255, 255, 0.45);
+  --pitch-line-strong: rgba(255, 255, 255, 0.85);
+
+  /* Fair Play & Equal Game Time Compliance */
+  --compliance-met: #10b981;
+  --compliance-warning: #f59e0b;
+  --compliance-danger: #f43f5e;
+
+  /* Shadows & Glow */
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-dugout: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  --glow-tactical: 0 0 15px rgba(16, 185, 129, 0.35);
+  --glow-kit: 0 0 15px rgba(30, 58, 138, 0.4);
+
+  /* Radius Tokens */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+/* Context: Clubhouse Dark Mode (Midnight Dugout Admin) */
+[data-context="clubhouse"][data-mode="dark"],
+[data-mode="dark"] {
+  --surface-base: #090d16;
+  --surface-card: #0f172a;
+  --surface-card-hover: #1e293b;
+  --surface-card-subtle: #0b1120;
+  --surface-border: #1e293b;
+  --surface-border-subtle: #334155;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+}
+
+/* Context: Touchline / Dugout (High-contrast pitchside mode) */
+[data-context="touchline"] {
+  --surface-base: #064e3b;      /* Deep tactical pitch green */
+  --surface-card: #065f46;
+  --surface-card-hover: #047857;
+  --surface-card-subtle: #044332;
+  --surface-border: #10b981;
+  --surface-border-subtle: #34d399;
+  --text-main: #ffffff;
+  --text-muted: #a7f3d0;
+  --text-subtle: #6ee7b7;
+  --touch-target-min: 52px;     /* Larger buttons for mobile pitchside use */
+  --density-padding: 1.125rem;
+  --density-gap: 1rem;
+
+  --pitch-turf-1: #064e3b;
+  --pitch-turf-2: #065f46;
+  --pitch-turf-3: #044332;
+  --pitch-border: #10b981;
+  --pitch-line: rgba(255, 255, 255, 0.85);
+  --pitch-line-strong: #ffffff;
+
+  --shadow-card: 0 12px 30px -5px rgba(0, 0, 0, 0.6), 0 0 20px rgba(16, 185, 129, 0.25);
+  --shadow-dugout: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 30px rgba(16, 185, 129, 0.35);
+  --glow-tactical: 0 0 25px rgba(16, 185, 129, 0.55);
+}
+
+/* Context: Print & Match Card */
+[data-context="print"] {
+  --surface-base: #ffffff;
+  --surface-card: #ffffff;
+  --surface-card-hover: #ffffff;
+  --surface-card-subtle: #f8fafc;
+  --surface-border: #000000;
+  --surface-border-subtle: #475569;
+  --text-main: #000000;
+  --text-muted: #475569;
+  --text-subtle: #64748b;
+  --touch-target-min: 32px;
+  --density-padding: 0.5rem;
+  --density-gap: 0.5rem;
+
+  --pitch-turf-1: #ffffff;
+  --pitch-turf-2: #ffffff;
+  --pitch-turf-3: #ffffff;
+  --pitch-border: #000000;
+  --pitch-line: #000000;
+  --pitch-line-strong: #000000;
+
+  --pos-gk-text: #b45309;
+  --pos-def-text: #047857;
+  --pos-mid-text: #0369a1;
+  --pos-att-text: #be123c;
+}
+
+/* Density overrides */
+[data-density="compact"] {
+  --density-padding: 0.5rem;
+  --density-gap: 0.5rem;
+  --touch-target-min: 34px;
+}
+
+[data-density="normal"] {
+  --density-padding: 0.75rem;
+  --density-gap: 0.75rem;
+  --touch-target-min: 40px;
+}
+
+[data-density="touchline"] {
+  --density-padding: 1.125rem;
+  --density-gap: 1rem;
+  --touch-target-min: 52px;
+}
+
+/* Tailwind v4 theme bridge */
+@theme {
+  --color-kit-primary: var(--kit-primary);
+  --color-kit-secondary: var(--kit-secondary);
+  --color-kit-primary-contrast: var(--kit-primary-contrast);
+  --color-kit-secondary-contrast: var(--kit-secondary-contrast);
+
+  --color-surface-base: var(--surface-base);
+  --color-surface-card: var(--surface-card);
+  --color-surface-card-hover: var(--surface-card-hover);
+  --color-surface-card-subtle: var(--surface-card-subtle);
+  --color-surface-border: var(--surface-border);
+  --color-surface-border-subtle: var(--surface-border-subtle);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+
+  --color-pos-gk: var(--pos-gk);
+  --color-pos-gk-bg: var(--pos-gk-bg);
+  --color-pos-gk-border: var(--pos-gk-border);
+  --color-pos-gk-text: var(--pos-gk-text);
+
+  --color-pos-def: var(--pos-def);
+  --color-pos-def-bg: var(--pos-def-bg);
+  --color-pos-def-border: var(--pos-def-border);
+  --color-pos-def-text: var(--pos-def-text);
+
+  --color-pos-mid: var(--pos-mid);
+  --color-pos-mid-bg: var(--pos-mid-bg);
+  --color-pos-mid-border: var(--pos-mid-border);
+  --color-pos-mid-text: var(--pos-mid-text);
+
+  --color-pos-att: var(--pos-att);
+  --color-pos-att-bg: var(--pos-att-bg);
+  --color-pos-att-border: var(--pos-att-border);
+  --color-pos-att-text: var(--pos-att-text);
+
+  --color-pitch-turf-1: var(--pitch-turf-1);
+  --color-pitch-turf-2: var(--pitch-turf-2);
+  --color-pitch-turf-3: var(--pitch-turf-3);
+  --color-pitch-border: var(--pitch-border);
+
+  --color-compliance-met: var(--compliance-met);
+  --color-compliance-warning: var(--compliance-warning);
+  --color-compliance-danger: var(--compliance-danger);
+}

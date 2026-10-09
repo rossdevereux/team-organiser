@@ -89,6 +89,18 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const whistlePlayedWindow = useRef<number>(-1);
 
+  // Close on Escape key press
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   // Load suggested substitutions when fixture changes
   useEffect(() => {
     if (activeFixture) {
@@ -197,21 +209,21 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 backdrop-blur-md overflow-y-auto animate-fade-in ${
+      className={`fixed inset-0 z-50 flex items-start sm:items-center justify-center p-3 sm:p-6 py-6 sm:py-8 backdrop-blur-md overflow-y-auto animate-fade-in ${
         highContrast ? 'bg-black text-white' : 'bg-slate-950/90 text-white'
       }`}
     >
       <div
-        className={`relative w-full max-w-4xl rounded-3xl border shadow-2xl p-5 sm:p-7 space-y-6 flex flex-col ${
+        className={`relative w-full max-w-4xl rounded-3xl border shadow-2xl p-5 sm:p-7 space-y-6 flex flex-col my-auto ${
           highContrast
             ? 'bg-zinc-950 border-yellow-400 text-white shadow-yellow-500/10'
             : 'bg-slate-900 border-slate-800'
         }`}
       >
         {/* Top Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-          <div className="flex items-center gap-3">
-            <span className="flex h-3 w-3 relative">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="flex h-3 w-3 relative shrink-0">
               {isRunning && (
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               )}
@@ -221,8 +233,8 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
                 }`}
               />
             </span>
-            <div>
-              <div className="flex items-center gap-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-base sm:text-lg font-black tracking-tight text-white">
                   ⚡ Sideline Live Match & Sub Buzzer
                 </h2>
@@ -230,13 +242,13 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
                   vs {activeFixture.opponent}
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 truncate sm:whitespace-normal">
                 Outdoor pitch timer with automatic audio whistle substitution alerts and 1-tap sideline rotation.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {/* Outdoor Sunlight High Contrast Toggle */}
             <button
               type="button"
@@ -273,6 +285,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
               type="button"
               onClick={onClose}
               className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+              title="Close live match (Esc)"
             >
               <X className="w-4 h-4" />
             </button>

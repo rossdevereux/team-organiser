@@ -819,24 +819,29 @@ export const generateWhatsAppAnnouncement = (
       ? `2 Halves × ${settings.periodDurationMinutes} mins`
       : `${settings.matchPeriodCount} Periods × ${settings.periodDurationMinutes} mins`;
 
+  const sortFn = (a: Player, b: Player) => {
+    const numA = a.squadNumber ?? 9999;
+    const numB = b.squadNumber ?? 9999;
+    if (numA !== numB) return numA - numB;
+    return a.name.localeCompare(b.name);
+  };
+
   const selectedNames = (squad?.selectedPlayerIds || [])
-    .map((id) => {
-      const p = playerMap.get(id);
-      if (!p) return null;
+    .map((id) => playerMap.get(id))
+    .filter((p): p is Player => Boolean(p))
+    .sort(sortFn)
+    .map((p) => {
       const numStr = p.squadNumber ? `#${p.squadNumber} ` : '';
       const posStr = p.preferredPositions.length > 0 ? ` (${p.preferredPositions[0]})` : '';
       return `• ${numStr}${p.name}${posStr}`;
     })
-    .filter(Boolean)
     .join('\n');
 
   const restedNames = (squad?.restedPlayerIds || [])
-    .map((id) => {
-      const p = playerMap.get(id);
-      if (!p) return null;
-      return `• ${p.squadNumber ? `#${p.squadNumber} ` : ''}${p.name}`;
-    })
-    .filter(Boolean)
+    .map((id) => playerMap.get(id))
+    .filter((p): p is Player => Boolean(p))
+    .sort(sortFn)
+    .map((p) => `• ${p.squadNumber ? `#${p.squadNumber} ` : ''}${p.name}`)
     .join('\n');
 
   const captainPlayer = fixture.captainId ? playerMap.get(fixture.captainId) : null;

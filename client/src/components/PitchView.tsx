@@ -128,7 +128,7 @@ export const PitchView: React.FC = () => {
       )}
 
       {/* 2D Football Pitch */}
-      <div className="relative w-full aspect-[4/5] sm:aspect-[4/4.8] max-w-2xl mx-auto rounded-3xl overflow-hidden shadow-2xl border-4 border-emerald-950/80 bg-gradient-to-b from-[#113a1a] via-[#0d2e15] to-[#0a2310] select-none">
+      <div className="relative w-full aspect-[4/5] sm:aspect-[4/4.8] max-w-2xl mx-auto rounded-3xl overflow-hidden shadow-2xl border-4 border-[var(--pitch-border)] bg-gradient-to-b from-[var(--pitch-turf-1)] via-[var(--pitch-turf-2)] to-[var(--pitch-turf-3)] select-none transition-colors duration-200">
         {/* Grass Stripes Pattern */}
         <div className="absolute inset-0 opacity-20 pointer-events-none flex flex-col justify-between">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -147,31 +147,31 @@ export const PitchView: React.FC = () => {
         </div>
 
         {/* Pitch Boundary Markings */}
-        <div className="absolute inset-4 border-2 border-white/40 rounded-2xl pointer-events-none">
+        <div className="absolute inset-4 border-2 border-[var(--pitch-line)] rounded-2xl pointer-events-none transition-colors duration-200">
           {/* Halfway Line */}
-          <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-white/40 -translate-y-1/2" />
+          <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-[var(--pitch-line)] -translate-y-1/2" />
 
           {/* Centre Circle */}
-          <div className="absolute top-1/2 left-1/2 w-28 h-28 border-2 border-white/40 rounded-full -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white/60 rounded-full -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute top-1/2 left-1/2 w-28 h-28 border-2 border-[var(--pitch-line)] rounded-full -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-[var(--pitch-line)] rounded-full -translate-x-1/2 -translate-y-1/2" />
 
           {/* Top Penalty Box (Opponent End) */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 border-b-2 border-x-2 border-white/40 rounded-b-lg">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-10 border-b-2 border-x-2 border-white/40" />
-            <div className="absolute bottom-4 left-1/2 w-1.5 h-1.5 bg-white/60 rounded-full -translate-x-1/2" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 border-b-2 border-x-2 border-[var(--pitch-line)] rounded-b-lg">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-10 border-b-2 border-x-2 border-[var(--pitch-line)]" />
+            <div className="absolute bottom-4 left-1/2 w-1.5 h-1.5 bg-[var(--pitch-line)] rounded-full -translate-x-1/2" />
           </div>
 
           {/* Bottom Penalty Box (Home/Goalie End) */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-24 border-t-2 border-x-2 border-white/40 rounded-t-lg">
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-10 border-t-2 border-x-2 border-white/40" />
-            <div className="absolute top-4 left-1/2 w-1.5 h-1.5 bg-white/60 rounded-full -translate-x-1/2" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-48 h-24 border-t-2 border-x-2 border-[var(--pitch-line)] rounded-t-lg">
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-10 border-t-2 border-x-2 border-[var(--pitch-line)]" />
+            <div className="absolute top-4 left-1/2 w-1.5 h-1.5 bg-[var(--pitch-line)] rounded-full -translate-x-1/2" />
           </div>
 
           {/* Corner Arcs */}
-          <div className="absolute top-0 left-0 w-6 h-6 border-b-2 border-r-2 border-white/40 rounded-br-full" />
-          <div className="absolute top-0 right-0 w-6 h-6 border-b-2 border-l-2 border-white/40 rounded-bl-full" />
-          <div className="absolute bottom-0 left-0 w-6 h-6 border-t-2 border-r-2 border-white/40 rounded-tr-full" />
-          <div className="absolute bottom-0 right-0 w-6 h-6 border-t-2 border-l-2 border-white/40 rounded-tl-full" />
+          <div className="absolute top-0 left-0 w-6 h-6 border-b-2 border-r-2 border-[var(--pitch-line)] rounded-br-full" />
+          <div className="absolute top-0 right-0 w-6 h-6 border-b-2 border-l-2 border-[var(--pitch-line)] rounded-bl-full" />
+          <div className="absolute bottom-0 left-0 w-6 h-6 border-t-2 border-r-2 border-[var(--pitch-line)] rounded-tr-full" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-t-2 border-l-2 border-[var(--pitch-line)] rounded-tl-full" />
         </div>
 
         {/* Dynamic Pitch Nodes positioned via activeFormation */}

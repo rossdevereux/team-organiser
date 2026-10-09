@@ -111,7 +111,16 @@ export const RotationMatrix: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 font-medium">
-              {matchSquad.selectedPlayerIds.map((playerId) => {
+              {[...matchSquad.selectedPlayerIds]
+                .sort((idA, idB) => {
+                  const pA = playerMap.get(idA);
+                  const pB = playerMap.get(idB);
+                  const numA = typeof pA?.squadNumber === 'number' && !isNaN(pA.squadNumber) ? pA.squadNumber : 9999;
+                  const numB = typeof pB?.squadNumber === 'number' && !isNaN(pB.squadNumber) ? pB.squadNumber : 9999;
+                  if (numA !== numB) return numA - numB;
+                  return (pA?.name || '').localeCompare(pB?.name || '');
+                })
+                .map((playerId) => {
                 const player = playerMap.get(playerId);
                 const pStats = statsMap.get(playerId);
 
