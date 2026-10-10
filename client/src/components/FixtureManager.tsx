@@ -5,6 +5,8 @@ import { PostMatchModal } from './PostMatchModal';
 import { SuggestedSubsModal } from './SuggestedSubsModal';
 import { AllFixturesTable } from './AllFixturesTable';
 import { EditFixtureModal } from './EditFixtureModal';
+import { EmptyState } from './EmptyState';
+import { useToast } from '../context/ToastContext';
 import {
   Calendar,
   Plus,
@@ -40,6 +42,8 @@ export const FixtureManager: React.FC = () => {
     settings,
     createSeason,
   } = useMatchday();
+
+  const { showToast } = useToast();
 
   const currentDefaultSeason = settings.currentSeason || '2026/2027';
 
@@ -102,8 +106,9 @@ export const FixtureManager: React.FC = () => {
     e.preventDefault();
     if (!opponent.trim() || !date) return;
 
+    const oppName = opponent.trim();
     await createFixture({
-      opponent: opponent.trim(),
+      opponent: oppName,
       season: season.trim() || currentDefaultSeason,
       date,
       kickOffTime,
@@ -118,6 +123,7 @@ export const FixtureManager: React.FC = () => {
     setOpponent('');
     setGroundAddress('');
     setCaptainId('');
+    showToast(`Scheduled fixture vs ${oppName}!`, 'success');
   };
 
   const handleAddNewSeason = async (e: React.FormEvent) => {
@@ -660,30 +666,35 @@ export const FixtureManager: React.FC = () => {
 
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setEditingFixture(fixture);
                     }}
-                    className="p-1 rounded text-slate-400 hover:text-indigo-300 hover:bg-slate-800 transition cursor-pointer"
+                    className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl text-slate-400 hover:text-indigo-300 hover:bg-slate-800 transition cursor-pointer flex items-center justify-center"
                     title="Edit fixture logistics & details"
+                    aria-label={`Edit fixture vs ${fixture.opponent}`}
                   >
-                    <Edit3 className="w-3.5 h-3.5" />
+                    <Edit3 className="w-4 h-4" />
                   </button>
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       if (confirm(`Delete fixture vs ${fixture.opponent}? This action cannot be undone.`)) {
                         deleteFixture(fixture.id);
+                        showToast(`Removed fixture vs ${fixture.opponent}`, 'info');
                       }
                     }}
-                    className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer"
+                    className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer flex items-center justify-center"
                     title="Delete fixture"
+                    aria-label={`Delete fixture vs ${fixture.opponent}`}
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
-                  <span className="text-sky-400 font-semibold flex items-center text-[11px]">
+                  <span className="text-sky-400 font-semibold flex items-center text-xs">
                     <span>Lineup</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <ChevronRight className="w-4 h-4" />
                   </span>
                 </div>
               </div>
@@ -693,9 +704,20 @@ export const FixtureManager: React.FC = () => {
       </div>
 
       {filteredFixtures.length === 0 && (
-        <div className="p-12 text-center rounded-2xl bg-slate-900/40 border border-dashed border-slate-800 text-slate-400 text-xs">
-          No fixtures found for season "{selectedSeasonFilter}". Click "New Fixture" to schedule one.
-        </div>
+        <EmptyState
+          variant="fixtures"
+          title="No Fixtures Scheduled"
+          description={
+            selectedSeasonFilter === 'ALL'
+              ? 'Schedule your upcoming league or friendly matches to generate tactical player rotations and lineups.'
+              : `No fixtures found for season ${selectedSeasonFilter}. Schedule a match or select another season filter.`
+          }
+          action={{
+            label: 'Schedule Match',
+            onClick: () => setIsAdding(true),
+            icon: Plus,
+          }}
+        />
       )}
         </>
       )}

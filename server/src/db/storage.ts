@@ -1,10 +1,36 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Player, TeamSettings, Fixture, MatchSquad, Team, PostMatchRecording } from '../types.js';
+import {
+  Player,
+  TeamSettings,
+  Fixture,
+  MatchSquad,
+  Team,
+  PostMatchRecording,
+  ClubSettings,
+  AdminUser,
+  BackupData,
+} from '../types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Default club settings for the organization
+export const DEFAULT_CLUB_SETTINGS: ClubSettings = {
+  clubName: 'The Rovers Football Club',
+  clubShortCode: 'RFC',
+  badgeInitials: 'RFC',
+  badgeUrl: '',
+  primaryColor: '#0284c7', // Sky Blue
+  secondaryColor: '#f59e0b', // Amber
+  defaultPitchPlayerCount: 7,
+  minGameTimePercent: 50,
+  contactEmail: 'admin@therovers.local',
+  welfareOfficer: 'Club Child Welfare Officer',
+  publicGuestView: true,
+  updatedAt: new Date().toISOString(),
+};
 
 // Data directory for local persistence fallback
 const DATA_DIR = path.resolve(__dirname, '../../data');
@@ -453,6 +479,8 @@ interface DataStore {
   players: Player[];
   settings: TeamSettings;
   fixtures: Fixture[];
+  clubSettings?: ClubSettings;
+  adminUsers?: AdminUser[];
 }
 
 class StorageManager {
@@ -466,6 +494,8 @@ class StorageManager {
       players: SEED_PLAYERS,
       settings: DEFAULT_SETTINGS,
       fixtures: SEED_FIXTURES,
+      clubSettings: DEFAULT_CLUB_SETTINGS,
+      adminUsers: [],
     };
     this.initStorage();
   }
@@ -498,7 +528,14 @@ class StorageManager {
         const raw = fs.readFileSync(STORE_FILE, 'utf-8');
         const parsed = JSON.parse(raw);
         if (parsed.teams && parsed.players && parsed.fixtures) {
-          this.memoryStore = parsed;
+          this.memoryStore = {
+            teams: parsed.teams,
+            players: parsed.players,
+            settings: parsed.settings || DEFAULT_SETTINGS,
+            fixtures: parsed.fixtures,
+            clubSettings: parsed.clubSettings || DEFAULT_CLUB_SETTINGS,
+            adminUsers: parsed.adminUsers || [],
+          };
           console.log(` Loaded ${this.memoryStore.teams.length} teams, ${this.memoryStore.players.length} players, and ${this.memoryStore.fixtures.length} fixtures from file.`);
           return;
         }
@@ -820,6 +857,106 @@ class StorageManager {
       }
     }
     return this.memoryStore.fixtures.length < prevLen;
+  }
+
+  // ================= Club Settings & Brand Identity =================
+  async getClubSettings(): Promise<ClubSettings> {
+    return this.memoryStore.clubSettings || DEFAULT_CLUB_SETTINGS;
+  }
+
+  async updateClubSettings(updates: Partial<ClubSettings>): Promise<ClubSettings> {
+    const current = this.memoryStore.clubSettings || DEFAULT_CLUB_SETTINGS;
+    const updated: ClubSettings = {
+      ...current,
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    };
+    this.memoryStore.clubSettings = updated;
+    this.saveToFile();
+    return updated;
+  }
+
+  // ================= Admin Users & Custom Claims Registry =================
+  async getAdminUsers(): Promise<AdminUser[]> {
+    return this.memoryStore.adminUsers || [];
+  }
+
+  async getAdminUserByUid(uid: string): Promise<AdminUser | null> {
+    const users = this.memoryStore.adminUsers || [];
+    return users.find((u) => u.uid === uid) || null;
+  }
+
+  async upsertAdminUser(user: Partial<AdminUser> & { uid: string }): Promise<AdminUser> {
+    if (!this.memoryStore.adminUsers) {
+      this.memoryStore.adminUsers = [];
+    }
+    const idx = this.memoryStore.adminUsers.findIndex((u) => u.uid === user.uid);
+    let result: AdminUser;
+    if (idx >= 0) {
+      result = {
+        ...this.memoryStore.adminUsers[idx],
+        ...user,
+      };
+      this.memoryStore.adminUsers[idx] = result;
+    } else {
+      result = {
+        email: 'user@therovers.local',
+        displayName: 'Club Member',
+        role: 'viewer',
+        creationTime: new Date().toISOString(),
+        lastSignInTime: new Date().toISOString(),
+        ...user,
+        uid: user.uid,
+      };
+      this.memoryStore.adminUsers.push(result);
+    }
+    this.saveToFile();
+    return result;
+  }
+
+  async deleteAdminUser(uid: string): Promise<boolean> {
+    if (!this.memoryStore.adminUsers) return false;
+    const prevLen = this.memoryStore.adminUsers.length;
+    this.memoryStore.adminUsers = this.memoryStore.adminUsers.filter((u) => u.uid !== uid);
+    this.saveToFile();
+    return this.memoryStore.adminUsers.length < prevLen;
+  }
+
+  // ================= System Backups & Disaster Recovery =================
+  async exportBackup(): Promise<BackupData> {
+    return {
+      exportedAt: new Date().toISOString(),
+      version: '1.0.0',
+      clubSettings: this.memoryStore.clubSettings || DEFAULT_CLUB_SETTINGS,
+      teams: this.memoryStore.teams,
+      players: this.memoryStore.players,
+      fixtures: this.memoryStore.fixtures,
+      users: this.memoryStore.adminUsers || [],
+    };
+  }
+
+  async restoreBackup(backup: BackupData): Promise<{ teams: number; players: number; fixtures: number }> {
+    if (!backup || !Array.isArray(backup.teams) || !Array.isArray(backup.players) || !Array.isArray(backup.fixtures)) {
+      throw new Error('Invalid backup file format. Expected teams, players, and fixtures arrays.');
+    }
+
+    this.memoryStore.teams = backup.teams;
+    this.memoryStore.players = backup.players;
+    this.memoryStore.fixtures = backup.fixtures;
+    if (backup.clubSettings) {
+      this.memoryStore.clubSettings = backup.clubSettings;
+    }
+    if (backup.users && Array.isArray(backup.users)) {
+      this.memoryStore.adminUsers = backup.users;
+    }
+
+    this.saveToFile();
+
+    return {
+      teams: this.memoryStore.teams.length,
+      players: this.memoryStore.players.length,
+      fixtures: this.memoryStore.fixtures.length,
+    };
   }
 }
 

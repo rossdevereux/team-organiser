@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { requireAuth, optionalAuth, AuthenticatedRequest } from './middleware/auth.js';
 
 import apiRouter from './routes/api.js';
+import adminRouter from './routes/admin.js';
 
 dotenv.config();
 
@@ -78,6 +79,9 @@ app.get('/api/user/profile', requireAuth, (req: AuthenticatedRequest, res: Respo
 
 // Mount SubShuffle full-stack API routes
 app.use('/api', apiRouter);
+
+// Mount SubShuffle RBAC Admin routes (Users, Club Settings, Backups)
+app.use('/api/admin', adminRouter);
 
 // Fallback for unmatched /api routes
 app.all('/api/*', (_req: Request, res: Response) => {

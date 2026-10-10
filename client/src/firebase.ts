@@ -34,3 +34,48 @@ export const getAuthToken = async (): Promise<string | null> => {
     return null;
   }
 };
+
+export type UserRole = 'owner' | 'coach' | 'viewer';
+
+/**
+ * Extracts the user's role from Firebase Custom Claims in their verified JWT ID token.
+ * Uses `user.getIdTokenResult(forceRefresh)` to ensure zero-database lookup.
+ */
+export const getUserRoleFromToken = async (
+  user: any | null,
+  forceRefresh: boolean = false
+): Promise<UserRole> => {
+  if (!user) return 'viewer';
+
+  // Check URL query param override for instant local testing/debugging (e.g. ?role=owner)
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramRole = urlParams.get('role');
+    if (paramRole === 'owner' || paramRole === 'coach' || paramRole === 'viewer') {
+      return paramRole;
+    }
+    const storedRole = localStorage.getItem('subshuffle_role_override');
+    if (storedRole === 'owner' || storedRole === 'coach' || storedRole === 'viewer') {
+      return storedRole;
+    }
+  }
+
+  try {
+    if (typeof user.getIdTokenResult === 'function') {
+      const idTokenResult = await user.getIdTokenResult(forceRefresh);
+      const claimRole = idTokenResult.claims?.role as UserRole;
+      if (claimRole && ['owner', 'coach', 'viewer'].includes(claimRole)) {
+        return claimRole;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not inspect Firebase token claims:', err);
+  }
+
+  // Fallback for development if email matches or default
+  if (user.email && (user.email.includes('admin') || user.email.includes('owner'))) {
+    return 'owner';
+  }
+
+  return 'coach';
+};

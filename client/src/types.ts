@@ -178,3 +178,42 @@ export interface SuggestedSubPlan {
   strategyDescription: string;
   windows: SuggestedSubWindow[];
 }
+
+// Role-Based Access Control (RBAC) & Custom Claims Models
+export type UserRole = 'owner' | 'coach' | 'viewer';
+
+export interface AdminUser {
+  uid: string;
+  email: string;
+  displayName?: string;
+  photoURL?: string;
+  role: UserRole;
+  disabled?: boolean;
+  creationTime?: string;
+  lastSignInTime?: string;
+}
+
+export interface ClubSettings {
+  clubName: string;
+  clubShortCode: string;
+  badgeInitials?: string;
+  badgeUrl?: string;
+  primaryColor: string;
+  secondaryColor: string;
+  defaultPitchPlayerCount: number;
+  minGameTimePercent: number;
+  contactEmail?: string;
+  welfareOfficer?: string;
+  publicGuestView: boolean;
+  updatedAt?: string;
+}
+
+export interface BackupData {
+  exportedAt: string;
+  version: string;
+  clubSettings?: ClubSettings;
+  teams: Team[];
+  players: Player[];
+  fixtures: Fixture[];
+  users?: AdminUser[];
+}

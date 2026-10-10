@@ -15,6 +15,7 @@ import {
   Share2,
   Zap,
   WifiOff,
+  Crown,
 } from 'lucide-react';
 import { ContextSwitcher } from '../design-system';
 
@@ -26,6 +27,7 @@ interface NavbarProps {
   onOpenCustomFormation: () => void;
   onOpenLiveMatch?: () => void;
   onOpenShowcase?: () => void;
+  onAutoRotate?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -36,6 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCustomFormation,
   onOpenLiveMatch,
   onOpenShowcase,
+  onAutoRotate,
 }) => {
   const {
     teams,
@@ -357,6 +360,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Shield className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Teams & Sharing</span>
               </button>
+              <button
+                onClick={() => setActiveTab('admin')}
+                className={`h-7 px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap gap-1.5 ${
+                  activeTab === 'admin'
+                    ? 'bg-amber-600 text-white shadow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Club Administration & RBAC Portal"
+              >
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                <span>Admin Portal</span>
+              </button>
             </div>
           </div>
 
@@ -407,7 +422,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               <button
-                onClick={() => autoRotateCurrentFixture()}
+                onClick={() => (onAutoRotate ? onAutoRotate() : autoRotateCurrentFixture())}
                 className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-md transition cursor-pointer whitespace-nowrap flex items-center gap-1.5"
                 title="Re-balance playing time automatically"
               >

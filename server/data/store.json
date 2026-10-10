@@ -27,7 +27,7 @@
         "currentSeason": "2027/2028"
       },
       "createdAt": "2026-10-07T19:43:57.081Z",
-      "updatedAt": "2026-10-09T06:36:42.648Z"
+      "updatedAt": "2026-10-10T10:21:39.981Z"
     },
     {
       "id": "team-2",
@@ -218,6 +218,405 @@
         "customFormations": []
       },
       "createdAt": "2026-10-09T06:36:54.497Z"
+    },
+    {
+      "id": "team_1791623676416_a17c",
+      "name": "Stingrays FC U11-6318",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:14:36.416Z"
+    },
+    {
+      "id": "team_1791623726745_x9pi",
+      "name": "Stingrays FC U11-6657",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:15:26.745Z"
+    },
+    {
+      "id": "team_1791623771195_01p9",
+      "name": "Stingrays FC U11-1050",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:16:11.195Z"
+    },
+    {
+      "id": "team_1791623969052_7x1h",
+      "name": "Stingrays FC U11-8951",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:19:29.052Z"
+    },
+    {
+      "id": "team_1791624014893_553q",
+      "name": "Stingrays FC U11-4798",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:20:14.893Z"
+    },
+    {
+      "id": "team_1791624054598_w692",
+      "name": "Stingrays FC U11-4509",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:20:54.598Z"
+    },
+    {
+      "id": "team_1791624539150_6wqq",
+      "name": "Stingrays FC U11-9050",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:28:59.150Z"
+    },
+    {
+      "id": "team_1791624582743_xk0g",
+      "name": "Stingrays FC U11-2659",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:29:42.743Z"
+    },
+    {
+      "id": "team_1791624621676_jpna",
+      "name": "Stingrays FC U11-1552",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:30:21.676Z"
+    },
+    {
+      "id": "team_1791624796720_em8g",
+      "name": "Stingrays FC U11-6629",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:33:16.720Z"
+    },
+    {
+      "id": "team_1791624838314_huvy",
+      "name": "Stingrays FC U11-8242",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:33:58.314Z"
+    },
+    {
+      "id": "team_1791624874435_eqts",
+      "name": "Stingrays FC U11-4344",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:34:34.435Z"
+    },
+    {
+      "id": "team_1791626214585_k58g",
+      "name": "Stingrays FC U11-4467",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:56:54.585Z"
+    },
+    {
+      "id": "team_1791626274442_jopm",
+      "name": "Stingrays FC U11-4353",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:57:54.442Z"
+    },
+    {
+      "id": "team_1791626325594_2n64",
+      "name": "Stingrays FC U11-5455",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T09:58:45.594Z"
+    },
+    {
+      "id": "team_1791626426020_p13n",
+      "name": "Stingrays FC U11-5890",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T10:00:26.020Z"
+    },
+    {
+      "id": "team_1791626478853_ap6a",
+      "name": "Stingrays FC U11-8751",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T10:01:18.853Z"
+    },
+    {
+      "id": "team_1791626525064_6t33",
+      "name": "Stingrays FC U11-4926",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T10:02:05.064Z"
+    },
+    {
+      "id": "team_1791627608711_kx3o",
+      "name": "Stingrays FC U11-8565",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T10:20:08.711Z"
+    },
+    {
+      "id": "team_1791627668302_h7zg",
+      "name": "Stingrays FC U11-8189",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T10:21:08.302Z"
+    },
+    {
+      "id": "team_1791627717251_n30e",
+      "name": "Stingrays FC U11-7096",
+      "ageGroup": "U11",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": []
+      },
+      "createdAt": "2026-10-10T10:21:57.251Z"
     }
   ],
   "players": [
@@ -750,6 +1149,294 @@
       "unavailableDates": [],
       "matchesPlayed": 0,
       "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791623669698_w2pu",
+      "teamId": "team-1",
+      "name": "Test Star 9636",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791623718444_hr4u",
+      "teamId": "team-1",
+      "name": "Test Star 8394",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791623763979_banf",
+      "teamId": "team-1",
+      "name": "Test Star 3907",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791623832917_7th4",
+      "teamId": "team-1",
+      "name": "Test Star 2808",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791623839074_y88z",
+      "teamId": "team-1",
+      "name": "Test Star 8963",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791623845056_e5sz",
+      "teamId": "team-1",
+      "name": "Test Star 4982",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791623964438_idy7",
+      "teamId": "team-1",
+      "name": "Test Star 4359",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791624006816_js07",
+      "teamId": "team-1",
+      "name": "Test Star 6762",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791624049465_e6mm",
+      "teamId": "team-1",
+      "name": "Test Star 9402",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791624534266_cm69",
+      "teamId": "team-1",
+      "name": "Test Star 4182",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791624576563_1c0b",
+      "teamId": "team-1",
+      "name": "Test Star 6504",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791624616943_m3zb",
+      "teamId": "team-1",
+      "name": "Test Star 6862",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791624791970_j18u",
+      "teamId": "team-1",
+      "name": "Test Star 1895",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791624831666_fzgk",
+      "teamId": "team-1",
+      "name": "Test Star 1594",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791624869355_ncj8",
+      "teamId": "team-1",
+      "name": "Test Star 9273",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791626208584_vqs2",
+      "teamId": "team-1",
+      "name": "Test Star 8499",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791626266092_api9",
+      "teamId": "team-1",
+      "name": "Test Star 6006",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791626319442_rksj",
+      "teamId": "team-1",
+      "name": "Test Star 9344",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791626420406_px9p",
+      "teamId": "team-1",
+      "name": "Test Star 0327",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791626471435_zk7p",
+      "teamId": "team-1",
+      "name": "Test Star 1374",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791626519384_w2j4",
+      "teamId": "team-1",
+      "name": "Test Star 9291",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791627603385_fdc3",
+      "teamId": "team-1",
+      "name": "Test Star 3305",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791627661336_rjhm",
+      "teamId": "team-1",
+      "name": "Test Star 1235",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1791627711685_9z1a",
+      "teamId": "team-1",
+      "name": "Test Star 1607",
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
     }
   ],
   "settings": {
@@ -763,6 +1450,2812 @@
     "customFormations": []
   },
   "fixtures": [
+    {
+      "id": "fix_1791627681506_w1mg",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 1396",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791627681506_w1mg",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p_1791624791970_j18u",
+          "p_1791624831666_fzgk",
+          "p_1791624869355_ncj8",
+          "p_1791626208584_vqs2",
+          "p_1791626266092_api9",
+          "p_1791626319442_rksj",
+          "p_1791626420406_px9p",
+          "p_1791626471435_zk7p",
+          "p_1791626519384_w2j4",
+          "p_1791627603385_fdc3",
+          "p_1791627661336_rjhm",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791627620741_nwz6",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 0442",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791627620741_nwz6",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p_1791624791970_j18u",
+          "p_1791624831666_fzgk",
+          "p_1791624869355_ncj8",
+          "p_1791626208584_vqs2",
+          "p_1791626266092_api9",
+          "p_1791626319442_rksj",
+          "p_1791626420406_px9p",
+          "p_1791626471435_zk7p",
+          "p_1791626519384_w2j4",
+          "p_1791627603385_fdc3",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791627570544_7pmb",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 0434",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791627570544_7pmb",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p_1791624791970_j18u",
+          "p_1791624831666_fzgk",
+          "p_1791624869355_ncj8",
+          "p_1791626208584_vqs2",
+          "p_1791626266092_api9",
+          "p_1791626319442_rksj",
+          "p_1791626420406_px9p",
+          "p_1791626471435_zk7p",
+          "p_1791626519384_w2j4",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791626491870_ossy",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 1758",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791626491870_ossy",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p_1791624791970_j18u",
+          "p_1791624831666_fzgk",
+          "p_1791624869355_ncj8",
+          "p_1791626208584_vqs2",
+          "p_1791626266092_api9",
+          "p_1791626319442_rksj",
+          "p_1791626420406_px9p",
+          "p_1791626471435_zk7p",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791626438735_3wx1",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 8528",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791626438735_3wx1",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p_1791624791970_j18u",
+          "p_1791624831666_fzgk",
+          "p_1791624869355_ncj8",
+          "p_1791626208584_vqs2",
+          "p_1791626266092_api9",
+          "p_1791626319442_rksj",
+          "p_1791626420406_px9p",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791626392206_kety",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 1957",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791626392206_kety",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p_1791624791970_j18u",
+          "p_1791624831666_fzgk",
+          "p_1791624869355_ncj8",
+          "p_1791626208584_vqs2",
+          "p_1791626266092_api9",
+          "p_1791626319442_rksj",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791626289101_n2rl",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 8840",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791626289101_n2rl",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p_1791624791970_j18u",
+          "p_1791624831666_fzgk",
+          "p_1791624869355_ncj8",
+          "p_1791626208584_vqs2",
+          "p_1791626266092_api9",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791626227161_0rgv",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 6932",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791626227161_0rgv",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p_1791624791970_j18u",
+          "p_1791624831666_fzgk",
+          "p_1791624869355_ncj8",
+          "p_1791626208584_vqs2",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791626179581_c8kj",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 9475",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791626179581_c8kj",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p_1791624791970_j18u",
+          "p_1791624831666_fzgk",
+          "p_1791624869355_ncj8",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791624849332_53pv",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 9258",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791624849332_53pv",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p_1791624791970_j18u",
+          "p_1791624831666_fzgk",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791624807001_a0uf",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 6918",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791624807001_a0uf",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p_1791624791970_j18u",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791624766822_j2gt",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 6733",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791624766822_j2gt",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791624593258_v0f2",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 3189",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791624593258_v0f2",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791624548795_cvcy",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 8696",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791624548795_cvcy",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791624509730_p2j5",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 9656",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791624509730_p2j5",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791624025654_cq5g",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 5580",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791624025654_cq5g",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791623980984_6xn1",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 0901",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791623980984_6xn1",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791623941874_0b64",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 1808",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791623941874_0b64",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791623738695_udvf",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 8623",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791623738695_udvf",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791623689517_wjg3",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 9286",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791623689517_wjg3",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
+    {
+      "id": "fix_1791623645274_2x7e",
+      "teamId": "team-1",
+      "season": "2027/2028",
+      "date": "2026-10-10",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Hawks Utd 5131",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchSquad": {
+        "fixtureId": "fix_1791623645274_2x7e",
+        "selectedPlayerIds": [
+          "p6",
+          "p_1791405071699_pine",
+          "p_1791405071707_6s07",
+          "p_1791405071721_7k0q",
+          "p_1791526815288_o19j",
+          "p_1791527288800_6sa9",
+          "p_1791527367480_s75w",
+          "p_1791527517158_cdc7",
+          "p_1791527671403_kawn",
+          "p_1791527705450_3lsl"
+        ],
+        "restedPlayerIds": [
+          "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p12",
+          "p13",
+          "p11",
+          "p3",
+          "p7",
+          "p2",
+          "p10",
+          "p4",
+          "p8",
+          "p1",
+          "p9",
+          "p5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791527288800_6sa9",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527367480_s75w",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn",
+              "p_1791527705450_3lsl"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1791405071707_6s07",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1791527705450_3lsl",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1791405071721_7k0q",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791405071699_pine",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1791526815288_o19j",
+              "p_1791527288800_6sa9",
+              "p_1791527367480_s75w"
+            ]
+          }
+        ],
+        "manualOverrides": false
+      }
+    },
     {
       "id": "fix_1791527785080_4xke",
       "teamId": "team-1",
@@ -789,6 +4282,30 @@
         ],
         "restedPlayerIds": [
           "p_1791527735800_k8ba",
+          "p_1791527809779_vx4z",
+          "p_1791623669698_w2pu",
+          "p_1791623718444_hr4u",
+          "p_1791623763979_banf",
+          "p_1791623832917_7th4",
+          "p_1791623839074_y88z",
+          "p_1791623845056_e5sz",
+          "p_1791623964438_idy7",
+          "p_1791624006816_js07",
+          "p_1791624049465_e6mm",
+          "p_1791624534266_cm69",
+          "p_1791624576563_1c0b",
+          "p_1791624616943_m3zb",
+          "p_1791624791970_j18u",
+          "p_1791624831666_fzgk",
+          "p_1791624869355_ncj8",
+          "p_1791626208584_vqs2",
+          "p_1791626266092_api9",
+          "p_1791626319442_rksj",
+          "p_1791626420406_px9p",
+          "p_1791626471435_zk7p",
+          "p_1791626519384_w2j4",
+          "p_1791627603385_fdc3",
+          "p_1791627661336_rjhm",
           "p12",
           "p13",
           "p11",
@@ -2976,6 +6493,134 @@
         ],
         "manualOverrides": false
       }
+    }
+  ],
+  "clubSettings": {
+    "clubName": "The Rovers Football Club",
+    "clubShortCode": "RFC",
+    "badgeInitials": "RFC",
+    "badgeUrl": "",
+    "primaryColor": "#0284c7",
+    "secondaryColor": "#f59e0b",
+    "defaultPitchPlayerCount": 7,
+    "minGameTimePercent": 50,
+    "contactEmail": "admin@therovers.local",
+    "welfareOfficer": "Club Child Welfare Officer",
+    "publicGuestView": true,
+    "updatedAt": "2026-10-10T10:10:41.625Z"
+  },
+  "adminUsers": [
+    {
+      "email": "admin@therovers.local",
+      "displayName": "Head Coach & Club Owner",
+      "role": "owner",
+      "creationTime": "2026-10-10T10:18:00.965Z",
+      "lastSignInTime": "2026-10-10T10:18:00.965Z",
+      "uid": "dev-owner-1"
+    },
+    {
+      "email": "coach.dave@therovers.local",
+      "displayName": "Dave Miller (U10 Assistant)",
+      "role": "coach",
+      "creationTime": "2026-10-10T10:18:00.965Z",
+      "lastSignInTime": "2026-10-10T10:18:00.965Z",
+      "uid": "dev-coach-1"
+    },
+    {
+      "email": "parent.sarah@therovers.local",
+      "displayName": "Sarah Jenkins (Parent Rep)",
+      "role": "viewer",
+      "creationTime": "2026-10-10T10:18:00.965Z",
+      "lastSignInTime": "2026-10-10T10:18:00.965Z",
+      "uid": "dev-viewer-1"
+    },
+    {
+      "email": "newcoach@therovers.local",
+      "displayName": "New Assistant Coach",
+      "role": "coach",
+      "creationTime": "2026-10-10T10:18:09.385Z",
+      "lastSignInTime": "2026-10-10T10:18:09.385Z",
+      "uid": "user_1791627489382_qqar"
+    },
+    {
+      "email": "newcoach@therovers.local",
+      "displayName": "New Assistant Coach",
+      "role": "coach",
+      "creationTime": "2026-10-10T10:18:27.470Z",
+      "lastSignInTime": "2026-10-10T10:18:27.470Z",
+      "uid": "user_1791627507468_tas8"
+    },
+    {
+      "email": "newcoach@therovers.local",
+      "displayName": "New Assistant Coach",
+      "role": "coach",
+      "creationTime": "2026-10-10T10:18:34.191Z",
+      "lastSignInTime": "2026-10-10T10:18:34.191Z",
+      "uid": "user_1791627514189_980r"
+    },
+    {
+      "email": "newcoach@therovers.local",
+      "displayName": "New Assistant Coach",
+      "role": "coach",
+      "creationTime": "2026-10-10T10:18:42.074Z",
+      "lastSignInTime": "2026-10-10T10:18:42.074Z",
+      "uid": "user_1791627522072_uq39"
+    },
+    {
+      "email": "newcoach@therovers.local",
+      "displayName": "New Assistant Coach",
+      "role": "coach",
+      "creationTime": "2026-10-10T10:18:49.254Z",
+      "lastSignInTime": "2026-10-10T10:18:49.254Z",
+      "uid": "user_1791627529252_0od1"
+    },
+    {
+      "email": "newcoach_1791627544711@therovers.local",
+      "displayName": "New Assistant Coach",
+      "role": "coach",
+      "creationTime": "2026-10-10T10:19:04.859Z",
+      "lastSignInTime": "2026-10-10T10:19:04.859Z",
+      "uid": "user_1791627544857_wpvq"
+    },
+    {
+      "email": "newcoach_1791627551341@therovers.local",
+      "displayName": "New Assistant Coach",
+      "role": "coach",
+      "creationTime": "2026-10-10T10:19:11.436Z",
+      "lastSignInTime": "2026-10-10T10:19:11.436Z",
+      "uid": "user_1791627551433_jz0c"
+    },
+    {
+      "email": "newcoach_1791627556777@therovers.local",
+      "displayName": "New Assistant Coach",
+      "role": "coach",
+      "creationTime": "2026-10-10T10:19:16.884Z",
+      "lastSignInTime": "2026-10-10T10:19:16.884Z",
+      "uid": "user_1791627556882_1lme"
+    },
+    {
+      "email": "newcoach_1791627595874@therovers.local",
+      "displayName": "New Assistant Coach",
+      "role": "coach",
+      "creationTime": "2026-10-10T10:19:55.975Z",
+      "lastSignInTime": "2026-10-10T10:19:55.975Z",
+      "uid": "user_1791627595973_0yxz"
+    },
+    {
+      "email": "newcoach_1791627651243@therovers.local",
+      "displayName": "New Assistant Coach",
+      "role": "coach",
+      "creationTime": "2026-10-10T10:20:51.368Z",
+      "lastSignInTime": "2026-10-10T10:20:51.369Z",
+      "uid": "user_1791627651366_cvx9"
+    },
+    {
+      "email": "newcoach_1791627704140@therovers.local",
+      "displayName": "New Assistant Coach",
+      "role": "coach",
+      "creationTime": "2026-10-10T10:21:44.227Z",
+      "lastSignInTime": "2026-10-10T10:21:44.227Z",
+      "uid": "user_1791627704224_yjjb"
     }
   ]
 }

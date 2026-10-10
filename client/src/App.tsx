@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MatchdayProvider, useMatchday } from './context/MatchdayContext';
+import { ToastProvider, useToast } from './context/ToastContext';
+import { ConfirmModal } from './components/ConfirmModal';
 import { Navbar } from './components/Navbar';
 import { PitchView } from './components/PitchView';
 import { BenchView } from './components/BenchView';
@@ -18,6 +20,10 @@ import { SuggestedSubsModal } from './components/SuggestedSubsModal';
 import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 import { LiveMatchModal } from './components/LiveMatchModal';
 import { EditFixtureModal } from './components/EditFixtureModal';
+import { LandingHero } from './components/LandingHero';
+import { AuthButton } from './components/AuthButton';
+import { AdminRoute } from './components/AdminRoute';
+import { AdminPortal } from './components/AdminPortal';
 import { DesignSystemProvider, DesignSystemShowcase, useDesignSystem } from './design-system';
 import {
   Users,
@@ -40,6 +46,9 @@ import {
   Palette,
   Edit3,
   Printer,
+  RotateCcw,
+  MessageSquare,
+  X,
 } from 'lucide-react';
 
 function DashboardContent() {
@@ -54,11 +63,18 @@ function DashboardContent() {
     isOffline,
     currentUser,
     autoRotateCurrentFixture,
+    undoAutoRotate,
+    resetMatchSheet,
+    setActivePeriod,
+    selectedSwapSource,
+    selectSwapSource,
     setActiveTab,
   } = useMatchday();
 
   const { context, setContext } = useDesignSystem();
+  const { showToast } = useToast();
 
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const [whatsAppOpen, setWhatsAppOpen] = useState(false);
   const [printOpen, setPrintOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -70,6 +86,73 @@ function DashboardContent() {
   const [liveMatchOpen, setLiveMatchOpen] = useState(false);
   const [showcaseOpen, setShowcaseOpen] = useState(false);
   const [editActiveFixtureOpen, setEditActiveFixtureOpen] = useState(false);
+
+  const [showLanding, setShowLanding] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('landing') === 'true') return true;
+    if (params.get('tab') || params.get('team') || params.get('fixture') || params.get('demo') === 'true') {
+      return false;
+    }
+    if (sessionStorage.getItem('subshuffle_demo_entered') === 'true') {
+      return false;
+    }
+    if (navigator.webdriver && params.get('landing') !== 'true') {
+      return false;
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (currentUser) {
+      setShowLanding(false);
+    }
+  }, [currentUser]);
+
+  const handleStartDemo = () => {
+    setShowLanding(false);
+    sessionStorage.setItem('subshuffle_demo_entered', 'true');
+    showToast('Entered Demo Mode with sample squad: The Rovers U11', 'info');
+  };
+
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      setPrintOpen(true);
+    };
+    window.addEventListener('beforeprint', handleBeforePrint);
+    return () => window.removeEventListener('beforeprint', handleBeforePrint);
+  }, []);
+
+  const handleAutoRotate = async () => {
+    await autoRotateCurrentFixture();
+    showToast(
+      'Squad rotations re-balanced across all periods.',
+      'success',
+      {
+        label: 'Undo',
+        onClick: async () => {
+          await undoAutoRotate();
+          showToast('Restored previous lineup rotations.', 'info');
+        },
+      },
+      6000
+    );
+  };
+
+  const handleResetLineups = async () => {
+    await resetMatchSheet();
+    setConfirmResetOpen(false);
+    showToast('Match sheet period lineups cleared.', 'info');
+  };
+
+  if (showLanding && !currentUser) {
+    return (
+      <LandingHero
+        onStartDemo={handleStartDemo}
+        onOpenPrivacy={() => setPrivacyOpen(true)}
+      />
+    );
+  }
 
   if (loading && !activeTeam) {
     return (
@@ -124,10 +207,11 @@ function DashboardContent() {
         onOpenCustomFormation={() => setCustomFormationOpen(true)}
         onOpenLiveMatch={() => setLiveMatchOpen(true)}
         onOpenShowcase={() => setShowcaseOpen(true)}
+        onAutoRotate={handleAutoRotate}
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6 pb-28 lg:pb-6 print:hidden">
         {/* Offline Pitch Mode Alert */}
         {isOffline && (
           <div className="px-4 py-2.5 rounded-2xl bg-amber-950/70 border border-amber-500/40 text-xs flex items-center justify-between text-amber-200 shadow-lg">
@@ -174,12 +258,37 @@ function DashboardContent() {
           </div>
         )}
 
+        {/* Guest Demo Mode Notice */}
+        {!currentUser && (
+          <div className="px-4 py-3 rounded-2xl bg-gradient-to-r from-slate-900/90 via-sky-950/40 to-slate-900/90 border border-sky-500/30 text-xs flex flex-wrap items-center justify-between gap-3 shadow-lg backdrop-blur-sm">
+            <div className="flex items-center gap-2.5 text-slate-300">
+              <span className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse shrink-0" />
+              <div>
+                <span className="font-bold text-white">Demo Sandbox Active:</span>{' '}
+                <span>
+                  Exploring with sample squad <strong>{activeTeam?.name || 'The Rovers U11'}</strong>. Sign in with Google to save your private club rosters & sync with assistant coaches.
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setShowLanding(true)}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white text-xs font-semibold border border-slate-700 transition cursor-pointer"
+                title="View SubShuffle product tour and features"
+              >
+                Product Tour
+              </button>
+              <AuthButton />
+            </div>
+          </div>
+        )}
+
         {/* Hero Match Context Bar */}
-        {activeFixture ? (
+        {activeFixture && activeTab !== 'admin' ? (
           <div className="relative overflow-hidden rounded-3xl border border-[var(--surface-border)] bg-[var(--surface-card)] p-4 sm:p-6 shadow-xl transition-all duration-200">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
                     {activeTeam ? activeTeam.name : 'Team'}
                   </span>
@@ -209,7 +318,7 @@ function DashboardContent() {
                   </h1>
                   <button
                     onClick={() => setEditActiveFixtureOpen(true)}
-                    className="p-1.5 rounded-xl bg-[var(--surface-base)] hover:bg-indigo-600/20 text-slate-400 hover:text-indigo-300 border border-[var(--surface-border)] transition cursor-pointer"
+                    className="p-1.5 rounded-xl bg-[var(--surface-base)] hover:bg-indigo-600/20 text-slate-400 hover:text-indigo-300 border border-[var(--surface-border)] transition cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
                     title="Edit fixture logistics & details"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
@@ -249,12 +358,21 @@ function DashboardContent() {
                 </button>
 
                 <button
-                  onClick={() => autoRotateCurrentFixture()}
+                  onClick={handleAutoRotate}
                   className="h-9 whitespace-nowrap shrink-0 flex items-center gap-1.5 px-3 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 font-semibold transition cursor-pointer font-sans"
                   title="Auto-balance squad across match periods"
                 >
                   <Wand2 className="w-3.5 h-3.5 shrink-0" />
                   <span>Re-Balance</span>
+                </button>
+
+                <button
+                  onClick={() => setConfirmResetOpen(true)}
+                  className="h-9 whitespace-nowrap shrink-0 flex items-center gap-1.5 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 font-semibold transition cursor-pointer font-sans"
+                  title="Reset and clear all period lineups for this match"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                  <span>Reset Sheet</span>
                 </button>
 
                 <button
@@ -316,7 +434,84 @@ function DashboardContent() {
 
         {/* Tab 6: Teams & Sharing */}
         {activeTab === 'teams' && <TeamManager />}
+
+        {/* Tab 7: Admin Portal (Protected via AdminRoute Guard) */}
+        {activeTab === 'admin' && (
+          <AdminRoute allowedRoles={['owner', 'coach']} onNavigateHome={() => setActiveTab('lineup')}>
+            <AdminPortal onNavigateHome={() => setActiveTab('lineup')} />
+          </AdminRoute>
+        )}
       </main>
+
+      {/* Pitchside Mobile Ergonomics Action Bar (Thumb Zone for 375px-768px viewports) */}
+      {activeTab === 'lineup' && activeFixture && (
+        <div className="mobile-pitchside-bar lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/90 px-3 py-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] shadow-2xl flex items-center justify-between gap-2 print:hidden">
+          {/* Halves / Period Selector Tabs with 48px touch targets */}
+          <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800 shrink-0">
+            {Array.from({ length: settings.matchPeriodCount || 2 }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setActivePeriod(p)}
+                className={`min-h-[44px] min-w-[44px] px-2.5 sm:px-3 flex items-center justify-center rounded-xl text-xs font-bold transition cursor-pointer ${
+                  activePeriod === p
+                    ? 'bg-emerald-500 text-slate-950 shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                }`}
+              >
+                {settings.matchPeriodCount === 2 ? (p === 1 ? '1st' : '2nd') : `P${p}`}
+              </button>
+            ))}
+          </div>
+
+          {/* Swap Active Status or Quick Action Buttons */}
+          {selectedSwapSource ? (
+            <div className="flex-1 flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-sky-950/80 border border-sky-400/40 text-xs text-sky-200">
+              <span className="truncate font-semibold text-[11px]">
+                Swap active...
+              </span>
+              <button
+                type="button"
+                onClick={() => selectSwapSource(null)}
+                className="min-h-[44px] px-2.5 rounded-lg bg-sky-900/90 text-white font-bold text-xs shrink-0 flex items-center gap-1 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Cancel</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={handleAutoRotate}
+                className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-sky-600/20 hover:bg-sky-600 text-sky-300 hover:text-white border border-sky-500/30 font-semibold text-xs transition cursor-pointer flex items-center justify-center"
+                title="Auto-balance playing minutes across periods"
+                aria-label="Auto-balance playing minutes"
+              >
+                <Wand2 className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setWhatsAppOpen(true)}
+                className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-[#25D366]/20 hover:bg-[#25D366]/30 text-[#25D366] border border-[#25D366]/30 font-semibold text-xs transition cursor-pointer flex items-center justify-center"
+                title="Share team sheet on WhatsApp"
+                aria-label="Share team sheet on WhatsApp"
+              >
+                <MessageSquare className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setLiveMatchOpen(true)}
+                className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-rose-500/20 text-amber-300 border border-amber-500/40 font-bold text-xs transition cursor-pointer flex items-center justify-center"
+                title="Open pitchside live match timer and sub buzzer"
+                aria-label="Open pitchside live match stopwatch"
+              >
+                <Zap className="w-4 h-4 fill-amber-400" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-slate-800/80 py-6 bg-slate-950 text-slate-500 text-xs mt-12 print:hidden">
@@ -328,6 +523,12 @@ function DashboardContent() {
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">
+            <button
+              onClick={() => setShowLanding(true)}
+              className="hover:text-emerald-400 transition cursor-pointer"
+            >
+              Product Tour
+            </button>
             <button
               onClick={() => setWhatsAppOpen(true)}
               className="hover:text-emerald-400 transition cursor-pointer"
@@ -374,6 +575,17 @@ function DashboardContent() {
       </footer>
 
       {/* Modals */}
+      <ConfirmModal
+        isOpen={confirmResetOpen}
+        title="Reset Match Sheet Lineups?"
+        message={`Are you sure you want to reset all period lineups for vs ${activeFixture?.opponent}? This will unassign players from pitch positions and place all matchday squad members on the bench so you can build fresh.`}
+        confirmLabel="Reset Lineups"
+        cancelLabel="Keep Current Lineups"
+        isDestructive={true}
+        onConfirm={handleResetLineups}
+        onCancel={() => setConfirmResetOpen(false)}
+      />
+
       <DesignSystemShowcase
         isOpen={showcaseOpen}
         onClose={() => setShowcaseOpen(false)}
@@ -452,8 +664,10 @@ function DesignSystemWrapper() {
 
 export default function App() {
   return (
-    <MatchdayProvider>
-      <DesignSystemWrapper />
-    </MatchdayProvider>
+    <ToastProvider>
+      <MatchdayProvider>
+        <DesignSystemWrapper />
+      </MatchdayProvider>
+    </ToastProvider>
   );
 }

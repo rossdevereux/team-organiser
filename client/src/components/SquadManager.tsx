@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
 import { Player, BroadPosition, SPECIFIC_POSITIONS_MAP } from '../types';
+import { EmptyState } from './EmptyState';
+import { useToast } from '../context/ToastContext';
 import {
   Users,
   UserPlus,
@@ -22,6 +24,13 @@ import {
 
 const ALL_POSITIONS: BroadPosition[] = ['Goalkeeper', 'Defence', 'Midfield', 'Attack'];
 
+function getInitials(name?: string): string {
+  if (!name || !name.trim()) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export const SquadManager: React.FC = () => {
   const {
     players,
@@ -32,6 +41,8 @@ export const SquadManager: React.FC = () => {
     updatePlayer,
     deletePlayer,
   } = useMatchday();
+
+  const { showToast } = useToast();
 
   const [isAdding, setIsAdding] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -147,12 +158,15 @@ export const SquadManager: React.FC = () => {
     if (parsedImportPlayers.length === 0) return;
     setIsImporting(true);
     try {
+      const count = parsedImportPlayers.length;
       await bulkCreatePlayers(parsedImportPlayers);
       setIsImportModalOpen(false);
       setCsvRawText('');
       setParsedImportPlayers([]);
+      showToast(`Successfully imported ${count} players to squad roster!`, 'success');
     } catch (err) {
       console.error('Failed importing players:', err);
+      showToast('Failed to import players. Please check CSV format.', 'error');
     } finally {
       setIsImporting(false);
     }
@@ -185,10 +199,11 @@ export const SquadManager: React.FC = () => {
     if (!name.trim()) return;
 
     const num = squadNumber ? parseInt(squadNumber, 10) : undefined;
+    const playerName = name.trim();
 
     if (isAdding) {
       await createPlayer({
-        name: name.trim(),
+        name: playerName,
         squadNumber: num,
         preferredPositions,
         specificPositions,
@@ -199,12 +214,13 @@ export const SquadManager: React.FC = () => {
         totalMinutesPlayed: 0,
       });
       setIsAdding(false);
+      showToast('Player added to squad roster!', 'success');
     } else if (editingId) {
       const existing = players.find((p) => p.id === editingId);
       if (existing) {
         await updatePlayer({
           ...existing,
-          name: name.trim(),
+          name: playerName,
           squadNumber: num,
           preferredPositions,
           specificPositions,
@@ -213,6 +229,7 @@ export const SquadManager: React.FC = () => {
         });
       }
       setEditingId(null);
+      showToast('Player profile updated successfully!', 'success');
     }
 
     setName('');
@@ -911,133 +928,156 @@ export const SquadManager: React.FC = () => {
         </form>
       )}
 
-      {/* Players List Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {players.map((player) => {
-          const isUnavailableThisFixture = (player.unavailableDates || []).includes(fixtureDate);
-          const holidayCount = (player.unavailableDates || []).length;
-          const isNotSignedOnYet = Boolean(player.signOnDate && fixtureDate && fixtureDate < player.signOnDate);
-          const hasLeftSquad = Boolean(player.leaveDate && fixtureDate && fixtureDate > player.leaveDate);
-          const isInactiveForFixture = isUnavailableThisFixture || isNotSignedOnYet || hasLeftSquad;
+      {/* Players List Grid or Illustrated Empty State */}
+      {players.length === 0 ? (
+        <EmptyState
+          variant="roster"
+          title="No Players in Squad Roster Yet"
+          description="Build your squad by adding individual players or importing your team roster from a CSV spreadsheet."
+          action={{
+            label: 'Add First Player',
+            onClick: handleStartAdd,
+            icon: UserPlus,
+          }}
+          secondaryAction={{
+            label: 'Import CSV / Spreadsheet',
+            onClick: () => setIsImportModalOpen(true),
+            icon: Upload,
+          }}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {players.map((player) => {
+            const isUnavailableThisFixture = (player.unavailableDates || []).includes(fixtureDate);
+            const holidayCount = (player.unavailableDates || []).length;
+            const isNotSignedOnYet = Boolean(player.signOnDate && fixtureDate && fixtureDate < player.signOnDate);
+            const hasLeftSquad = Boolean(player.leaveDate && fixtureDate && fixtureDate > player.leaveDate);
+            const isInactiveForFixture = isUnavailableThisFixture || isNotSignedOnYet || hasLeftSquad;
 
-          return (
-            <div
-              key={player.id}
-              className={`p-4 rounded-2xl border transition-all space-y-3 ${
-                isInactiveForFixture
-                  ? 'bg-slate-950/60 border-rose-900/40'
-                  : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-slate-800 text-white font-extrabold flex items-center justify-center text-sm border border-slate-700/60 shadow">
-                    {player.squadNumber ? `#${player.squadNumber}` : '—'}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h3 className="text-sm font-bold text-white leading-tight">{player.name}</h3>
-                      {isNotSignedOnYet && (
-                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
-                          Not Signed On Yet
-                        </span>
-                      )}
-                      {hasLeftSquad && (
-                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-semibold">
-                          Left Squad
-                        </span>
-                      )}
-                      {isUnavailableThisFixture && !isNotSignedOnYet && !hasLeftSquad && (
-                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-semibold">
-                          Away Next Match
-                        </span>
-                      )}
+            return (
+              <div
+                key={player.id}
+                className={`p-4 rounded-2xl border transition-all space-y-3 ${
+                  isInactiveForFixture
+                    ? 'bg-slate-950/60 border-rose-900/40'
+                    : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-800 text-white font-extrabold flex items-center justify-center text-sm border border-slate-700/60 shadow shrink-0">
+                      {player.squadNumber ? `#${player.squadNumber}` : getInitials(player.name)}
                     </div>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {player.preferredPositions.map((pos) => (
-                        <span
-                          key={pos}
-                          className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 font-medium"
-                        >
-                          {pos}
-                        </span>
-                      ))}
-                    </div>
-                    {player.specificPositions && player.specificPositions.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="text-sm font-bold text-white leading-tight">{player.name}</h3>
+                        {isNotSignedOnYet && (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
+                            Not Signed On Yet
+                          </span>
+                        )}
+                        {hasLeftSquad && (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-semibold">
+                            Left Squad
+                          </span>
+                        )}
+                        {isUnavailableThisFixture && !isNotSignedOnYet && !hasLeftSquad && (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-semibold">
+                            Away Next Match
+                          </span>
+                        )}
+                      </div>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {player.specificPositions.map((sp) => (
+                        {player.preferredPositions.map((pos) => (
                           <span
-                            key={sp}
-                            className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-medium"
+                            key={pos}
+                            className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-medium"
                           >
-                            {sp}
+                            {pos}
                           </span>
                         ))}
                       </div>
-                    )}
-                    {(player.signOnDate || player.leaveDate) && (
-                      <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
-                        {player.signOnDate && (
-                          <span>Signed: {new Date(player.signOnDate).toLocaleDateString('en-GB')}</span>
-                        )}
-                        {player.signOnDate && player.leaveDate && <span>•</span>}
-                        {player.leaveDate && (
-                          <span className="text-rose-400/90">Left: {new Date(player.leaveDate).toLocaleDateString('en-GB')}</span>
-                        )}
-                      </div>
-                    )}
+                      {player.specificPositions && player.specificPositions.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {player.specificPositions.map((sp) => (
+                            <span
+                              key={sp}
+                              className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-medium"
+                            >
+                              {sp}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {(player.signOnDate || player.leaveDate) && (
+                        <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
+                          {player.signOnDate && (
+                            <span>Signed: {new Date(player.signOnDate).toLocaleDateString('en-GB')}</span>
+                          )}
+                          {player.signOnDate && player.leaveDate && <span>•</span>}
+                          {player.leaveDate && (
+                            <span className="text-rose-400/90">Left: {new Date(player.leaveDate).toLocaleDateString('en-GB')}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => handleStartEdit(player)}
+                      className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center justify-center cursor-pointer"
+                      title="Edit player"
+                      aria-label={`Edit ${player.name}`}
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`Remove ${player.name} from squad?`)) {
+                          deletePlayer(player.id);
+                          showToast('Player removed from squad.', 'info');
+                        }
+                      }}
+                      className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl text-rose-400/80 hover:text-rose-300 hover:bg-rose-500/10 transition flex items-center justify-center cursor-pointer"
+                      title="Delete player"
+                      aria-label={`Delete ${player.name}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1">
+                {/* Season Stats & Holidays Button */}
+                <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-slate-400 font-mono text-[11px]">
+                    <span>{player.matchesPlayed} matches</span>
+                    <span>•</span>
+                    <span>{player.totalMinutesPlayed}m</span>
+                  </div>
+
+                  {/* Manage Holidays / Absence Dates Button with comfortable touch target */}
                   <button
-                    onClick={() => handleStartEdit(player)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
-                    title="Edit player"
+                    type="button"
+                    onClick={() => setManagingHolidaysPlayer(player)}
+                    className={`min-h-[38px] px-3 py-1.5 rounded-xl text-xs font-bold tracking-tight transition cursor-pointer flex items-center gap-1.5 ${
+                      holidayCount > 0
+                        ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20'
+                        : 'bg-slate-800/80 text-slate-300 border border-slate-700 hover:text-white hover:bg-slate-700'
+                    }`}
+                    title="Manage holiday and absence dates"
                   >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm(`Remove ${player.name} from squad?`)) {
-                        deletePlayer(player.id);
-                      }
-                    }}
-                    className="p-1.5 rounded-lg text-rose-400/70 hover:text-rose-300 hover:bg-rose-500/10 transition"
-                    title="Delete player"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Palmtree className="w-3.5 h-3.5 text-amber-400" />
+                    <span>{holidayCount > 0 ? `${holidayCount} Holidays` : 'Add Holidays'}</span>
                   </button>
                 </div>
               </div>
-
-              {/* Season Stats & Holidays Button */}
-              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2 text-slate-400 font-mono text-[11px]">
-                  <span>{player.matchesPlayed} matches</span>
-                  <span>•</span>
-                  <span>{player.totalMinutesPlayed}m</span>
-                </div>
-
-                {/* Manage Holidays / Absence Dates Button */}
-                <button
-                  type="button"
-                  onClick={() => setManagingHolidaysPlayer(player)}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-tight transition cursor-pointer flex items-center gap-1.5 ${
-                    holidayCount > 0
-                      ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20'
-                      : 'bg-slate-800/80 text-slate-400 border border-slate-700 hover:text-white hover:bg-slate-700'
-                  }`}
-                  title="Manage holiday and absence dates"
-                >
-                  <Palmtree className="w-3 h-3 text-amber-400" />
-                  <span>{holidayCount > 0 ? `${holidayCount} Holidays` : 'Add Holidays'}</span>
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

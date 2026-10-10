@@ -48,12 +48,15 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Official Matchday Pitch Sheet & PDF Export"
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-start justify-center p-2 sm:p-6 py-6 sm:py-8 bg-black/80 backdrop-blur-sm overflow-y-auto print:p-0 print:bg-white print:static print:inset-auto"
+      className="official-print-modal fixed inset-0 z-50 flex items-start justify-center p-2 sm:p-6 py-6 sm:py-8 bg-black/80 backdrop-blur-sm overflow-y-auto print:p-0 print:bg-white print:static print:inset-auto print:block print:w-full"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl print:bg-white print:text-black print:border-none print:shadow-none print:max-w-none flex flex-col"
+        className="relative w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl print:bg-white print:text-black print:border-none print:shadow-none print:max-w-none print:w-full flex flex-col"
       >
         {/* Sticky Modal Actions (Hidden in Print) */}
         <div className="sticky top-0 z-20 px-6 py-4 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 flex items-center justify-between print:hidden shrink-0">
@@ -66,14 +69,14 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs shadow-lg shadow-sky-600/20 transition cursor-pointer"
+              className="min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs shadow-lg shadow-sky-600/20 transition cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>Print / Save as PDF</span>
             </button>
             <button
               onClick={onClose}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white text-xs font-semibold border border-slate-700 transition cursor-pointer"
+              className="min-h-[44px] flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white text-xs font-semibold border border-slate-700 transition cursor-pointer"
               title="Close print preview (Esc)"
             >
               <X className="w-4 h-4" />
@@ -82,9 +85,9 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 print:p-0 print:space-y-0">
           {/* Printable Document Area */}
-          <div className="print-area bg-white text-slate-900 p-6 sm:p-8 rounded-2xl space-y-6 print:p-0 print:rounded-none" data-context="print">
+          <div className="print-area bg-white text-slate-900 p-6 sm:p-8 rounded-2xl space-y-6 print:p-0 print:space-y-4 print:rounded-none" data-context="print">
           {/* Header Banner */}
           <div className="border-b-2 border-slate-900 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start sm:items-center gap-3.5">

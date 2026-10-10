@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
 import { Copy, Check, ExternalLink, X, MessageSquare, Sparkles } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 interface WhatsAppExportModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface WhatsAppExportModalProps {
 
 export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen, onClose }) => {
   const { activeFixture } = useMatchday();
+  const { showToast } = useToast();
   const [announcementText, setAnnouncementText] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -45,6 +47,7 @@ export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen
     try {
       await navigator.clipboard.writeText(announcementText);
       setCopied(true);
+      showToast('Team sheet copied to clipboard!', 'success');
       setTimeout(() => setCopied(false), 2500);
     } catch (err) {
       console.error('Failed to copy to clipboard:', err);
@@ -80,10 +83,10 @@ export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
             title="Close dialog (Esc)"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -101,7 +104,7 @@ export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen
         </div>
 
         {/* Helper Note */}
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 shrink-0">
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-300 shrink-0">
           <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           <span>Includes matchday squad, rested players, kick-off time & venue details.</span>
         </div>
@@ -111,7 +114,7 @@ export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen
           <button
             type="button"
             onClick={onClose}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 transition cursor-pointer order-last sm:order-first"
+            className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800 transition cursor-pointer order-last sm:order-first flex items-center justify-center"
           >
             Close
           </button>
@@ -120,18 +123,18 @@ export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen
             href={shareUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#25D366]/20 hover:bg-[#25D366]/30 text-[#25D366] border border-[#25D366]/30 font-semibold text-xs transition"
+            className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#25D366]/20 hover:bg-[#25D366]/30 text-[#25D366] border border-[#25D366]/30 font-semibold text-xs transition"
           >
-            <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+            <ExternalLink className="w-4 h-4 shrink-0" />
             <span>Open in WhatsApp</span>
           </a>
 
           <button
             type="button"
             onClick={handleCopy}
-            className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold shadow-lg transition cursor-pointer ${
+            className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg transition cursor-pointer ${
               copied
-                ? 'bg-emerald-500 text-slate-950 font-bold'
+                ? 'bg-emerald-500 text-slate-950'
                 : 'bg-sky-600 hover:bg-sky-500 text-white shadow-sky-600/20'
             }`}
           >

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
 import { Fixture, Player } from '../types';
 import { EditFixtureModal } from './EditFixtureModal';
+import { EmptyState } from './EmptyState';
+import { useToast } from '../context/ToastContext';
 import {
   Calendar,
   Users,
@@ -17,6 +19,7 @@ import {
   FileSpreadsheet,
   Edit3,
   Trash2,
+  Plus,
 } from 'lucide-react';
 
 interface AllFixturesTableProps {
@@ -25,6 +28,7 @@ interface AllFixturesTableProps {
 
 export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeason }) => {
   const { fixtures, players, settings, setActiveFixtureId, setActiveTab, deleteFixture } = useMatchday();
+  const { showToast } = useToast();
   const [copied, setCopied] = useState<boolean>(false);
   const [editingFixture, setEditingFixture] = useState<Fixture | null>(null);
 
@@ -108,15 +112,23 @@ export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeas
 
     navigator.clipboard.writeText(output).then(() => {
       setCopied(true);
+      showToast('Season matrix copied to clipboard!', 'success');
       setTimeout(() => setCopied(false), 2500);
     });
   };
 
   if (sortedFixtures.length === 0) {
     return (
-      <div className="p-12 text-center rounded-2xl bg-slate-900/40 border border-dashed border-slate-800 text-slate-400 text-xs">
-        No fixtures found for season "{selectedSeason}". Schedule a fixture or switch season filters.
-      </div>
+      <EmptyState
+        variant="fixtures"
+        title="No Fixtures in Season Matrix"
+        description={`No matches recorded for season "${selectedSeason}". Switch season filters or schedule a fixture to view team sheets.`}
+        action={{
+          label: 'Schedule Fixture',
+          onClick: () => setActiveTab('fixtures'),
+          icon: Plus,
+        }}
+      />
     );
   }
 

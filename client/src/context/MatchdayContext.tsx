@@ -7,7 +7,7 @@ import React, {
   useMemo,
 } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { auth, getAuthToken } from '../firebase';
+import { auth, getAuthToken, getUserRoleFromToken, UserRole } from '../firebase';
 import {
   Player,
   TeamSettings,
@@ -44,8 +44,13 @@ interface MatchdayContextType {
   loading: boolean;
   error: string | null;
   selectedSwapSource: SwapSource | null;
-  activeTab: 'lineup' | 'matrix' | 'squad' | 'fixtures' | 'stats' | 'teams';
-  setActiveTab: (tab: 'lineup' | 'matrix' | 'squad' | 'fixtures' | 'stats' | 'teams') => void;
+  userRole: UserRole;
+  isOwner: boolean;
+  isCoach: boolean;
+  isViewer: boolean;
+  refreshUserClaims: () => Promise<void>;
+  activeTab: 'lineup' | 'matrix' | 'squad' | 'fixtures' | 'stats' | 'teams' | 'admin';
+  setActiveTab: (tab: 'lineup' | 'matrix' | 'squad' | 'fixtures' | 'stats' | 'teams' | 'admin') => void;
   setActivePeriod: (period: number) => void;
   setActiveTeamId: (id: string) => void;
   setActiveFixtureId: (id: string) => void;
@@ -55,6 +60,8 @@ interface MatchdayContextType {
   addPlayerToSquad: (playerId: string) => Promise<void>;
   removePlayerFromSquad: (playerId: string) => Promise<void>;
   autoRotateCurrentFixture: (selectedPlayerIds?: string[]) => Promise<void>;
+  undoAutoRotate: () => Promise<void>;
+  resetMatchSheet: () => Promise<void>;
   updateMatchSquad: (newSquad: MatchSquad) => Promise<void>;
   // Team actions
   createTeam: (teamData: Partial<Team>) => Promise<Team | null>;
@@ -95,14 +102,15 @@ const getInitialUrlState = () => {
     const teamId = params.get('team') || '';
     const fixtureId = params.get('fixture') || '';
     const rawTab = params.get('tab');
-    const validTabs = ['lineup', 'matrix', 'squad', 'fixtures', 'stats', 'teams'];
+    const validTabs = ['lineup', 'matrix', 'squad', 'fixtures', 'stats', 'teams', 'admin'];
     const tab = (rawTab && validTabs.includes(rawTab) ? rawTab : 'lineup') as
       | 'lineup'
       | 'matrix'
       | 'squad'
       | 'fixtures'
       | 'stats'
-      | 'teams';
+      | 'teams'
+      | 'admin';
     return { teamId, fixtureId, tab };
   } catch (_) {
     return { teamId: '', fixtureId: '', tab: 'lineup' as const };
@@ -112,6 +120,7 @@ const getInitialUrlState = () => {
 export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const initialUrl = getInitialUrlState();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<UserRole>('coach');
   const [teams, setTeams] = useState<Team[]>([]);
   const [activeTeamId, setActiveTeamId] = useState<string>(initialUrl.teamId);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -120,11 +129,21 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [activePeriod, setActivePeriod] = useState<number>(1);
   const [selectedSwapSource, setSelectedSwapSource] = useState<SwapSource | null>(null);
   const [activeTab, setActiveTab] = useState<
-    'lineup' | 'matrix' | 'squad' | 'fixtures' | 'stats' | 'teams'
+    'lineup' | 'matrix' | 'squad' | 'fixtures' | 'stats' | 'teams' | 'admin'
   >(initialUrl.tab);
   const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Evaluate user roles and custom claims
+  const evaluateRole = useCallback(async (user: User | null, forceRefresh: boolean = false) => {
+    if (!user) {
+      setUserRole('viewer');
+      return;
+    }
+    const role = await getUserRoleFromToken(user, forceRefresh);
+    setUserRole(role);
+  }, []);
 
   // Monitor online / offline network state
   useEffect(() => {
@@ -138,13 +157,20 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
   }, []);
 
-  // Monitor Firebase Auth state
+  // Monitor Firebase Auth state & custom claims
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
+      evaluateRole(user);
     });
     return () => unsub();
-  }, []);
+  }, [evaluateRole]);
+
+  const refreshUserClaims = useCallback(async () => {
+    if (auth.currentUser) {
+      await evaluateRole(auth.currentUser, true);
+    }
+  }, [evaluateRole]);
 
   // Keep URL updated with team, fixture, and active tab for bookmarking and sharing
   useEffect(() => {
@@ -477,10 +503,18 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Auto rotate current fixture
+  const [previousLineupsMap, setPreviousLineupsMap] = useState<Record<string, MatchSquad>>({});
+
+  // Auto rotate current fixture with undo snapshot history
   const autoRotateCurrentFixture = async (selectedPlayerIds?: string[]) => {
     if (!activeFixture) return;
     try {
+      if (activeFixture.matchSquad) {
+        setPreviousLineupsMap((prev) => ({
+          ...prev,
+          [activeFixture.id]: JSON.parse(JSON.stringify(activeFixture.matchSquad)),
+        }));
+      }
       setLoading(true);
       const headers = await getAuthHeaders();
       const res = await fetch(`/api/fixtures/${activeFixture.id}/auto-rotate`, {
@@ -502,6 +536,28 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } finally {
       setLoading(false);
     }
+  };
+
+  const undoAutoRotate = async () => {
+    if (!activeFixture || !previousLineupsMap[activeFixture.id]) return;
+    const prevSquad = previousLineupsMap[activeFixture.id];
+    await updateMatchSquad(prevSquad);
+  };
+
+  const resetMatchSheet = async () => {
+    if (!activeFixture || !activeFixture.matchSquad) return;
+    const periodCount = settings.matchPeriodCount || 2;
+    const emptyLineups = Array.from({ length: periodCount }, (_, i) => ({
+      period: i + 1,
+      onPitch: [],
+      subs: [...activeFixture.matchSquad!.selectedPlayerIds],
+    }));
+    const updatedSquad: MatchSquad = {
+      ...activeFixture.matchSquad,
+      lineupsByPeriod: emptyLineups,
+      manualOverrides: true,
+    };
+    await updateMatchSquad(updatedSquad);
   };
 
   // Replace a player in the matchday squad (e.g. sick / call-off replaced by rested player)
@@ -1047,6 +1103,11 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         loading,
         error,
         selectedSwapSource,
+        userRole,
+        isOwner: userRole === 'owner',
+        isCoach: userRole === 'coach',
+        isViewer: userRole === 'viewer',
+        refreshUserClaims,
         activeTab,
         setActiveTab,
         setActivePeriod,
@@ -1058,6 +1119,8 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         addPlayerToSquad,
         removePlayerFromSquad,
         autoRotateCurrentFixture,
+        undoAutoRotate,
+        resetMatchSheet,
         updateMatchSquad,
         createTeam,
         updateTeam,

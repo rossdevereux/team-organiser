@@ -86,4 +86,33 @@ test.describe('Modals & Action Tools Suite', () => {
       await expect(page.locator('header')).toBeVisible();
     }
   });
+
+  test('print stylesheet strictly isolates official match sheet and hides normal application UI', async ({ page }) => {
+    // Open print preview modal
+    const printBtn = page.locator('header button[title*="Print official matchday pitch sheet"]').first();
+    if (await printBtn.isVisible()) {
+      await printBtn.click();
+      await expect(page.locator('.print-area')).toBeVisible();
+
+      // Emulate print media
+      await page.emulateMedia({ media: 'print' });
+
+      // Verify main app dashboard, header, and footer are hidden in print
+      await expect(page.locator('main')).not.toBeVisible();
+      await expect(page.locator('header')).not.toBeVisible();
+      await expect(page.locator('footer')).not.toBeVisible();
+
+      // Verify official match sheet document is visible in print
+      const printArea = page.locator('.print-area');
+      await expect(printArea).toBeVisible();
+      await expect(page.getByText('SubShuffle Official Match Sheet')).toBeVisible();
+
+      // Reset back to screen media and close modal
+      await page.emulateMedia({ media: 'screen' });
+      const closeBtn = page.locator('button[title*="Close print preview"]').first();
+      await closeBtn.click();
+      await expect(page.locator('main')).toBeVisible();
+    }
+  });
 });
+

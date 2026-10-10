@@ -42,25 +42,155 @@
 
 @media print {
   @page {
-    margin: 1cm;
+    margin: 8mm;
     size: A4 portrait;
   }
 
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
   }
 
-  header, footer, nav {
+  /* Force pure white background and pitch-black text */
+  html,
+  body,
+  #root {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Strictly hide all normal application UI: headers, main dashboard, footers, sidebars, buttons, mobile bars, toasts, and non-print modals */
+  header,
+  main,
+  footer,
+  nav,
+  aside,
+  button,
+  .no-print,
+  .print-hidden,
+  .mobile-pitchside-bar,
+  [role="status"],
+  [role="dialog"]:not(.official-print-modal) {
     display: none !important;
   }
 
-  .print-area {
+  /* Flatten official print modal container into the page */
+  .official-print-modal {
+    display: block !important;
+    position: static !important;
+    inset: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .official-print-modal > div {
+    display: block !important;
+    position: static !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
     box-shadow: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Hide screen-only modal action bars */
+  .official-print-modal [class*="print:hidden"],
+  .official-print-modal .no-print {
+    display: none !important;
+  }
+
+  /* Printable official match sheet container */
+  .print-area {
+    display: block !important;
+    background: #ffffff !important;
+    color: #000000 !important;
     border: none !important;
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
-    display: block !important;
+    max-width: 100% !important;
+  }
+
+  /* Crisp black hairline borders for official referee/referee match sheet */
+  .print-area table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    margin: 8px 0 !important;
+  }
+
+  .print-area th,
+  .print-area td {
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    padding: 4px 6px !important;
+  }
+
+  .print-area th {
+    background: #f1f5f9 !important;
+    font-weight: 700 !important;
+  }
+
+  .print-area div,
+  .print-area section,
+  .print-area span,
+  .print-area p,
+  .print-area h1,
+  .print-area h2,
+  .print-area h3 {
+    color: #000000 !important;
+  }
+
+  /* Card and section borders */
+  .print-area .border-2,
+  .print-area .border {
+    border: 1px solid #000000 !important;
+    background: #ffffff !important;
+  }
+
+  .print-area .border-b-2,
+  .print-area .border-b {
+    border-bottom: 1px solid #000000 !important;
+  }
+
+  .print-area .border-t {
+    border-top: 1px solid #000000 !important;
+  }
+
+  /* Clean print badges */
+  .print-area .bg-amber-100,
+  .print-area .bg-emerald-50,
+  .print-area .bg-slate-50,
+  .print-area .bg-slate-100,
+  .print-area .bg-slate-200 {
+    background: #f8fafc !important;
+    border: 1px solid #94a3b8 !important;
+    color: #000000 !important;
+  }
+
+  /* Avoid page breaks inside match periods and audit rows */
+  .print-area .grid > div,
+  .print-area tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 }
