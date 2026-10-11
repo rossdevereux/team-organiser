@@ -93,6 +93,6 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TEAM_ORGANISER_PROD }}
+          firebaseServiceAccount: ${{ secrets.GCP_SA_KEY }}
           channelId: live
           projectId: ${{ env.GCP_PROJECT_ID }}

@@ -248,8 +248,7 @@ A complete GitHub Actions workflow is provided in [`.github/workflows/deploy.yml
 To activate automatic deployments on `git push main`:
 1. In your GitHub repository settings, navigate to **Settings -> Secrets and variables -> Actions**.
 2. Add the following repository secrets:
-   - `GCP_SA_KEY`: Service account key JSON with `Cloud Run Admin`, `Artifact Registry Writer`, and `Service Account User` roles.
-   - `FIREBASE_SERVICE_ACCOUNT_TEAM_ORGANISER_PROD`: Firebase deployment service account JSON.
+   - `GCP_SA_KEY`: Service account key JSON with `Cloud Run Admin`, `Artifact Registry Writer`, `Service Account User`, and `Firebase Hosting Admin` (`roles/firebasehosting.admin`) roles. (Used for both Cloud Run backend and Firebase Hosting frontend deployments).
    - `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, etc.: Client Firebase configuration values.
 
 ---
