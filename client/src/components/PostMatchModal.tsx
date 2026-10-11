@@ -26,8 +26,9 @@ export const PostMatchModal: React.FC<PostMatchModalProps> = ({
 }) => {
   const { players, settings, savePostMatchRecording, setPlayerOfTheMatch } = useMatchday();
 
-  const totalMatchMinutes =
-    (settings.matchPeriodCount || 2) * (settings.periodDurationMinutes || 25);
+  const effectivePeriodCount = fixture?.matchPeriodCount || settings.matchPeriodCount || 2;
+  const effectivePeriodDuration = fixture?.periodDurationMinutes || settings.periodDurationMinutes || 25;
+  const totalMatchMinutes = effectivePeriodCount * effectivePeriodDuration;
 
   const [trackingMode, setTrackingMode] = useState<'exact' | 'full_credit'>('full_credit');
   const [playerMinutes, setPlayerMinutes] = useState<Record<string, number>>({});
@@ -120,7 +121,7 @@ export const PostMatchModal: React.FC<PostMatchModalProps> = ({
                 </span>
               </h3>
               <p className="text-xs text-slate-400">
-                Match length: {totalMatchMinutes} mins ({settings.matchPeriodCount} halves × {settings.periodDurationMinutes}m)
+                Match length: {totalMatchMinutes} mins ({effectivePeriodCount === 2 ? '2 halves' : `${effectivePeriodCount} periods`} × {effectivePeriodDuration}m)
               </p>
             </div>
           </div>

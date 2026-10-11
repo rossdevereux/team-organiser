@@ -1,12 +1,18 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { requireAuth, optionalAuth, AuthenticatedRequest } from './middleware/auth.js';
 
 import apiRouter from './routes/api.js';
 import adminRouter from './routes/admin.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = parseInt(process.env.PORT || '8080', 10);
@@ -77,6 +83,14 @@ app.get('/api/user/profile', requireAuth, (req: AuthenticatedRequest, res: Respo
   });
 });
 
+// Prevent browsers and CDN edge caches from caching dynamic football match & squad mutations
+app.use('/api', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // Mount SubShuffle full-stack API routes
 app.use('/api', apiRouter);
 
@@ -90,6 +104,41 @@ app.all('/api/*', (_req: Request, res: Response) => {
     message: 'API route not found',
   });
 });
+
+// Static asset serving with production caching headers if client/dist exists
+const candidatesDist = [
+  path.resolve(process.cwd(), '../client/dist'),
+  path.resolve(process.cwd(), 'client/dist'),
+  path.resolve(__dirname, '../../client/dist'),
+];
+const clientDist = candidatesDist.find((p) => fs.existsSync(p));
+
+if (clientDist) {
+  app.use(
+    express.static(clientDist, {
+      maxAge: 0,
+      setHeaders: (res, filePath) => {
+        const norm = filePath.replace(/\\/g, '/');
+        if (norm.includes('/assets/')) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (/\.(jpg|jpeg|gif|png|svg|webp|ico)$/i.test(norm)) {
+          res.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
+        } else if (/\.(woff|woff2|ttf|otf|eot)$/i.test(norm)) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (norm.endsWith('/manifest.json')) {
+          res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=86400');
+        } else if (norm.endsWith('/sw.js') || norm.endsWith('.html')) {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        }
+      },
+    })
+  );
+
+  app.get('*', (_req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
 
 const server = app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Team Organiser API server listening on http://0.0.0.0:${port}`);

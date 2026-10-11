@@ -200,12 +200,14 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
 
   const currentSubs = (currentLineup?.subs || []).map((subId) => playerMap.get(subId)).filter(Boolean);
 
+  const effectivePeriodCount = activeFixture?.matchPeriodCount || settings.matchPeriodCount || 2;
+
   const periodDisplayName =
-    settings.matchPeriodCount === 2
+    effectivePeriodCount === 2
       ? activePeriod === 1
         ? 'First Half (Period 1)'
         : 'Second Half (Period 2)'
-      : `Period ${activePeriod} of ${settings.matchPeriodCount}`;
+      : `Period ${activePeriod} of ${effectivePeriodCount}`;
 
   return (
     <div
@@ -370,7 +372,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
 
             {/* Period Switcher */}
             <div className="flex items-center gap-2 pt-2 text-xs">
-              {Array.from({ length: settings.matchPeriodCount || 2 }, (_, i) => i + 1).map((p) => (
+              {Array.from({ length: effectivePeriodCount }, (_, i) => i + 1).map((p) => (
                 <button
                   key={p}
                   type="button"
@@ -381,7 +383,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
                       : 'bg-slate-800/80 text-slate-400 hover:text-white'
                   }`}
                 >
-                  {settings.matchPeriodCount === 2
+                  {effectivePeriodCount === 2
                     ? p === 1
                       ? 'Half 1'
                       : 'Half 2'
@@ -451,7 +453,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
                 </span>
                 {suggestedChanges.slice(0, 1).map((sc, idx) => (
                   <div key={idx} className="flex items-center justify-between text-xs">
-                    <div className="font-semibold text-slate-200 truncate">
+                    <div className="font-semibold text-slate-200 break-words leading-tight" title={`OFF: ${sc.offPlayerName} ➡️ ON: ${sc.onPlayerName}`}>
                       <span className="text-rose-400">OFF:</span> {sc.offPlayerName} ➡️{' '}
                       <span className="text-emerald-400">ON:</span> {sc.onPlayerName}
                     </div>

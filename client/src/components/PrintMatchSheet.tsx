@@ -29,7 +29,10 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
 
   const playerMap = new Map(players.map((p) => [p.id, p]));
   const squad = activeFixture.matchSquad;
-  const periodCount = settings.matchPeriodCount || 2;
+  const periodCount = activeFixture.matchPeriodCount || settings.matchPeriodCount || 2;
+  const periodDuration = activeFixture.periodDurationMinutes || settings.periodDurationMinutes || 25;
+  const pitchCount = activeFixture.pitchPlayerCount || settings.pitchPlayerCount || 7;
+  const formationName = activeFixture.formation || settings.defaultFormation;
   const periods = Array.from({ length: periodCount }, (_, i) => i + 1);
 
   const handlePrint = () => {
@@ -127,12 +130,17 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
                 <strong>Kick-off:</strong> {activeFixture.kickOffTime || 'TBC'}
                 {activeFixture.meetTime && ` (Meet: ${activeFixture.meetTime})`}
               </div>
-              <div><strong>Format:</strong> {settings.pitchPlayerCount}-a-side • {settings.defaultFormation}</div>
+              <div>
+                <strong>Format:</strong> {pitchCount}-a-side • {formationName}
+                {activeFixture.matchdaySquadCap && activeFixture.matchdaySquadCap !== settings.matchdaySquadCap
+                  ? ` • Friendly Sheet (${activeFixture.matchdaySquadCap} players)`
+                  : ` • ${settings.matchdaySquadCap || 10} Player Squad`}
+              </div>
               <div>
                 <strong>Periods:</strong>{' '}
                 {periodCount === 2
-                  ? `2 Halves × ${settings.periodDurationMinutes} mins`
-                  : `${periodCount} Periods × ${settings.periodDurationMinutes} mins`}
+                  ? `2 Halves × ${periodDuration} mins`
+                  : `${periodCount} Periods × ${periodDuration} mins`}
               </div>
             </div>
           </div>
@@ -154,14 +162,14 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
                     <div className="flex items-center justify-between border-b border-slate-300 pb-1 font-bold text-slate-900">
                       <span>{periodCount === 2 ? (p === 1 ? 'FIRST HALF (P1)' : 'SECOND HALF (P2)') : `PERIOD ${p}`}</span>
                       <span className="font-mono text-[10px] text-slate-600">
-                        {settings.periodDurationMinutes} mins
+                        {periodDuration} mins
                       </span>
                     </div>
 
                     {/* On Pitch List */}
                     <div className="space-y-1">
                       <span className="text-[10px] uppercase font-bold text-slate-500 block">
-                        On Pitch ({settings.pitchPlayerCount})
+                        On Pitch ({pitchCount})
                       </span>
                       {lineup?.onPitch.map((entry) => {
                         const player = playerMap.get(entry.playerId);

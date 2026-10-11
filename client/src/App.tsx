@@ -165,8 +165,12 @@ function DashboardContent() {
     );
   }
 
+  const effectivePeriodCount = activeFixture?.matchPeriodCount || settings.matchPeriodCount || 2;
+  const effectivePeriodDuration = activeFixture?.periodDurationMinutes || settings.periodDurationMinutes || 25;
+  const effectivePitchPlayerCount = activeFixture?.pitchPlayerCount || settings.pitchPlayerCount || 7;
+
   const periodLabel =
-    settings.matchPeriodCount === 2
+    effectivePeriodCount === 2
       ? activePeriod === 1
         ? '1st Half'
         : '2nd Half'
@@ -339,7 +343,7 @@ function DashboardContent() {
                 <div className="h-9 px-3 rounded-xl bg-[var(--surface-base)] border border-[var(--surface-border)] flex items-center gap-1.5 text-[var(--text-main)] whitespace-nowrap shrink-0">
                   <Clock className="w-3.5 h-3.5 text-sky-400 shrink-0" />
                   <span>
-                    {periodLabel} of {settings.matchPeriodCount === 2 ? '2 Halves' : `${settings.matchPeriodCount} Periods`} ({settings.periodDurationMinutes}m)
+                    {periodLabel} of {effectivePeriodCount === 2 ? '2 Halves' : `${effectivePeriodCount} Periods`} ({effectivePeriodDuration}m)
                   </span>
                 </div>
 
@@ -410,11 +414,11 @@ function DashboardContent() {
         {/* Tab 1: Lineup (Pitch + Bench) */}
         {activeTab === 'lineup' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            <div className="lg:col-span-7 xl:col-span-8 space-y-4">
+            <div className="lg:col-span-7 xl:col-span-7 space-y-4">
               <PitchView />
             </div>
 
-            <div className="lg:col-span-5 xl:col-span-4 space-y-4">
+            <div className="lg:col-span-5 xl:col-span-5 space-y-4">
               <BenchView />
             </div>
           </div>
@@ -448,7 +452,7 @@ function DashboardContent() {
         <div className="mobile-pitchside-bar lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/90 px-3 py-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] shadow-2xl flex items-center justify-between gap-2 print:hidden">
           {/* Halves / Period Selector Tabs with 48px touch targets */}
           <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800 shrink-0">
-            {Array.from({ length: settings.matchPeriodCount || 2 }, (_, i) => i + 1).map((p) => (
+            {Array.from({ length: effectivePeriodCount }, (_, i) => i + 1).map((p) => (
               <button
                 key={p}
                 type="button"
@@ -459,7 +463,7 @@ function DashboardContent() {
                     : 'text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
               >
-                {settings.matchPeriodCount === 2 ? (p === 1 ? '1st' : '2nd') : `P${p}`}
+                {effectivePeriodCount === 2 ? (p === 1 ? '1st' : '2nd') : `P${p}`}
               </button>
             ))}
           </div>

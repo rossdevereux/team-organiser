@@ -121,6 +121,11 @@ export interface Fixture {
   opponent: string;
   venue: 'Home' | 'Away';
   status: 'Upcoming' | 'Completed' | 'Draft';
+  matchdaySquadCap?: number; // Override standard team sheet / squad size (e.g. for friendlies/tournaments)
+  pitchPlayerCount?: number; // Override pitch player count (e.g. 5, 7, 9, 11) for this fixture
+  matchPeriodCount?: number; // Override number of periods (e.g. 2, 3, 4) for this fixture
+  periodDurationMinutes?: number; // Override period duration (e.g. 15, 20, 25, 30) for this fixture
+  formation?: string; // Optional formation override for this fixture
   matchSquad?: MatchSquad;
   postMatchRecording?: PostMatchRecording;
 }

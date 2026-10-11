@@ -13,6 +13,10 @@ import {
   ExternalLink,
   AlertTriangle,
   Edit3,
+  Users,
+  Shield,
+  Layers,
+  Sliders,
 } from 'lucide-react';
 
 interface EditFixtureModalProps {
@@ -49,6 +53,10 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
   const [season, setSeason] = useState<string>(currentDefaultSeason);
   const [status, setStatus] = useState<Fixture['status']>('Upcoming');
   const [captainId, setCaptainId] = useState<string>('');
+  const [matchdaySquadCap, setMatchdaySquadCap] = useState<string>('');
+  const [pitchPlayerCount, setPitchPlayerCount] = useState<string>('');
+  const [matchPeriodCount, setMatchPeriodCount] = useState<string>('');
+  const [periodDurationMinutes, setPeriodDurationMinutes] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   useEffect(() => {
@@ -62,6 +70,10 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
       setSeason(fixture.season || currentDefaultSeason);
       setStatus(fixture.status || 'Upcoming');
       setCaptainId(fixture.captainId || '');
+      setMatchdaySquadCap(fixture.matchdaySquadCap ? String(fixture.matchdaySquadCap) : '');
+      setPitchPlayerCount(fixture.pitchPlayerCount ? String(fixture.pitchPlayerCount) : '');
+      setMatchPeriodCount(fixture.matchPeriodCount ? String(fixture.matchPeriodCount) : '');
+      setPeriodDurationMinutes(fixture.periodDurationMinutes ? String(fixture.periodDurationMinutes) : '');
       setIsDeleting(false);
     }
   }, [fixture, currentDefaultSeason]);
@@ -113,6 +125,10 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
       season: season.trim() || currentDefaultSeason,
       status,
       captainId: captainId || undefined,
+      matchdaySquadCap: matchdaySquadCap.trim() ? parseInt(matchdaySquadCap, 10) : undefined,
+      pitchPlayerCount: pitchPlayerCount.trim() ? parseInt(pitchPlayerCount, 10) : undefined,
+      matchPeriodCount: matchPeriodCount.trim() ? parseInt(matchPeriodCount, 10) : undefined,
+      periodDurationMinutes: periodDurationMinutes.trim() ? parseInt(periodDurationMinutes, 10) : undefined,
     });
 
     onClose();
@@ -364,6 +380,148 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Match Overrides Section (Friendlies & Tournaments) */}
+            <div className="sm:col-span-2 pt-3 border-t border-slate-800 space-y-3">
+              <div className="flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-sky-400" />
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Fixture Overrides (Friendlies / Tournaments)
+                </h4>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Customise match format and squad limits for this fixture. Leave blank or default to use your club's standard team settings.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Team Sheet Players / Matchday Squad Override */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-slate-400 font-semibold flex items-center gap-1 text-xs">
+                      <Users className="w-3.5 h-3.5 text-sky-400" />
+                      <span>Team Sheet Squad Cap</span>
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      Default: {settings.matchdaySquadCap || 10}
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={pitchPlayerCount ? parseInt(pitchPlayerCount, 10) : (settings.pitchPlayerCount || 5)}
+                      max={30}
+                      value={matchdaySquadCap}
+                      onChange={(e) => setMatchdaySquadCap(e.target.value)}
+                      placeholder={`Default (${settings.matchdaySquadCap || 10} players)`}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium text-xs"
+                    />
+                    {matchdaySquadCap && (
+                      <button
+                        type="button"
+                        onClick={() => setMatchdaySquadCap('')}
+                        className="absolute right-2 top-1.5 text-[10px] text-slate-400 hover:text-white px-1.5 py-0.5 rounded bg-slate-800 transition cursor-pointer"
+                        title="Reset to default"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Max players on the matchday team sheet.
+                  </p>
+                </div>
+
+                {/* Pitch Player Count Override */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-slate-400 font-semibold flex items-center gap-1 text-xs">
+                      <Shield className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Pitch Players (Format)</span>
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      Default: {settings.pitchPlayerCount || 7}-a-side
+                    </span>
+                  </div>
+                  <select
+                    value={pitchPlayerCount}
+                    onChange={(e) => setPitchPlayerCount(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium text-xs"
+                  >
+                    <option value="">Default ({settings.pitchPlayerCount || 7}-a-side)</option>
+                    <option value="5">5-a-side (5 on pitch)</option>
+                    <option value="7">7-a-side (7 on pitch)</option>
+                    <option value="9">9-a-side (9 on pitch)</option>
+                    <option value="11">11-a-side (11 on pitch)</option>
+                  </select>
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Adapts formations & positions on pitch.
+                  </p>
+                </div>
+
+                {/* Match Periods Override */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-slate-400 font-semibold flex items-center gap-1 text-xs">
+                      <Layers className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Match Periods</span>
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      Default: {settings.matchPeriodCount || 2} ({settings.matchPeriodCount === 2 ? 'Halves' : 'Periods'})
+                    </span>
+                  </div>
+                  <select
+                    value={matchPeriodCount}
+                    onChange={(e) => setMatchPeriodCount(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium text-xs"
+                  >
+                    <option value="">Default ({settings.matchPeriodCount === 2 ? '2 Halves' : `${settings.matchPeriodCount} Periods`})</option>
+                    <option value="2">2 Halves</option>
+                    <option value="3">3 Periods</option>
+                    <option value="4">4 Quarters</option>
+                  </select>
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Number of periods for rotations.
+                  </p>
+                </div>
+
+                {/* Period Duration Override */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-slate-400 font-semibold flex items-center gap-1 text-xs">
+                      <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Period Duration (mins)</span>
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      Default: {settings.periodDurationMinutes || 25}m
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={5}
+                      max={60}
+                      value={periodDurationMinutes}
+                      onChange={(e) => setPeriodDurationMinutes(e.target.value)}
+                      placeholder={`Default (${settings.periodDurationMinutes || 25} mins)`}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium text-xs"
+                    />
+                    {periodDurationMinutes && (
+                      <button
+                        type="button"
+                        onClick={() => setPeriodDurationMinutes('')}
+                        className="absolute right-2 top-1.5 text-[10px] text-slate-400 hover:text-white px-1.5 py-0.5 rounded bg-slate-800 transition cursor-pointer"
+                        title="Reset to default"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Minutes per period for fair play stats.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 

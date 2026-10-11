@@ -27,6 +27,9 @@ import {
   ExternalLink,
   Crown,
   Edit3,
+  Users,
+  Shield,
+  Layers,
 } from 'lucide-react';
 
 export const FixtureManager: React.FC = () => {
@@ -76,6 +79,10 @@ export const FixtureManager: React.FC = () => {
   const [groundAddress, setGroundAddress] = useState<string>('');
   const [captainId, setCaptainId] = useState<string>('');
   const [venue, setVenue] = useState<'Home' | 'Away'>('Home');
+  const [matchdaySquadCap, setMatchdaySquadCap] = useState<string>('');
+  const [pitchPlayerCount, setPitchPlayerCount] = useState<string>('');
+  const [matchPeriodCount, setMatchPeriodCount] = useState<string>('');
+  const [periodDurationMinutes, setPeriodDurationMinutes] = useState<string>('');
   const [season, setSeason] = useState<string>(currentDefaultSeason);
   const [selectedSeasonFilter, setSelectedSeasonFilter] = useState<string>('ALL');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
@@ -117,12 +124,20 @@ export const FixtureManager: React.FC = () => {
       captainId: captainId || undefined,
       venue,
       status: 'Upcoming',
+      matchdaySquadCap: matchdaySquadCap.trim() ? parseInt(matchdaySquadCap, 10) : undefined,
+      pitchPlayerCount: pitchPlayerCount.trim() ? parseInt(pitchPlayerCount, 10) : undefined,
+      matchPeriodCount: matchPeriodCount.trim() ? parseInt(matchPeriodCount, 10) : undefined,
+      periodDurationMinutes: periodDurationMinutes.trim() ? parseInt(periodDurationMinutes, 10) : undefined,
     });
 
     setIsAdding(false);
     setOpponent('');
     setGroundAddress('');
     setCaptainId('');
+    setMatchdaySquadCap('');
+    setPitchPlayerCount('');
+    setMatchPeriodCount('');
+    setPeriodDurationMinutes('');
     showToast(`Scheduled fixture vs ${oppName}!`, 'success');
   };
 
@@ -399,7 +414,7 @@ export const FixtureManager: React.FC = () => {
           </div>
 
           {/* Row 2: Meet Time, Ground Address / Postcode, Captain Armband */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs pt-1 border-t border-slate-800/80">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs pt-1 border-t border-slate-800/80">
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-slate-400 font-semibold flex items-center gap-1">
@@ -456,6 +471,87 @@ export const FixtureManager: React.FC = () => {
                   );
                 })}
               </select>
+            </div>
+          </div>
+
+          {/* Row 3: Optional Overrides (Friendlies / Tournaments) */}
+          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-1">
+              <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-sky-400" />
+                <span>Match Format Overrides (Optional — For Friendlies & Tournaments)</span>
+              </span>
+              <span className="text-[10px] text-slate-500">
+                Default: {settings.pitchPlayerCount || 7}-a-side • {settings.matchdaySquadCap || 10} squad • {settings.matchPeriodCount || 2} periods ({settings.periodDurationMinutes || 25}m)
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
+                  <Users className="w-3 h-3 text-sky-400" />
+                  <span>Squad Size</span>
+                </label>
+                <input
+                  type="number"
+                  min={pitchPlayerCount ? parseInt(pitchPlayerCount, 10) : (settings.pitchPlayerCount || 5)}
+                  max={30}
+                  value={matchdaySquadCap}
+                  onChange={(e) => setMatchdaySquadCap(e.target.value)}
+                  placeholder={`Default (${settings.matchdaySquadCap || 10})`}
+                  className="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
+                  <Shield className="w-3 h-3 text-indigo-400" />
+                  <span>Pitch Format</span>
+                </label>
+                <select
+                  value={pitchPlayerCount}
+                  onChange={(e) => setPitchPlayerCount(e.target.value)}
+                  className="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium text-xs"
+                >
+                  <option value="">Default ({settings.pitchPlayerCount || 7}-a-side)</option>
+                  <option value="5">5-a-side</option>
+                  <option value="7">7-a-side</option>
+                  <option value="9">9-a-side</option>
+                  <option value="11">11-a-side</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
+                  <Layers className="w-3 h-3 text-amber-400" />
+                  <span>Periods</span>
+                </label>
+                <select
+                  value={matchPeriodCount}
+                  onChange={(e) => setMatchPeriodCount(e.target.value)}
+                  className="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium text-xs"
+                >
+                  <option value="">Default ({settings.matchPeriodCount === 2 ? '2 Halves' : `${settings.matchPeriodCount} Periods`})</option>
+                  <option value="2">2 Halves</option>
+                  <option value="3">3 Periods</option>
+                  <option value="4">4 Quarters</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-emerald-400" />
+                  <span>Duration / Period</span>
+                </label>
+                <input
+                  type="number"
+                  min={5}
+                  max={60}
+                  value={periodDurationMinutes}
+                  onChange={(e) => setPeriodDurationMinutes(e.target.value)}
+                  placeholder={`Default (${settings.periodDurationMinutes || 25}m)`}
+                  className="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium text-xs"
+                />
+              </div>
             </div>
           </div>
 
@@ -527,6 +623,24 @@ export const FixtureManager: React.FC = () => {
                       <Trophy className="w-2.5 h-2.5" />
                       <span>{fixtureSeason}</span>
                     </span>
+                    {fixture.matchdaySquadCap && fixture.matchdaySquadCap !== settings.matchdaySquadCap && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-300 border border-sky-500/20 flex items-center gap-1">
+                        <Users className="w-2.5 h-2.5" />
+                        <span>{fixture.matchdaySquadCap} Sheet</span>
+                      </span>
+                    )}
+                    {fixture.pitchPlayerCount && fixture.pitchPlayerCount !== settings.pitchPlayerCount && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-300 border border-violet-500/20 flex items-center gap-1">
+                        <Shield className="w-2.5 h-2.5" />
+                        <span>{fixture.pitchPlayerCount}-a-side</span>
+                      </span>
+                    )}
+                    {fixture.matchPeriodCount && fixture.matchPeriodCount !== settings.matchPeriodCount && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 flex items-center gap-1">
+                        <Layers className="w-2.5 h-2.5" />
+                        <span>{fixture.matchPeriodCount} Periods</span>
+                      </span>
+                    )}
                     {isPostMatchDone && (
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                         <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
@@ -660,9 +774,16 @@ export const FixtureManager: React.FC = () => {
               </div>
 
               <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                <span className="text-[11px] text-slate-400">
-                  Squad: {fixture.matchSquad?.selectedPlayerIds.length || 0} selected
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-slate-400">
+                    Squad: {fixture.matchSquad?.selectedPlayerIds.length || 0} / {fixture.matchdaySquadCap || settings.matchdaySquadCap || 10}
+                  </span>
+                  {fixture.matchdaySquadCap && fixture.matchdaySquadCap !== settings.matchdaySquadCap && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                      Friendly ({fixture.matchdaySquadCap})
+                    </span>
+                  )}
+                </div>
 
                 <div className="flex items-center gap-2">
                   <button

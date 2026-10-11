@@ -25,7 +25,7 @@ export const RotationMatrix: React.FC = () => {
   const statsMap = new Map(stats.map((s) => [s.playerId, s]));
 
   const matchSquad = activeFixture.matchSquad;
-  const periodCount = settings.matchPeriodCount || 2;
+  const periodCount = activeFixture.matchPeriodCount || settings.matchPeriodCount || 2;
   const periods = Array.from({ length: periodCount }, (_, i) => i + 1);
 
   // Helper to get status of player in given period

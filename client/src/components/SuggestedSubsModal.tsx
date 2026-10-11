@@ -36,7 +36,8 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
   const [copied, setCopied] = useState<boolean>(false);
 
   const totalMatchMinutes =
-    (settings.matchPeriodCount || 2) * (settings.periodDurationMinutes || 25);
+    (fixture?.matchPeriodCount || settings.matchPeriodCount || 2) *
+    (fixture?.periodDurationMinutes || settings.periodDurationMinutes || 25);
 
   useEffect(() => {
     if (!isOpen || !fixture || !fixture.matchSquad) return;

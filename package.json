@@ -11,6 +11,8 @@
     "build:client": "npm run build --prefix client",
     "build:server": "npm run build --prefix server",
     "start": "npm run start --prefix server",
+    "test": "npm run test --prefix server",
+    "test:unit": "npm run test --prefix server",
     "test:e2e": "playwright test",
     "test:e2e:desktop": "playwright test --project=chromium",
     "test:e2e:mobile": "playwright test --project=mobile",

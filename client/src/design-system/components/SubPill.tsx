@@ -30,11 +30,11 @@ export const SubPill: React.FC<SubPillProps> = ({
         )}
 
         {/* Player Off */}
-        <div className="flex items-center gap-1.5 truncate">
+        <div className="flex items-center gap-1.5 min-w-0">
           <span className="w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0">
             <ArrowDown className="w-3 h-3" />
           </span>
-          <span className="font-semibold text-slate-300 truncate max-w-[100px] sm:max-w-[130px]">
+          <span className="font-semibold text-slate-300 break-words leading-tight" title={change.offPlayerName}>
             {change.offPlayerName}
           </span>
         </div>
@@ -43,11 +43,11 @@ export const SubPill: React.FC<SubPillProps> = ({
         <ArrowRight className="w-3.5 h-3.5 text-slate-500 shrink-0" />
 
         {/* Player On */}
-        <div className="flex items-center gap-1.5 truncate">
+        <div className="flex items-center gap-1.5 min-w-0">
           <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0">
             <ArrowUp className="w-3 h-3" />
           </span>
-          <span className="font-semibold text-white truncate max-w-[100px] sm:max-w-[130px]">
+          <span className="font-semibold text-white break-words leading-tight" title={change.onPlayerName}>
             {change.onPlayerName}
           </span>
         </div>

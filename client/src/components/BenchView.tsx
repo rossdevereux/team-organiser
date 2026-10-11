@@ -17,6 +17,7 @@ import { KitJerseyIcon } from '../design-system';
 import { Player } from '../types';
 import { EmptyState } from './EmptyState';
 import { useToast } from '../context/ToastContext';
+import { PlayerCallOffModal } from './PlayerCallOffModal';
 
 function getInitials(name?: string): string {
   if (!name || !name.trim()) return '?';
@@ -64,7 +65,7 @@ export const BenchView: React.FC = () => {
     .filter((p): p is Player => Boolean(p));
 
   const selectedSquadCount = activeFixture.matchSquad.selectedPlayerIds.length;
-  const squadCap = settings.matchdaySquadCap || 10;
+  const squadCap = activeFixture.matchdaySquadCap || settings.matchdaySquadCap || 10;
   const hasSquadSpace = selectedSquadCount < squadCap;
 
   const onSubClick = (playerId: string) => {
@@ -92,12 +93,13 @@ export const BenchView: React.FC = () => {
     selectSwapSource({ type: 'sub', playerId });
   };
 
+  const effectivePeriodCount = activeFixture?.matchPeriodCount || settings.matchPeriodCount || 2;
   const periodLabel =
-    settings.matchPeriodCount === 2
+    effectivePeriodCount === 2
       ? activePeriod === 1
         ? 'First Half (Period 1)'
         : 'Second Half (Period 2)'
-      : `Period ${activePeriod}`;
+      : `Period ${activePeriod} of ${effectivePeriodCount}`;
 
   return (
     <div className="space-y-6">
@@ -133,7 +135,7 @@ export const BenchView: React.FC = () => {
             className="py-8"
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
             {subs.map((sub) => {
               const pStats = statsMap.get(sub.id);
               const isSelected = selectedSwapSource?.playerId === sub.id;
@@ -146,7 +148,7 @@ export const BenchView: React.FC = () => {
                   draggable
                   onDragStart={(e) => handleDragStart(e, sub.id)}
                   onClick={() => onSubClick(sub.id)}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 group overflow-hidden ${
+                  className={`p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 group overflow-hidden ${
                     isSelected
                       ? 'ring-4 ring-sky-400 border-white bg-slate-900 shadow-xl shadow-sky-500/40 scale-102'
                       : isEligibleTarget
@@ -156,40 +158,60 @@ export const BenchView: React.FC = () => {
                       : 'bg-slate-950/80 hover:bg-slate-900 border-slate-800 hover:border-slate-700'
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-2 min-w-0">
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      <div className="relative shrink-0">
-                        {sub.squadNumber ? (
-                          <KitJerseyIcon
-                            number={sub.squadNumber}
-                            isGk={sub.preferredPositions.includes('Goalkeeper')}
-                            size={36}
-                          />
-                        ) : (
-                          <div className="w-9 h-9 rounded-xl bg-slate-800 text-white font-black text-xs flex items-center justify-center border border-slate-700 shadow-sm">
-                            {getInitials(sub.name)}
-                          </div>
-                        )}
+                  {/* Top Row: Full-width Avatar, Name & Preferred Position */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="relative shrink-0">
+                      {sub.squadNumber ? (
+                        <KitJerseyIcon
+                          number={sub.squadNumber}
+                          isGk={sub.preferredPositions.includes('Goalkeeper')}
+                          size={38}
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-xl bg-slate-800 text-white font-black text-xs flex items-center justify-center border border-slate-700 shadow-sm">
+                          {getInitials(sub.name)}
+                        </div>
+                      )}
+                      {isCaptain && (
+                        <span className="absolute -top-1 -right-1 px-1 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black leading-none border border-amber-200">
+                          ©
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-bold text-white group-hover:text-sky-300 transition-colors flex items-center gap-1.5 leading-snug">
+                        <span className="truncate" title={sub.name}>
+                          {sub.name}
+                        </span>
                         {isCaptain && (
-                          <span className="absolute -top-1 -right-1 px-1 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black leading-none border border-amber-200">
-                            ©
-                          </span>
+                          <span className="text-[10px] text-amber-300 font-bold shrink-0">©</span>
                         )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs font-bold text-white group-hover:text-sky-300 transition-colors flex items-center gap-1.5 truncate">
-                          <span className="truncate">{sub.name}</span>
-                          {isCaptain && (
-                            <span className="text-[10px] text-amber-300 font-bold shrink-0">©</span>
-                          )}
-                        </h4>
-                        <p className="text-[11px] text-slate-400 truncate">
-                          {sub.preferredPositions.join(', ')}
-                        </p>
-                      </div>
+                      </h4>
+                      <p
+                        className="text-xs text-sky-400 font-medium truncate mt-0.5"
+                        title={sub.preferredPositions.join(', ')}
+                      >
+                        {sub.preferredPositions.join(', ')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Bottom Row: Match Stats & Quick Action Buttons */}
+                  <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-300 font-mono">
+                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>{pStats ? `${pStats.minutesPlayed}m played` : '0m'}</span>
+                      <span className="text-slate-600">•</span>
+                      <span
+                        className={`font-bold ${
+                          pStats && pStats.meetsTarget ? 'text-emerald-400' : 'text-amber-400'
+                        }`}
+                      >
+                        {pStats ? `${pStats.gameTimePercent}%` : '0%'}
+                      </span>
                     </div>
 
-                    {/* Touch Action Buttons with >= 44-48px Touch Targets */}
+                    {/* Touch Action Buttons */}
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button
                         type="button"
@@ -197,11 +219,12 @@ export const BenchView: React.FC = () => {
                           e.stopPropagation();
                           setReplacingSubPlayer(sub);
                         }}
-                        className="min-w-[44px] min-h-[44px] p-2 rounded-xl bg-slate-850 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-slate-700/60 transition flex items-center justify-center cursor-pointer"
-                        title="Player ill or called off? Replace with rested player"
+                        className="h-8 px-2.5 rounded-xl bg-slate-850 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-slate-700/60 transition flex items-center gap-1 text-xs cursor-pointer"
+                        title="Player ill or called off? Remove or replace"
                         aria-label={`Replace absent or ill player ${sub.name}`}
                       >
-                        <UserX className="w-4 h-4" />
+                        <UserX className="w-3.5 h-3.5" />
+                        <span className="text-[11px] font-medium hidden sm:inline">Call-off</span>
                       </button>
                       <button
                         type="button"
@@ -209,12 +232,12 @@ export const BenchView: React.FC = () => {
                           e.stopPropagation();
                           onSubClick(sub.id);
                         }}
-                        className={`min-w-[44px] min-h-[44px] p-2 rounded-xl transition flex items-center justify-center cursor-pointer ${
+                        className={`h-8 px-3 rounded-xl transition flex items-center gap-1.5 text-xs font-semibold cursor-pointer ${
                           isEligibleTarget
                             ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/30'
                             : isSelected
                             ? 'bg-sky-500 text-white'
-                            : 'bg-slate-800 text-slate-300 hover:bg-sky-600 hover:text-white'
+                            : 'bg-slate-800 text-slate-200 hover:bg-sky-600 hover:text-white border border-slate-700'
                         }`}
                         title={
                           isEligibleTarget
@@ -223,23 +246,10 @@ export const BenchView: React.FC = () => {
                         }
                         aria-label={`Swap ${sub.name} onto pitch`}
                       >
-                        <ArrowLeftRight className="w-4 h-4" />
+                        <ArrowLeftRight className="w-3.5 h-3.5" />
+                        <span>{isEligibleTarget ? 'Swap Here' : isSelected ? 'Selected' : 'Swap'}</span>
                       </button>
                     </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-300 font-mono">
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{pStats ? `${pStats.minutesPlayed}m played` : '0m'}</span>
-                    </span>
-                    <span
-                      className={`font-bold ${
-                        pStats && pStats.meetsTarget ? 'text-emerald-300' : 'text-amber-300'
-                      }`}
-                    >
-                      {pStats ? `${pStats.gameTimePercent}%` : '0%'}
-                    </span>
                   </div>
                 </div>
               );
@@ -272,7 +282,7 @@ export const BenchView: React.FC = () => {
             No players rested for this match (full squad attending).
           </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 pt-1">
             {restedPlayers.map((player) => {
               const fixtureDate = activeFixture.date;
               const isUnavailable = player.unavailableDates?.includes(fixtureDate);
@@ -288,7 +298,7 @@ export const BenchView: React.FC = () => {
                 <div
                   key={player.id}
                   onClick={() => onRestedClick(player)}
-                  className={`p-4 rounded-2xl border flex flex-col justify-between space-y-3 text-xs shadow-sm cursor-pointer transition ${
+                  className={`p-3.5 sm:p-4 rounded-2xl border flex flex-col justify-between space-y-3 text-xs shadow-sm cursor-pointer transition ${
                     isSwapTarget
                       ? 'border-emerald-500/80 bg-emerald-950/30 hover:bg-emerald-950/50 ring-2 ring-emerald-500/40 shadow-emerald-950/50'
                       : 'bg-slate-950/70 hover:bg-slate-900 border-slate-800/90 hover:border-slate-700'
@@ -299,59 +309,62 @@ export const BenchView: React.FC = () => {
                       : `Click to move ${player.name} to matchday team sheet`
                   }
                 >
-                  {/* Top Row: Squad Number & Status Badge */}
-                  <div className="flex items-center justify-between">
-                    <span className="w-8 h-8 rounded-xl bg-slate-800 text-slate-200 flex items-center justify-center font-bold text-xs border border-slate-700/60 shadow-sm">
-                      {player.squadNumber ? `#${player.squadNumber}` : getInitials(player.name)}
-                    </span>
+                  {/* Top Row: Squad Number / Avatar + Player Name & Position + Status Badge */}
+                  <div className="flex items-center justify-between gap-2.5 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <span className="w-8 h-8 rounded-xl bg-slate-800 text-slate-200 flex items-center justify-center font-bold text-xs border border-slate-700/60 shadow-sm shrink-0">
+                        {player.squadNumber ? `#${player.squadNumber}` : getInitials(player.name)}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs font-bold text-white leading-snug truncate" title={player.name}>
+                          {player.name}
+                        </h4>
+                        <p className="text-[11px] text-slate-400 truncate mt-0.5" title={player.preferredPositions.join(', ')}>
+                          {player.preferredPositions.join(', ')}
+                        </p>
+                      </div>
+                    </div>
 
-                    {isUnavailable ? (
-                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
-                        Away
-                      </span>
-                    ) : isBeforeSignOn ? (
-                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                        Pending
-                      </span>
-                    ) : isAfterLeave ? (
-                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
-                        Left
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                        Rested
-                      </span>
-                    )}
+                    <div className="shrink-0">
+                      {isUnavailable ? (
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                          Away
+                        </span>
+                      ) : isBeforeSignOn ? (
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                          Pending
+                        </span>
+                      ) : isAfterLeave ? (
+                        <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                          Left
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                          Rested
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Middle Row: Player Name & Preferred Positions */}
-                  <div className="space-y-0.5">
-                    <h4 className="text-xs font-bold text-white leading-snug truncate">
-                      {player.name}
-                    </h4>
-                    <p className="text-[11px] text-slate-400 truncate">
-                      {player.preferredPositions.join(', ')}
-                    </p>
-                  </div>
+                  {/* Bottom Row: Season Stats + Action Button */}
+                  <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-300 font-mono">
+                      <span>{player.matchesPlayed} matches</span>
+                      <span className="text-slate-600">•</span>
+                      <span>{player.totalMinutesPlayed}m season</span>
+                    </div>
 
-                  {/* Quick Action Button with min 44px touch target */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setPromotingRestedPlayer(player);
-                    }}
-                    className="w-full min-h-[44px] py-2 px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    <span>Move to Team Sheet</span>
-                  </button>
-
-                  {/* Bottom Row: Season Statistics */}
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-300 font-mono">
-                    <span>{player.matchesPlayed} matches</span>
-                    <span>•</span>
-                    <span>{player.totalMinutesPlayed}m season</span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPromotingRestedPlayer(player);
+                      }}
+                      className="h-8 px-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-bold flex items-center gap-1 transition cursor-pointer shrink-0"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Promote</span>
+                    </button>
                   </div>
                 </div>
               );
@@ -429,12 +442,12 @@ export const BenchView: React.FC = () => {
                       <span className="w-7 h-7 rounded-lg bg-slate-800 text-slate-200 flex items-center justify-center font-bold text-xs shrink-0">
                         {p.squadNumber || getInitials(p.name)}
                       </span>
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-white group-hover:text-indigo-300 flex items-center gap-1 truncate">
-                          <span>{p.name}</span>
-                          {isCaptain && <span className="text-[10px] text-amber-300 font-bold">©</span>}
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold text-white group-hover:text-indigo-300 flex items-center flex-wrap gap-1 leading-snug">
+                          <span className="break-words font-bold" title={p.name}>{p.name}</span>
+                          {isCaptain && <span className="text-[10px] text-amber-300 font-bold shrink-0">©</span>}
                         </div>
-                        <span className="text-[11px] text-slate-400 truncate block">
+                        <span className="text-[11px] text-slate-400 break-words block mt-0.5" title={p.preferredPositions.join(', ')}>
                           {p.preferredPositions.join(', ')}
                         </span>
                       </div>
@@ -460,87 +473,12 @@ export const BenchView: React.FC = () => {
         </div>
       )}
 
-      {/* Modal: Mark Sub as Sick / Call-Off and replace with Rested Player */}
-      {replacingSubPlayer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in print:hidden">
-          <div className="relative w-full max-w-md rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                  <UserX className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white">Player Ill / Call-Off</h3>
-                  <p className="text-xs text-slate-400">
-                    Replace <strong>{replacingSubPlayer.name}</strong> on matchday
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setReplacingSubPlayer(null)}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition min-w-[44px] min-h-[44px] flex items-center justify-center"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-300">
-              Select a player from the rested rotation roster to take{' '}
-              <strong className="text-white">{replacingSubPlayer.name}</strong>'s spot on the team sheet:
-            </p>
-
-            {restedPlayers.length === 0 ? (
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-center space-y-2">
-                <AlertCircle className="w-6 h-6 text-amber-400 mx-auto" />
-                <p className="text-xs text-slate-400">No players currently in rested roster.</p>
-              </div>
-            ) : (
-              <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
-                {restedPlayers.map((r) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={async () => {
-                      await replaceSquadPlayer(replacingSubPlayer.id, r.id);
-                      setReplacingSubPlayer(null);
-                      showToast(`✓ ${r.name} moved to team sheet, replacing ${replacingSubPlayer.name}.`, 'success');
-                    }}
-                    className="w-full min-h-[48px] p-2.5 rounded-xl bg-slate-950/80 hover:bg-emerald-950/50 border border-slate-800 hover:border-emerald-500/50 text-left flex items-center justify-between transition cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="w-7 h-7 rounded-lg bg-slate-800 text-slate-200 flex items-center justify-center font-bold text-xs shrink-0">
-                        {r.squadNumber || getInitials(r.name)}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-white group-hover:text-emerald-300 truncate">
-                          {r.name}
-                        </div>
-                        <span className="text-[11px] text-slate-400 truncate block">
-                          {r.preferredPositions.join(', ')} • {r.totalMinutesPlayed}m season
-                        </span>
-                      </div>
-                    </div>
-                    <span className="text-[11px] font-bold text-emerald-400 group-hover:text-emerald-300 shrink-0 px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/20">
-                      Bring In
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div className="pt-2 border-t border-slate-800 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setReplacingSubPlayer(null)}
-                className="min-h-[44px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal: Mark Sub as Sick / Call-Off (Remove without replacement OR replace from rested roster) */}
+      <PlayerCallOffModal
+        player={replacingSubPlayer}
+        onClose={() => setReplacingSubPlayer(null)}
+        currentLocation="bench"
+      />
     </div>
   );
 };

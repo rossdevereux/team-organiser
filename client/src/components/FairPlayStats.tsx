@@ -837,14 +837,14 @@ export const FairPlayStats: React.FC = () => {
                   </div>
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-extrabold text-white font-mono">
-                      {settings.matchPeriodCount * settings.periodDurationMinutes}m
+                      {(activeFixture.matchPeriodCount || settings.matchPeriodCount || 2) * (activeFixture.periodDurationMinutes || settings.periodDurationMinutes || 25)}m
                     </span>
                     <span className="text-xs text-slate-400">
-                      ({settings.matchPeriodCount} × {settings.periodDurationMinutes}m)
+                      ({activeFixture.matchPeriodCount || settings.matchPeriodCount || 2} × {activeFixture.periodDurationMinutes || settings.periodDurationMinutes || 25}m)
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-400">
-                    {settings.pitchPlayerCount}-a-side ({settings.defaultFormation})
+                    {activeFixture.pitchPlayerCount || settings.pitchPlayerCount || 7}-a-side ({activeFixture.formation || settings.defaultFormation})
                   </p>
                 </div>
               </div>
@@ -888,8 +888,8 @@ export const FairPlayStats: React.FC = () => {
                         <div className="flex-1 max-w-md">
                           <div className="flex items-center justify-between text-[11px] mb-1 font-mono">
                             <span className="text-slate-400">
-                              {item.periodsPlayed.length} of {settings.matchPeriodCount}{' '}
-                              {settings.matchPeriodCount === 2 ? 'halves' : 'periods'} ({item.minutesPlayed}m)
+                              {item.periodsPlayed.length} of {activeFixture.matchPeriodCount || settings.matchPeriodCount || 2}{' '}
+                              {(activeFixture.matchPeriodCount || settings.matchPeriodCount || 2) === 2 ? 'halves' : 'periods'} ({item.minutesPlayed}m)
                             </span>
                             <span
                               className={`font-bold ${

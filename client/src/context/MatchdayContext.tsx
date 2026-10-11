@@ -399,24 +399,34 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Available formations for the current team size (5, 7, 9, 11 + customs)
   const availableFormations = useMemo(() => {
-    const pitchCount = settings.pitchPlayerCount || 7;
+    const pitchCount = activeFixture?.pitchPlayerCount || settings.pitchPlayerCount || 7;
     return getFormationsForTeamSize(pitchCount, settings.customFormations || []);
-  }, [settings.pitchPlayerCount, settings.customFormations]);
+  }, [activeFixture?.pitchPlayerCount, settings.pitchPlayerCount, settings.customFormations]);
 
   // Active formation definition
   const activeFormation = useMemo(() => {
-    const pitchCount = settings.pitchPlayerCount || 7;
+    const pitchCount = activeFixture?.pitchPlayerCount || settings.pitchPlayerCount || 7;
     return findFormation(
-      settings.defaultFormation || '2-3-1',
+      activeFixture?.formation || settings.defaultFormation || '2-3-1',
       pitchCount,
       settings.customFormations || []
     );
-  }, [settings.defaultFormation, settings.pitchPlayerCount, settings.customFormations]);
+  }, [activeFixture?.formation, activeFixture?.pitchPlayerCount, settings.defaultFormation, settings.pitchPlayerCount, settings.customFormations]);
+
+  // Clamp activePeriod if fixture has fewer periods (e.g. 2 halves vs 3/4 periods)
+  useEffect(() => {
+    const periodCount = activeFixture?.matchPeriodCount || settings.matchPeriodCount || 2;
+    if (activePeriod > periodCount) {
+      setActivePeriod(1);
+    }
+  }, [activeFixture?.matchPeriodCount, settings.matchPeriodCount, activePeriod]);
 
   // Compute fair play match statistics
   const stats = useMemo(() => {
     if (!activeFixture || !activeFixture.matchSquad) return [];
-    const totalMatchMinutes = settings.matchPeriodCount * settings.periodDurationMinutes;
+    const periodCount = activeFixture.matchPeriodCount || settings.matchPeriodCount || 2;
+    const duration = activeFixture.periodDurationMinutes || settings.periodDurationMinutes || 25;
+    const totalMatchMinutes = periodCount * duration;
     const playerMap = new Map(players.map((p) => [p.id, p]));
 
     return activeFixture.matchSquad.selectedPlayerIds.map((playerId) => {
@@ -444,7 +454,7 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       });
 
-      let minutesPlayed = periodsPlayed.length * settings.periodDurationMinutes;
+      let minutesPlayed = periodsPlayed.length * duration;
       let isPostMatchRecorded = false;
 
       if (activeFixture.postMatchRecording) {
@@ -546,7 +556,7 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const resetMatchSheet = async () => {
     if (!activeFixture || !activeFixture.matchSquad) return;
-    const periodCount = settings.matchPeriodCount || 2;
+    const periodCount = activeFixture.matchPeriodCount || settings.matchPeriodCount || 2;
     const emptyLineups = Array.from({ length: periodCount }, (_, i) => ({
       period: i + 1,
       onPitch: [],
@@ -649,11 +659,27 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const updatedRested = Array.from(new Set([...(currentSquad.restedPlayerIds || []), playerId]));
 
     // Remove from pitch and bench across all periods
-    const updatedLineups = currentSquad.lineupsByPeriod.map((l) => ({
-      ...l,
-      onPitch: l.onPitch.filter((p) => p.playerId !== playerId),
-      subs: l.subs.filter((id) => id !== playerId),
-    }));
+    // If the removed player was on the pitch in a period and there is a bench substitute available,
+    // promote the first available substitute to take the pitch position so the team stays full!
+    const updatedLineups = currentSquad.lineupsByPeriod.map((l) => {
+      const wasOnPitch = l.onPitch.find((p) => p.playerId === playerId);
+      let newOnPitch = l.onPitch.filter((p) => p.playerId !== playerId);
+      let newSubs = l.subs.filter((id) => id !== playerId);
+
+      if (wasOnPitch && newSubs.length > 0) {
+        const promotedSubId = newSubs.shift()!;
+        newOnPitch.push({
+          playerId: promotedSubId,
+          position: wasOnPitch.position,
+        });
+      }
+
+      return {
+        ...l,
+        onPitch: newOnPitch,
+        subs: newSubs,
+      };
+    });
 
     const updatedSquad: MatchSquad = {
       ...currentSquad,
@@ -823,10 +849,14 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Formation Change
   const changeFormation = async (formationIdOrName: string) => {
-    if (!activeTeam) return;
-    const newSettings: TeamSettings = { ...settings, defaultFormation: formationIdOrName };
-    const updatedTeam = { ...activeTeam, settings: newSettings };
-    await updateTeam(updatedTeam);
+    if (activeFixture) {
+      await updateFixture({ ...activeFixture, formation: formationIdOrName });
+    }
+    if (activeTeam) {
+      const newSettings: TeamSettings = { ...settings, defaultFormation: formationIdOrName };
+      const updatedTeam = { ...activeTeam, settings: newSettings };
+      await updateTeam(updatedTeam);
+    }
 
     if (activeFixture && activeFixture.matchSquad) {
       await autoRotateCurrentFixture(activeFixture.matchSquad.selectedPlayerIds);

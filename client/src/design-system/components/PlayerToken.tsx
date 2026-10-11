@@ -191,8 +191,8 @@ export const PlayerToken: React.FC<PlayerTokenProps> = ({
             size={34}
           />
           <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-bold text-[var(--text-main)] group-hover:text-sky-300 transition-colors">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs font-bold text-[var(--text-main)] group-hover:text-sky-300 transition-colors break-words" title={player.name}>
                 {player.name}
               </span>
               {isCaptain && (

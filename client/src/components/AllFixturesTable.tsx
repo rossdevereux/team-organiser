@@ -209,6 +209,21 @@ export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeas
                           <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
                             {fixtureSeason}
                           </span>
+                          {fixture.matchdaySquadCap && fixture.matchdaySquadCap !== settings.matchdaySquadCap && (
+                            <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20">
+                              {fixture.matchdaySquadCap} Sheet
+                            </span>
+                          )}
+                          {fixture.pitchPlayerCount && fixture.pitchPlayerCount !== settings.pitchPlayerCount && (
+                            <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-violet-500/10 text-violet-300 border border-violet-500/20">
+                              {fixture.pitchPlayerCount}-a-side
+                            </span>
+                          )}
+                          {fixture.matchPeriodCount && fixture.matchPeriodCount !== settings.matchPeriodCount && (
+                            <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                              {fixture.matchPeriodCount}P
+                            </span>
+                          )}
                         </div>
 
                         <div className="font-extrabold text-sm text-white hover:text-sky-400 transition flex items-center justify-between gap-1">
@@ -276,6 +291,7 @@ export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeas
                     .map((id) => playerMap.get(id))
                     .filter((p): p is Player => Boolean(p))
                     .sort(sortPlayersByNumberAndName);
+                  const fixtureCap = fixture.matchdaySquadCap || settings.matchdaySquadCap || 10;
 
                   return (
                     <td
@@ -288,8 +304,13 @@ export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeas
                         </div>
                       ) : (
                         <div className="space-y-1.5">
-                          <div className="text-[10px] font-bold text-emerald-400/80 uppercase pb-1 border-b border-slate-800/60 flex items-center justify-between">
-                            <span>{selectedPlayers.length} Selected</span>
+                          <div className="text-[10px] font-bold text-emerald-400/80 uppercase pb-1 border-b border-slate-800/60 flex items-center justify-between gap-1 flex-wrap">
+                            <span>{selectedPlayers.length} / {fixtureCap} Selected</span>
+                            {fixture.matchdaySquadCap && fixture.matchdaySquadCap !== settings.matchdaySquadCap && (
+                              <span className="text-[9px] text-amber-300 font-semibold px-1 py-0.2 rounded bg-amber-500/15 border border-amber-500/25">
+                                Friendly
+                              </span>
+                            )}
                             {fixture.postMatchRecording && (
                               <span className="text-[9px] text-emerald-300 font-normal">
                                 {fixture.postMatchRecording.trackingMode === 'full_credit' ? '100% Credit' : 'Recorded'}

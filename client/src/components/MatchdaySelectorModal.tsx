@@ -11,11 +11,19 @@ export const MatchdaySelectorModal: React.FC<MatchdaySelectorModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { activeFixture, players, settings, autoRotateCurrentFixture } = useMatchday();
+  const { activeFixture, players, settings, autoRotateCurrentFixture, updateFixture } = useMatchday();
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const squadCap = settings.matchdaySquadCap || 10;
+  const [squadCap, setSquadCap] = useState<number>(
+    activeFixture?.matchdaySquadCap || settings.matchdaySquadCap || 10
+  );
   const fixtureDate = activeFixture?.date || '';
+
+  useEffect(() => {
+    if (activeFixture) {
+      setSquadCap(activeFixture.matchdaySquadCap || settings.matchdaySquadCap || 10);
+    }
+  }, [activeFixture?.id, activeFixture?.matchdaySquadCap, settings.matchdaySquadCap]);
 
   const getPlayerEligibility = (player: (typeof players)[0]) => {
     const isBeforeSignOn = Boolean(player.signOnDate && fixtureDate && fixtureDate < player.signOnDate);
@@ -84,7 +92,7 @@ export const MatchdaySelectorModal: React.FC<MatchdaySelectorModalProps> = ({
       if (selectedIds.length < squadCap) {
         setSelectedIds([...selectedIds, id]);
       } else {
-        alert(`Matchday squad is full (${squadCap}/${squadCap}). Please unselect a sick/absent player first, or swap them directly.`);
+        alert(`Matchday squad is full (${squadCap}/${squadCap}). Please unselect a sick/absent player first, or increase the team sheet limit.`);
       }
     }
   };
@@ -110,6 +118,13 @@ export const MatchdaySelectorModal: React.FC<MatchdaySelectorModalProps> = ({
   };
 
   const handleApply = async () => {
+    const originalCap = activeFixture.matchdaySquadCap || settings.matchdaySquadCap || 10;
+    if (squadCap !== originalCap) {
+      await updateFixture({
+        ...activeFixture,
+        matchdaySquadCap: squadCap !== (settings.matchdaySquadCap || 10) ? squadCap : undefined,
+      });
+    }
     await autoRotateCurrentFixture(selectedIds);
     onClose();
   };
@@ -129,20 +144,23 @@ export const MatchdaySelectorModal: React.FC<MatchdaySelectorModalProps> = ({
               <h3 className="text-base font-bold text-white">Select Matchday Squad</h3>
               <p className="text-xs text-slate-400">
                 Pick {squadCap} matchday players vs {activeFixture.opponent} ({restedCount} rested)
+                {squadCap !== (settings.matchdaySquadCap || 10) && (
+                  <span className="ml-1 text-amber-400 font-semibold">(Friendly Override)</span>
+                )}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Selection Counter & Smart Auto-Pick */}
-        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/80 border border-slate-800 shrink-0">
-          <div className="flex items-center gap-3">
+        {/* Selection Counter, Sheet Cap Stepper & Smart Auto-Pick */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-950/80 border border-slate-800 shrink-0">
+          <div className="flex items-center gap-3 flex-wrap">
             <span
               className={`text-xs font-mono font-bold px-2.5 py-1 rounded-lg ${
                 selectedIds.length === squadCap
@@ -153,8 +171,39 @@ export const MatchdaySelectorModal: React.FC<MatchdaySelectorModalProps> = ({
               {selectedIds.length} / {squadCap} Selected
             </span>
             <span className="text-xs text-slate-400">
-              {restedCount} players will be rotated off
+              {restedCount} rested
             </span>
+
+            {/* Quick Team Sheet Cap Stepper */}
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-900 border border-slate-800 text-xs">
+              <span className="text-[10px] text-slate-400 font-medium">Sheet Limit:</span>
+              <button
+                type="button"
+                onClick={() => setSquadCap((prev) => Math.max(activeFixture?.pitchPlayerCount || settings.pitchPlayerCount || 5, prev - 1))}
+                disabled={squadCap <= (activeFixture?.pitchPlayerCount || settings.pitchPlayerCount || 5)}
+                className="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center font-bold text-xs cursor-pointer"
+                title="Decrease team sheet size"
+              >
+                -
+              </button>
+              <span className="w-5 text-center font-mono font-bold text-sky-400">
+                {squadCap}
+              </span>
+              <button
+                type="button"
+                onClick={() => setSquadCap((prev) => Math.min(players.length, prev + 1))}
+                disabled={squadCap >= players.length}
+                className="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center font-bold text-xs cursor-pointer"
+                title="Increase team sheet size (friendly match override)"
+              >
+                +
+              </button>
+              {squadCap !== (settings.matchdaySquadCap || 10) && (
+                <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/15 text-amber-300 font-semibold border border-amber-500/25 ml-0.5">
+                  Friendly
+                </span>
+              )}
+            </div>
           </div>
 
           <button
@@ -163,7 +212,7 @@ export const MatchdaySelectorModal: React.FC<MatchdaySelectorModalProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-850 hover:bg-slate-800 text-sky-400 hover:text-sky-300 font-semibold text-xs border border-sky-500/30 transition cursor-pointer"
           >
             <Wand2 className="w-3.5 h-3.5" />
-            <span>Smart Auto-Select Fair 10</span>
+            <span>Smart Auto-Select ({squadCap})</span>
           </button>
         </div>
 

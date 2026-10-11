@@ -1472,12 +1472,12 @@
           "p_1791527367480_s75w",
           "p_1791527517158_cdc7",
           "p_1791527671403_kawn",
-          "p_1791527705450_3lsl"
-        ],
-        "restedPlayerIds": [
+          "p_1791527705450_3lsl",
           "p_1791527735800_k8ba",
           "p_1791527809779_vx4z",
-          "p_1791623669698_w2pu",
+          "p_1791623669698_w2pu"
+        ],
+        "restedPlayerIds": [
           "p_1791623718444_hr4u",
           "p_1791623763979_banf",
           "p_1791623832917_7th4",
@@ -1500,6 +1500,7 @@
           "p_1791626519384_w2j4",
           "p_1791627603385_fdc3",
           "p_1791627661336_rjhm",
+          "p_1791627711685_9z1a",
           "p12",
           "p13",
           "p11",
@@ -1527,29 +1528,38 @@
               },
               {
                 "playerId": "p_1791405071699_pine",
-                "position": "DEF_R"
+                "position": "DEF_C"
               },
               {
                 "playerId": "p_1791405071721_7k0q",
-                "position": "MID_L"
+                "position": "DEF_R"
               },
               {
                 "playerId": "p_1791526815288_o19j",
-                "position": "MID_C"
+                "position": "MID_L"
               },
               {
                 "playerId": "p_1791527288800_6sa9",
-                "position": "MID_R"
+                "position": "MID_C"
               },
               {
                 "playerId": "p_1791527367480_s75w",
-                "position": "ATT"
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1791527517158_cdc7",
+                "position": "ATT_L"
+              },
+              {
+                "playerId": "p_1791527671403_kawn",
+                "position": "ATT_R"
               }
             ],
             "subs": [
-              "p_1791527517158_cdc7",
-              "p_1791527671403_kawn",
-              "p_1791527705450_3lsl"
+              "p_1791527705450_3lsl",
+              "p_1791527735800_k8ba",
+              "p_1791527809779_vx4z",
+              "p_1791623669698_w2pu"
             ]
           },
           {
@@ -1564,15 +1574,19 @@
                 "position": "DEF_L"
               },
               {
-                "playerId": "p_1791527517158_cdc7",
+                "playerId": "p_1791527705450_3lsl",
+                "position": "DEF_C"
+              },
+              {
+                "playerId": "p_1791527735800_k8ba",
                 "position": "DEF_R"
               },
               {
-                "playerId": "p_1791527671403_kawn",
+                "playerId": "p_1791527809779_vx4z",
                 "position": "MID_L"
               },
               {
-                "playerId": "p_1791527705450_3lsl",
+                "playerId": "p_1791623669698_w2pu",
                 "position": "MID_C"
               },
               {
@@ -1581,18 +1595,25 @@
               },
               {
                 "playerId": "p_1791405071699_pine",
-                "position": "ATT"
+                "position": "ATT_L"
+              },
+              {
+                "playerId": "p_1791526815288_o19j",
+                "position": "ATT_R"
               }
             ],
             "subs": [
-              "p_1791526815288_o19j",
               "p_1791527288800_6sa9",
-              "p_1791527367480_s75w"
+              "p_1791527367480_s75w",
+              "p_1791527517158_cdc7",
+              "p_1791527671403_kawn"
             ]
           }
         ],
         "manualOverrides": false
-      }
+      },
+      "matchdaySquadCap": 13,
+      "pitchPlayerCount": 9
     },
     {
       "id": "fix_1791627620741_nwz6",

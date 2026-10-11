@@ -45,7 +45,7 @@ test.describe('Fixtures Management Suite', () => {
     await expect(page.locator('main').getByText(opponentName).first()).toBeVisible();
   });
 
-  test('edits an existing fixture logistics and updates details', async ({ page }) => {
+  test('edits an existing fixture logistics and updates details including team sheet, pitch format, and periods override', async ({ page }) => {
     // Find an edit button on the first fixture card
     const editBtn = page.locator('button[title*="Edit fixture logistics"]').first();
     await expect(editBtn).toBeVisible();
@@ -54,10 +54,32 @@ test.describe('Fixtures Management Suite', () => {
     // Edit modal should open
     await expect(page.getByRole('heading', { name: /Edit Fixture Logistics/i })).toBeVisible();
 
-    // Close or Cancel cleanly
-    const cancelBtn = page.getByRole('button', { name: /Cancel/i });
-    await cancelBtn.click();
+    // Verify team sheet input is present and fill
+    const teamSheetInput = page.getByPlaceholder(/Standard team setting/i);
+    await expect(teamSheetInput).toBeVisible();
+    await teamSheetInput.fill('12');
+
+    // Select pitch format override (e.g. 5-a-side)
+    const pitchSelect = page.locator('select').filter({ hasText: /5-a-side/i });
+    if (await pitchSelect.count() > 0) {
+      await pitchSelect.first().selectOption('5');
+    }
+
+    // Select periods override (e.g. 4 Quarters)
+    const periodSelect = page.locator('select').filter({ hasText: /4 Quarters/i });
+    if (await periodSelect.count() > 0) {
+      await periodSelect.first().selectOption('4');
+    }
+
+    // Save changes
+    const saveBtn = page.getByRole('button', { name: /Save Changes/i });
+    await saveBtn.click();
     await expect(page.getByRole('heading', { name: /Edit Fixture Logistics/i })).not.toBeVisible();
+
+    // Verify badge or sheet indicator is updated on the card
+    await expect(page.getByText(/12 Sheet|Friendly \(12\)/i).first()).toBeVisible();
+    await expect(page.getByText(/5-a-side/i).first()).toBeVisible();
+    await expect(page.getByText(/4 Periods/i).first()).toBeVisible();
   });
 
   test('hero match banner allows quick-editing active fixture logistics', async ({ page }) => {

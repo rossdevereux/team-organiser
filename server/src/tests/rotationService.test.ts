@@ -1,0 +1,612 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  positionToBroad,
+  getPositionPreferenceScore,
+  maxWeightBipartiteMatching,
+  isPlayerEligibleForFixture,
+  findBestOutgoingPitchPlayer,
+  generateFairRotation,
+  generateSuggestedSubstitutions,
+  selectMatchdaySquad,
+  calculateMatchStats,
+  InMatchTracker,
+} from '../services/rotationService.js';
+import { Player, Fixture, TeamSettings } from '../types.js';
+
+// Helper to create mock player
+const createMockPlayer = (
+  id: string,
+  name: string,
+  preferredPositions: ('Goalkeeper' | 'Defence' | 'Midfield' | 'Attack')[],
+  overrides?: Partial<Player>
+): Player => ({
+  id,
+  name,
+  preferredPositions,
+  specificPositions: [],
+  unavailableDates: [],
+  matchesPlayed: 0,
+  totalMinutesPlayed: 0,
+  ...overrides,
+});
+
+// Helper to create mock settings
+const createMockSettings = (overrides?: Partial<TeamSettings>): TeamSettings => ({
+  pitchPlayerCount: 7,
+  matchPeriodCount: 2,
+  periodDurationMinutes: 25,
+  targetGameTimePercent: 50,
+  defaultFormation: '2-3-1',
+  matchdaySquadCap: 10,
+  subCount: 3,
+  ...overrides,
+});
+
+// Helper to create mock fixture
+const createMockFixture = (overrides?: Partial<Fixture>): Fixture => ({
+  id: 'fix-1',
+  opponent: 'Rovers FC',
+  venue: 'Home',
+  status: 'Upcoming',
+  date: '2026-10-15',
+  kickOffTime: '10:00',
+  pitchPlayerCount: 7,
+  matchPeriodCount: 2,
+  periodDurationMinutes: 25,
+  formation: '2-3-1',
+  matchdaySquadCap: 10,
+  ...overrides,
+});
+
+describe('rotationService: Position Preference & Substitutions Suite', () => {
+
+  describe('positionToBroad', () => {
+    it('correctly maps specific pitch abbreviations to broad categories', () => {
+      assert.equal(positionToBroad('GK'), 'Goalkeeper');
+      assert.equal(positionToBroad('GK_1'), 'Goalkeeper');
+      assert.equal(positionToBroad('Goalkeeper'), 'Goalkeeper');
+      assert.equal(positionToBroad('GOALKEEPER'), 'Goalkeeper');
+
+      assert.equal(positionToBroad('CB'), 'Defence');
+      assert.equal(positionToBroad('LB'), 'Defence');
+      assert.equal(positionToBroad('RB'), 'Defence');
+      assert.equal(positionToBroad('DEF_C'), 'Defence');
+      assert.equal(positionToBroad('DEF_L'), 'Defence');
+      assert.equal(positionToBroad('RIGHT BACK'), 'Defence');
+
+      assert.equal(positionToBroad('CM'), 'Midfield');
+      assert.equal(positionToBroad('LM'), 'Midfield');
+      assert.equal(positionToBroad('RM'), 'Midfield');
+      assert.equal(positionToBroad('CAM'), 'Midfield');
+      assert.equal(positionToBroad('CDM'), 'Midfield');
+      assert.equal(positionToBroad('MID_C'), 'Midfield');
+      assert.equal(positionToBroad('LEFT WING'), 'Midfield');
+
+      assert.equal(positionToBroad('ST'), 'Attack');
+      assert.equal(positionToBroad('CF'), 'Attack');
+      assert.equal(positionToBroad('ATT_C'), 'Attack');
+    });
+  });
+
+  describe('getPositionPreferenceScore', () => {
+    it('ranks 1st preference (100) higher than 2nd (60), 3rd (30), and none (0)', () => {
+      const dualPlayer = createMockPlayer('p1', 'Jack', ['Defence', 'Midfield']);
+
+      // 1st preference = Defence (score 100)
+      const defScore = getPositionPreferenceScore(dualPlayer, 'Defence');
+      assert.equal(defScore, 100);
+
+      // 2nd preference = Midfield (score 60)
+      const midScore = getPositionPreferenceScore(dualPlayer, 'Midfield');
+      assert.equal(midScore, 60);
+
+      // Incompatible position = Attack (score 0)
+      const attScore = getPositionPreferenceScore(dualPlayer, 'Attack');
+      assert.equal(attScore, 0);
+    });
+
+    it('awards specific tactical position role bonus (+10)', () => {
+      const cbPlayer = createMockPlayer('p2', 'Harry', ['Defence'], {
+        specificPositions: ['Centre Back'],
+      });
+
+      // Matches broad Defence (100) + role 'Centre Back' matches slot 'CB' (+10) = 110
+      const scoreWithBonus = getPositionPreferenceScore(cbPlayer, 'Defence', 'CB');
+      assert.equal(scoreWithBonus, 110);
+
+      // Matches broad Defence (100) without matching slot 'RB'
+      const scoreWithoutBonus = getPositionPreferenceScore(cbPlayer, 'Defence', 'RB');
+      assert.equal(scoreWithoutBonus, 100);
+    });
+
+    it('strictly prevents pure Goalkeepers from receiving outfield scores', () => {
+      const pureGk = createMockPlayer('gk1', 'Sam', ['Goalkeeper']);
+
+      assert.equal(getPositionPreferenceScore(pureGk, 'Goalkeeper', 'GK'), 100);
+      assert.equal(getPositionPreferenceScore(pureGk, 'Defence', 'CB'), 0);
+      assert.equal(getPositionPreferenceScore(pureGk, 'Midfield', 'CM'), 0);
+      assert.equal(getPositionPreferenceScore(pureGk, 'Attack', 'ST'), 0);
+    });
+
+    it('strictly prevents outfield players without GK preference from receiving GK score', () => {
+      const outfieldOnly = createMockPlayer('out1', 'Leo', ['Midfield', 'Attack']);
+
+      assert.equal(getPositionPreferenceScore(outfieldOnly, 'Goalkeeper', 'GK'), 0);
+      assert.equal(getPositionPreferenceScore(outfieldOnly, 'Midfield', 'CM'), 100);
+    });
+
+    it('supports dual-position Goalkeepers who can also play outfield', () => {
+      const gkDef = createMockPlayer('gk2', 'Taylor', ['Goalkeeper', 'Defence']);
+
+      assert.equal(getPositionPreferenceScore(gkDef, 'Goalkeeper', 'GK'), 100);
+      assert.equal(getPositionPreferenceScore(gkDef, 'Defence', 'CB'), 60);
+      assert.equal(getPositionPreferenceScore(gkDef, 'Midfield', 'CM'), 0);
+    });
+  });
+
+  describe('maxWeightBipartiteMatching (Hungarian Algorithm)', () => {
+    it('solves 2x2 preference conflict globally rather than greedily', () => {
+      // Player 0: Defence (100), Midfield (60)
+      // Player 1: Defence only (100), Midfield (0)
+      // Slots: 0 = Defence, 1 = Midfield
+      // Greedy might assign Player 0 to Slot 0 (100), leaving Player 1 with Slot 1 (0) -> Total 100.
+      // Hungarian must assign Player 1 to Slot 0 (100) and Player 0 to Slot 1 (60) -> Total 160.
+      const weights = [
+        [100, 60], // Player 0
+        [100, 0],  // Player 1
+      ];
+
+      const assignment = maxWeightBipartiteMatching(weights);
+      assert.equal(assignment[0], 1, 'Player 0 should take 2nd preference Midfield');
+      assert.equal(assignment[1], 0, 'Player 1 should take only preference Defence');
+    });
+
+    it('optimally matches 3x3 players to their respective 1st choices when distinct', () => {
+      const weights = [
+        [100, 0, 0], // Player 0 -> Defence
+        [0, 100, 0], // Player 1 -> Midfield
+        [0, 0, 100], // Player 2 -> Attack
+      ];
+
+      const assignment = maxWeightBipartiteMatching(weights);
+      assert.deepEqual(assignment, [0, 1, 2]);
+    });
+  });
+
+  describe('findBestOutgoingPitchPlayer', () => {
+    it('prioritises incoming player 1st preference over 2nd preference', () => {
+      // Incoming bench player: 1st Defence, 2nd Midfield
+      const incoming = createMockPlayer('sub1', 'Charlie', ['Defence', 'Midfield']);
+
+      const defPlayer = createMockPlayer('p1', 'Dan', ['Defence']);
+      const midPlayer = createMockPlayer('p2', 'Mike', ['Midfield']);
+
+      const onPitchOutfield: InMatchTracker[] = [
+        {
+          playerId: 'p1',
+          player: defPlayer,
+          minutesThisMatch: 15,
+          timesSubbedOn: 0,
+          hasPlayedThisMatch: true,
+          isOnPitch: true,
+          currentPosition: 'CB',
+          stintMinutes: 15,
+        },
+        {
+          playerId: 'p2',
+          player: midPlayer,
+          minutesThisMatch: 20, // Even though midPlayer has more minutes, 1st preference is Defence
+          timesSubbedOn: 0,
+          hasPlayedThisMatch: true,
+          isOnPitch: true,
+          currentPosition: 'CM',
+          stintMinutes: 20,
+        },
+      ];
+
+      const match = findBestOutgoingPitchPlayer(incoming, onPitchOutfield);
+      assert.ok(match);
+      assert.equal(match.outgoing.playerId, 'p1', 'Should sub off Defender to satisfy 1st preference');
+      assert.equal(match.targetCategory, 'Defence');
+      assert.equal(match.preferenceRank, 0);
+    });
+
+    it('falls back to 2nd preference when 1st preference pitch position is unavailable', () => {
+      // Incoming bench player: 1st Defence, 2nd Midfield
+      const incoming = createMockPlayer('sub1', 'Charlie', ['Defence', 'Midfield']);
+
+      const midPlayer = createMockPlayer('p2', 'Mike', ['Midfield']);
+      const attPlayer = createMockPlayer('p3', 'Alex', ['Attack']);
+
+      // No defenders on the pitch list
+      const onPitchOutfield: InMatchTracker[] = [
+        {
+          playerId: 'p2',
+          player: midPlayer,
+          minutesThisMatch: 15,
+          timesSubbedOn: 0,
+          hasPlayedThisMatch: true,
+          isOnPitch: true,
+          currentPosition: 'CM',
+          stintMinutes: 15,
+        },
+        {
+          playerId: 'p3',
+          player: attPlayer,
+          minutesThisMatch: 15,
+          timesSubbedOn: 0,
+          hasPlayedThisMatch: true,
+          isOnPitch: true,
+          currentPosition: 'ST',
+          stintMinutes: 15,
+        },
+      ];
+
+      const match = findBestOutgoingPitchPlayer(incoming, onPitchOutfield);
+      assert.ok(match);
+      assert.equal(match.outgoing.playerId, 'p2', 'Should sub off Midfielder for 2nd preference');
+      assert.equal(match.targetCategory, 'Midfield');
+      assert.equal(match.preferenceRank, 1);
+    });
+
+    it('returns null for pure goalkeeper trying to sub into outfield', () => {
+      const pureGk = createMockPlayer('gk1', 'Oliver', ['Goalkeeper']);
+      const midPlayer = createMockPlayer('p2', 'Mike', ['Midfield']);
+
+      const onPitchOutfield: InMatchTracker[] = [
+        {
+          playerId: 'p2',
+          player: midPlayer,
+          minutesThisMatch: 15,
+          timesSubbedOn: 0,
+          hasPlayedThisMatch: true,
+          isOnPitch: true,
+          currentPosition: 'CM',
+          stintMinutes: 15,
+        },
+      ];
+
+      const match = findBestOutgoingPitchPlayer(pureGk, onPitchOutfield);
+      assert.equal(match, null, 'Pure goalkeeper must not be subbed into outfield');
+    });
+
+    it('breaks ties between matching candidates by selecting the most fatigued player', () => {
+      const incoming = createMockPlayer('sub1', 'Charlie', ['Defence']);
+
+      const defPlayer1 = createMockPlayer('p1', 'Dan', ['Defence']);
+      const defPlayer2 = createMockPlayer('p2', 'Ben', ['Defence']);
+
+      const onPitchOutfield: InMatchTracker[] = [
+        {
+          playerId: 'p1',
+          player: defPlayer1,
+          minutesThisMatch: 10,
+          timesSubbedOn: 0,
+          hasPlayedThisMatch: true,
+          isOnPitch: true,
+          currentPosition: 'DEF_L',
+          stintMinutes: 10,
+        },
+        {
+          playerId: 'p2',
+          player: defPlayer2,
+          minutesThisMatch: 20, // Played more minutes
+          timesSubbedOn: 0,
+          hasPlayedThisMatch: true,
+          isOnPitch: true,
+          currentPosition: 'DEF_R',
+          stintMinutes: 20,
+        },
+      ];
+
+      const match = findBestOutgoingPitchPlayer(incoming, onPitchOutfield);
+      assert.ok(match);
+      assert.equal(match.outgoing.playerId, 'p2', 'Should sub off the player with higher match minutes');
+    });
+  });
+
+  describe('isPlayerEligibleForFixture', () => {
+    it('returns ineligible if fixture is before player sign-on date', () => {
+      const player = createMockPlayer('p1', 'Tom', ['Midfield'], {
+        signOnDate: '2026-11-01',
+      });
+      const res = isPlayerEligibleForFixture(player, '2026-10-15');
+      assert.equal(res.eligible, false);
+      assert.match(res.reason || '', /Not yet signed on/);
+    });
+
+    it('returns ineligible if fixture is after player leave date', () => {
+      const player = createMockPlayer('p1', 'Tom', ['Midfield'], {
+        leaveDate: '2026-10-01',
+      });
+      const res = isPlayerEligibleForFixture(player, '2026-10-15');
+      assert.equal(res.eligible, false);
+      assert.match(res.reason || '', /Left the squad/);
+    });
+
+    it('returns eligible when fixture is within active dates', () => {
+      const player = createMockPlayer('p1', 'Tom', ['Midfield'], {
+        signOnDate: '2026-09-01',
+        leaveDate: '2026-12-31',
+      });
+      const res = isPlayerEligibleForFixture(player, '2026-10-15');
+      assert.equal(res.eligible, true);
+    });
+  });
+
+  describe('generateFairRotation', () => {
+    it('generates balanced 2-period lineups matching preferred positions via optimal bipartite matching', () => {
+      // 7v7 match with 9 players (7 on pitch, 2 on bench per period)
+      const squadPlayers: Player[] = [
+        createMockPlayer('p1', 'Goalkeeper Sam', ['Goalkeeper']),
+        createMockPlayer('p2', 'Defender Dan', ['Defence']),
+        createMockPlayer('p3', 'Defender / Mid Dave', ['Defence', 'Midfield']),
+        createMockPlayer('p4', 'Midfielder Matt', ['Midfield']),
+        createMockPlayer('p5', 'Midfielder Milo', ['Midfield']),
+        createMockPlayer('p6', 'Mid / Attack Toby', ['Midfield', 'Attack']),
+        createMockPlayer('p7', 'Attacker Adam', ['Attack']),
+        createMockPlayer('p8', 'Bench Defender Bob', ['Defence']),
+        createMockPlayer('p9', 'Bench Midfielder Ben', ['Midfield']),
+      ];
+
+      const fixture = createMockFixture();
+      const settings = createMockSettings();
+
+      const matchSquad = generateFairRotation(fixture, squadPlayers, settings);
+
+      assert.equal(matchSquad.lineupsByPeriod.length, 2, 'Should have 2 periods');
+
+      // Check period 1
+      const p1Lineup = matchSquad.lineupsByPeriod[0];
+      assert.equal(p1Lineup.onPitch.length, 7, 'Period 1 should have 7 players on pitch');
+      assert.equal(p1Lineup.subs.length, 2, 'Period 1 should have 2 subs on bench');
+
+      // Check period 2
+      const p2Lineup = matchSquad.lineupsByPeriod[1];
+      assert.equal(p2Lineup.onPitch.length, 7, 'Period 2 should have 7 players on pitch');
+      assert.equal(p2Lineup.subs.length, 2, 'Period 2 should have 2 subs on bench');
+
+      // Verify no player was benched in both periods (avoid consecutive benching)
+      const benchedBoth = p1Lineup.subs.filter((id) => p2Lineup.subs.includes(id));
+      assert.equal(benchedBoth.length, 0, 'No player should be benched consecutively in both periods');
+
+      // Verify goalkeeper is placed in GK slot
+      const p1Gk = p1Lineup.onPitch.find((entry) => entry.position === 'GK');
+      assert.ok(p1Gk, 'GK slot should be filled');
+      assert.equal(p1Gk.playerId, 'p1', 'Goalkeeper Sam should be in goal');
+
+      // Verify player with Defence & Midfield is assigned to one of their preferred positions
+      const p3EntryP1 = p1Lineup.onPitch.find((entry) => entry.playerId === 'p3');
+      if (p3EntryP1) {
+        const broad = positionToBroad(p3EntryP1.position);
+        assert.ok(
+          broad === 'Defence' || broad === 'Midfield',
+          `Player p3 was placed in ${broad}, expected Defence or Midfield`
+        );
+      }
+    });
+
+    it('rotates between multiple goalkeepers across periods', () => {
+      const players: Player[] = [
+        createMockPlayer('gk1', 'Goalie One', ['Goalkeeper']),
+        createMockPlayer('gk2', 'Goalie Two', ['Goalkeeper']),
+        createMockPlayer('p3', 'Def One', ['Defence']),
+        createMockPlayer('p4', 'Def Two', ['Defence']),
+        createMockPlayer('p5', 'Mid One', ['Midfield']),
+        createMockPlayer('p6', 'Mid Two', ['Midfield']),
+        createMockPlayer('p7', 'Att One', ['Attack']),
+      ];
+
+      const fixture = createMockFixture();
+      const settings = createMockSettings();
+
+      const matchSquad = generateFairRotation(fixture, players, settings);
+
+      const p1Gk = matchSquad.lineupsByPeriod[0].onPitch.find((e) => e.position === 'GK');
+      const p2Gk = matchSquad.lineupsByPeriod[1].onPitch.find((e) => e.position === 'GK');
+
+      assert.ok(p1Gk);
+      assert.ok(p2Gk);
+      assert.notEqual(p1Gk.playerId, p2Gk.playerId, 'GK should rotate between Period 1 and Period 2');
+    });
+  });
+
+  describe('generateSuggestedSubstitutions', () => {
+    it('produces 3 strategic sub plans respecting preference order and avoiding pure GKs', () => {
+      const players: Player[] = [
+        createMockPlayer('gk1', 'Sam GK', ['Goalkeeper']),
+        createMockPlayer('d1', 'Dan CB', ['Defence']),
+        createMockPlayer('d2', 'Dean LB', ['Defence']),
+        createMockPlayer('m1', 'Mike CM', ['Midfield']),
+        createMockPlayer('m2', 'Milo LM', ['Midfield']),
+        createMockPlayer('m3', 'Mason RM', ['Midfield']),
+        createMockPlayer('a1', 'Adam ST', ['Attack']),
+        // Bench players
+        createMockPlayer('sub_def_mid', 'Charlie Utility', ['Defence', 'Midfield']),
+        createMockPlayer('sub_att', 'Archie Striker', ['Attack']),
+        createMockPlayer('pure_gk_bench', 'Paul Backup GK', ['Goalkeeper']),
+      ];
+
+      const fixture = createMockFixture({
+        matchSquad: {
+          fixtureId: 'fix-1',
+          manualOverrides: false,
+          selectedPlayerIds: players.map((p) => p.id),
+          restedPlayerIds: [],
+          lineupsByPeriod: [
+            {
+              period: 1,
+              onPitch: [
+                { playerId: 'gk1', position: 'GK' },
+                { playerId: 'd1', position: 'CB' },
+                { playerId: 'd2', position: 'LB' },
+                { playerId: 'm1', position: 'CM' },
+                { playerId: 'm2', position: 'LM' },
+                { playerId: 'm3', position: 'RM' },
+                { playerId: 'a1', position: 'ST' },
+              ],
+              subs: ['sub_def_mid', 'sub_att', 'pure_gk_bench'],
+            },
+            {
+              period: 2,
+              onPitch: [
+                { playerId: 'gk1', position: 'GK' },
+                { playerId: 'sub_def_mid', position: 'CB' },
+                { playerId: 'd2', position: 'LB' },
+                { playerId: 'm1', position: 'CM' },
+                { playerId: 'm2', position: 'LM' },
+                { playerId: 'sub_att', position: 'ST' },
+                { playerId: 'a1', position: 'RM' },
+              ],
+              subs: ['d1', 'm3', 'pure_gk_bench'],
+            },
+          ],
+        },
+      });
+
+      const settings = createMockSettings();
+      const plans = generateSuggestedSubstitutions(fixture, players, settings, 10);
+
+      assert.equal(plans.length, 3, 'Should generate 3 strategic substitution plans');
+
+      // Strategy 1: Fair Play
+      const fairPlay = plans.find((p) => p.strategyName.includes('Equal Game Time'));
+      assert.ok(fairPlay, 'Fair Play plan should exist');
+      assert.ok(fairPlay.windows.length > 0, 'Fair Play should have sub windows');
+
+      // Strategy 2: Tactical Shape
+      const tactical = plans.find((p) => p.strategyName.includes('Positional Match'));
+      assert.ok(tactical, 'Tactical Shape plan should exist');
+
+      // Strategy 3: Rolling Sub
+      const rolling = plans.find((p) => p.strategyName.includes('Rolling Single Sub'));
+      assert.ok(rolling, 'Rolling plan should exist');
+
+      // Check each sub change in all windows across all strategies
+      plans.forEach((plan) => {
+        plan.windows.forEach((win) => {
+          win.subChanges.forEach((change) => {
+            // Must not sub off and on the same player
+            assert.notEqual(change.offPlayerId, change.onPlayerId);
+
+            // Pure goalkeeper bench player must never be subbed on into outfield
+            assert.notEqual(
+              change.onPlayerId,
+              'pure_gk_bench',
+              `Pure GK Paul must never be subbed into outfield position in plan ${plan.strategyName}`
+            );
+
+            // The position category must not be Goalkeeper
+            assert.notEqual(change.positionCategory, 'Goalkeeper');
+
+            // Reason should include preference rank if it's fair play or rolling
+            assert.ok(change.reason && change.reason.length > 0, 'Reason should be populated');
+          });
+        });
+      });
+    });
+
+    it('substitutions reason specifies preference rank (Primary / 2nd preference)', () => {
+      const players: Player[] = [
+        createMockPlayer('gk1', 'Sam GK', ['Goalkeeper']),
+        createMockPlayer('d1', 'Dan CB', ['Defence']),
+        createMockPlayer('d2', 'Dean LB', ['Defence']),
+        createMockPlayer('m1', 'Mike CM', ['Midfield']),
+        createMockPlayer('m2', 'Milo LM', ['Midfield']),
+        createMockPlayer('m3', 'Mason RM', ['Midfield']),
+        createMockPlayer('a1', 'Adam ST', ['Attack']),
+        // Bench player with primary Defence, secondary Midfield
+        createMockPlayer('sub1', 'Liam Dual', ['Defence', 'Midfield']),
+      ];
+
+      const fixture = createMockFixture({
+        matchSquad: {
+          fixtureId: 'fix-1',
+          manualOverrides: false,
+          selectedPlayerIds: players.map((p) => p.id),
+          restedPlayerIds: [],
+          lineupsByPeriod: [
+            {
+              period: 1,
+              onPitch: [
+                { playerId: 'gk1', position: 'GK' },
+                { playerId: 'd1', position: 'CB' },
+                { playerId: 'd2', position: 'LB' },
+                { playerId: 'm1', position: 'CM' },
+                { playerId: 'm2', position: 'LM' },
+                { playerId: 'm3', position: 'RM' },
+                { playerId: 'a1', position: 'ST' },
+              ],
+              subs: ['sub1'],
+            },
+          ],
+        },
+      });
+
+      const settings = createMockSettings();
+      const plans = generateSuggestedSubstitutions(fixture, players, settings, 10);
+      const fairPlay = plans.find((p) => p.strategyName.includes('Equal Game Time'))!;
+      assert.ok(fairPlay.windows.length > 0);
+
+      const firstSub = fairPlay.windows[0].subChanges[0];
+      assert.equal(firstSub.onPlayerId, 'sub1');
+      assert.equal(firstSub.positionCategory, 'Defence');
+      // Sub should match 1st preference (Primary preference)
+      assert.match(firstSub.reason || '', /Primary preference/);
+    });
+  });
+
+  describe('calculateMatchStats', () => {
+    it('calculates player playing time and periods accurately', () => {
+      const matchSquad = {
+        fixtureId: 'fix-1',
+        manualOverrides: false,
+        selectedPlayerIds: ['p1', 'p2', 'p3'],
+        restedPlayerIds: [],
+        lineupsByPeriod: [
+          {
+            period: 1,
+            onPitch: [
+              { playerId: 'p1', position: 'GK' },
+              { playerId: 'p2', position: 'CB' },
+            ],
+            subs: ['p3'],
+          },
+          {
+            period: 2,
+            onPitch: [
+              { playerId: 'p1', position: 'GK' },
+              { playerId: 'p3', position: 'CB' },
+            ],
+            subs: ['p2'],
+          },
+        ],
+      };
+
+      const mockPlayers = [
+        createMockPlayer('p1', 'Player 1', ['Goalkeeper']),
+        createMockPlayer('p2', 'Player 2', ['Defence']),
+        createMockPlayer('p3', 'Player 3', ['Defence']),
+      ];
+      const settings = createMockSettings({ matchPeriodCount: 2, periodDurationMinutes: 25 });
+      const stats = calculateMatchStats(matchSquad, mockPlayers, settings);
+      const p1Stats = stats.find((s) => s.playerId === 'p1');
+      const p2Stats = stats.find((s) => s.playerId === 'p2');
+      const p3Stats = stats.find((s) => s.playerId === 'p3');
+
+      assert.equal(p1Stats?.periodsPlayed.length, 2);
+      assert.deepEqual(p1Stats?.periodsPlayed, [1, 2]);
+      assert.equal(p1Stats?.minutesPlayed, 50);
+
+      assert.equal(p2Stats?.periodsPlayed.length, 1);
+      assert.deepEqual(p2Stats?.periodsPlayed, [1]);
+      assert.equal(p2Stats?.minutesPlayed, 25);
+
+      assert.equal(p3Stats?.periodsPlayed.length, 1);
+      assert.deepEqual(p3Stats?.periodsPlayed, [2]);
+      assert.equal(p3Stats?.minutesPlayed, 25);
+    });
+  });
+
+});

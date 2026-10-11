@@ -17,10 +17,168 @@ import { findFormation } from '../db/formations.js';
  * Maps pitch position code to BroadPosition category
  */
 export const positionToBroad = (pos: string): BroadPosition => {
-  if (pos.startsWith('GK')) return 'Goalkeeper';
-  if (pos.startsWith('DEF') || pos.includes('Back') || pos.includes('Sweeper')) return 'Defence';
-  if (pos.startsWith('MID') || pos.startsWith('DM') || pos.startsWith('AM') || pos.includes('Wing')) return 'Midfield';
+  const p = pos.toUpperCase();
+  if (p.startsWith('GK') || p.includes('GOAL') || p.includes('KEEPER')) return 'Goalkeeper';
+  if (p.startsWith('DEF') || p.includes('BACK') || p.includes('SWEEPER') || p === 'CB' || p === 'LB' || p === 'RB') return 'Defence';
+  if (p.startsWith('MID') || p.startsWith('DM') || p.startsWith('AM') || p.includes('WING') || p === 'CM' || p === 'LM' || p === 'RM' || p === 'CAM' || p === 'CDM') return 'Midfield';
   return 'Attack';
+};
+
+/**
+ * Calculates a preference compatibility score for placing a player into a broad category / slot code.
+ * Higher score = stronger preference.
+ * - 1st preference (preferredPositions[0] === slotCategory): 100
+ * - 2nd preference (preferredPositions[1] === slotCategory): 60
+ * - 3rd preference (preferredPositions[2] === slotCategory): 30
+ * - 4th+ preference: 15
+ * - Specific tactical role match bonus (e.g. 'Centre Back' matches 'CB'): +10
+ * - Incompatible (not in preferredPositions): 0
+ */
+export const getPositionPreferenceScore = (
+  player: Player,
+  slotCategory: BroadPosition | string,
+  slotCode?: string
+): number => {
+  const broad = typeof slotCategory === 'string' ? positionToBroad(slotCategory) : slotCategory;
+  const prefIndex = player.preferredPositions.indexOf(broad as BroadPosition);
+
+  // If broad is Goalkeeper but player doesn't have Goalkeeper in preferredPositions
+  if (broad === 'Goalkeeper' && prefIndex === -1) {
+    return 0;
+  }
+
+  // If player ONLY plays Goalkeeper and slot is outfield
+  if (player.preferredPositions.length === 1 && player.preferredPositions[0] === 'Goalkeeper' && broad !== 'Goalkeeper') {
+    return 0;
+  }
+
+  if (prefIndex === -1) {
+    // Check specific positions if any mention the category
+    if (player.specificPositions && player.specificPositions.some((sp) => sp.toLowerCase().includes(broad.toLowerCase()))) {
+      return 15;
+    }
+    return 0;
+  }
+
+  // Base score based on preference rank
+  let score = 0;
+  if (prefIndex === 0) score = 100;      // Primary (1st preference)
+  else if (prefIndex === 1) score = 60; // Secondary (2nd preference)
+  else if (prefIndex === 2) score = 30; // 3rd preference
+  else score = 15;                       // 4th+ preference
+
+  // Specific tactical position role bonus (e.g. "Centre Back" matches "CB", "DEF_C", "CD")
+  if (slotCode && player.specificPositions && player.specificPositions.length > 0) {
+    const codeUpper = slotCode.toUpperCase();
+    const matchesSpecific = player.specificPositions.some((role) => {
+      const r = role.toLowerCase();
+      if ((codeUpper.includes('CB') || codeUpper.includes('DEF_C')) && (r.includes('centre') || r.includes('center'))) return true;
+      if ((codeUpper.includes('LB') || codeUpper.includes('DEF_L')) && r.includes('left')) return true;
+      if ((codeUpper.includes('RB') || codeUpper.includes('DEF_R')) && r.includes('right')) return true;
+      if ((codeUpper.includes('CM') || codeUpper.includes('MID_C')) && (r.includes('central') || r.includes('centre') || r.includes('center'))) return true;
+      if ((codeUpper.includes('LW') || codeUpper.includes('MID_L') || codeUpper.includes('ATT_L')) && (r.includes('left') || r.includes('wing'))) return true;
+      if ((codeUpper.includes('RW') || codeUpper.includes('MID_R') || codeUpper.includes('ATT_R')) && (r.includes('right') || r.includes('wing'))) return true;
+      if ((codeUpper.includes('ST') || codeUpper.includes('ATT') || codeUpper.includes('CF')) && (r.includes('striker') || r.includes('forward') || r.includes('attack'))) return true;
+      if (codeUpper.startsWith('GK') && r.includes('goal')) return true;
+      return false;
+    });
+    if (matchesSpecific) {
+      score += 10;
+    }
+  }
+
+  return score;
+};
+
+/**
+ * Solves Maximum Weight Bipartite Matching using the Kuhn-Munkres (Hungarian) algorithm.
+ * Guarantees globally optimal assignment maximizing total player preference satisfaction.
+ *
+ * @param weights NxM matrix where weights[i][j] is the utility/preference of assigning player i to slot j.
+ * @returns Array where index i is the assigned slot j for player i (or -1 if unmatched).
+ */
+export const maxWeightBipartiteMatching = (weights: number[][]): number[] => {
+  const n = weights.length;
+  if (n === 0) return [];
+  const m = weights[0].length;
+  if (m === 0) return new Array(n).fill(-1);
+
+  // Pad to square matrix of size max(n, m)
+  const size = Math.max(n, m);
+  const matrix: number[][] = Array.from({ length: size }, () => new Array(size).fill(0));
+
+  let maxVal = 0;
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < m; j++) {
+      matrix[i][j] = weights[i][j];
+      if (weights[i][j] > maxVal) maxVal = weights[i][j];
+    }
+  }
+
+  // Convert maximization to minimization: cost = maxVal - weight
+  const cost: number[][] = Array.from({ length: size }, (_, i) =>
+    Array.from({ length: size }, (_, j) => maxVal - matrix[i][j])
+  );
+
+  const u = new Array(size + 1).fill(0);
+  const v = new Array(size + 1).fill(0);
+  const p = new Array(size + 1).fill(0);
+  const way = new Array(size + 1).fill(0);
+
+  for (let i = 1; i <= size; i++) {
+    p[0] = i;
+    let j0 = 0;
+    const minv = new Array(size + 1).fill(Infinity);
+    const used = new Array(size + 1).fill(false);
+
+    do {
+      used[j0] = true;
+      const i0 = p[j0];
+      let delta = Infinity;
+      let j1 = 0;
+
+      for (let j = 1; j <= size; j++) {
+        if (!used[j]) {
+          const cur = cost[i0 - 1][j - 1] - u[i0] - v[j];
+          if (cur < minv[j]) {
+            minv[j] = cur;
+            way[j] = j0;
+          }
+          if (minv[j] < delta) {
+            delta = minv[j];
+            j1 = j;
+          }
+        }
+      }
+
+      for (let j = 0; j <= size; j++) {
+        if (used[j]) {
+          u[p[j]] += delta;
+          v[j] -= delta;
+        } else {
+          minv[j] -= delta;
+        }
+      }
+      j0 = j1;
+    } while (p[j0] !== 0);
+
+    do {
+      const j1 = way[j0];
+      p[j0] = p[j1];
+      j0 = j1;
+    } while (j0 !== 0);
+  }
+
+  const result = new Array(n).fill(-1);
+  for (let j = 1; j <= size; j++) {
+    const playerIdx = p[j] - 1;
+    const slotIdx = j - 1;
+    if (playerIdx >= 0 && playerIdx < n && slotIdx < m) {
+      result[playerIdx] = slotIdx;
+    }
+  }
+
+  return result;
 };
 
 /**
@@ -54,10 +212,11 @@ export const calculateMatchStats = (
   matchSquad: MatchSquad,
   players: Player[],
   settings: TeamSettings,
-  postMatchRecording?: PostMatchRecording
+  postMatchRecording?: PostMatchRecording,
+  fixture?: Fixture
 ): MatchPlayerStats[] => {
-  const periodCount = settings.matchPeriodCount || 2;
-  const duration = settings.periodDurationMinutes || 25;
+  const periodCount = fixture?.matchPeriodCount || settings.matchPeriodCount || 2;
+  const duration = fixture?.periodDurationMinutes || settings.periodDurationMinutes || 25;
   const totalMatchMinutes = periodCount * duration;
   const playerMap = new Map(players.map((p) => [p.id, p]));
 
@@ -184,13 +343,13 @@ export const generateFairRotation = (
   settings: TeamSettings,
   existingSelectedIds?: string[]
 ): MatchSquad => {
-  const pitchCount = settings.pitchPlayerCount || 7;
-  const periodCount = settings.matchPeriodCount || 2; // Default 2 Halves
-  const squadCap = settings.matchdaySquadCap || 10;
+  const pitchCount = fixture.pitchPlayerCount || settings.pitchPlayerCount || 7;
+  const periodCount = fixture.matchPeriodCount || settings.matchPeriodCount || 2; // Default 2 Halves
+  const squadCap = fixture.matchdaySquadCap || settings.matchdaySquadCap || 10;
 
   // Retrieve formation slots based on pitchPlayerCount and formation name
   const formation = findFormation(
-    settings.defaultFormation || '2-3-1',
+    fixture.formation || settings.defaultFormation || '2-3-1',
     pitchCount,
     settings.customFormations || []
   );
@@ -300,7 +459,7 @@ export const generateFairRotation = (
     const benchPlayers = candidates.slice(outfieldSlotsNeeded);
     previousBenchIds = benchPlayers.map((p) => p.id);
 
-    // Assign positions on pitch matching preferred categories
+    // Assign positions on pitch matching preferred categories and preference order
     const outfieldSlots = formation.slots.filter((s) => s.category !== 'Goalkeeper');
     const availableOutfieldPlayers = [...selectedOutfield];
 
@@ -308,23 +467,42 @@ export const generateFairRotation = (
       { playerId: periodGk.id, position: 'GK' },
     ];
 
-    outfieldSlots.forEach((slot) => {
-      if (availableOutfieldPlayers.length === 0) return;
+    // Build weight matrix for optimal position preference satisfaction
+    const weights: number[][] = availableOutfieldPlayers.map((player) =>
+      outfieldSlots.map((slot) => getPositionPreferenceScore(player, slot.category, slot.code))
+    );
 
-      // Find player with preferred category match
-      let matchIdx = availableOutfieldPlayers.findIndex((p) =>
-        p.preferredPositions.includes(slot.category)
-      );
+    const slotAssignments = maxWeightBipartiteMatching(weights);
+    const assignedSlots = new Set<number>();
+    const unassignedPlayers: Player[] = [];
 
-      if (matchIdx === -1) {
-        matchIdx = 0; // fallback to next available
+    availableOutfieldPlayers.forEach((player, pIdx) => {
+      const slotIdx = slotAssignments[pIdx];
+      if (
+        slotIdx !== undefined &&
+        slotIdx >= 0 &&
+        slotIdx < outfieldSlots.length &&
+        !assignedSlots.has(slotIdx)
+      ) {
+        assignedSlots.add(slotIdx);
+        onPitchAssignments.push({
+          playerId: player.id,
+          position: outfieldSlots[slotIdx].code,
+        });
+      } else {
+        unassignedPlayers.push(player);
       }
+    });
 
-      const matchedPlayer = availableOutfieldPlayers.splice(matchIdx, 1)[0];
-      onPitchAssignments.push({
-        playerId: matchedPlayer.id,
-        position: slot.code,
-      });
+    // Fill any unassigned slots (edge case safeguard)
+    outfieldSlots.forEach((slot, sIdx) => {
+      if (!assignedSlots.has(sIdx) && unassignedPlayers.length > 0) {
+        const fallbackPlayer = unassignedPlayers.shift()!;
+        onPitchAssignments.push({
+          playerId: fallbackPlayer.id,
+          position: slot.code,
+        });
+      }
     });
 
     lineupsByPeriod.push({
@@ -347,7 +525,7 @@ export const generateFairRotation = (
  * Generates Sideline Suggested Substitutions based on configurable interval (e.g. every 10 mins).
  * Returns multiple strategic options taking into account players' positional preferences.
  */
-interface InMatchTracker {
+export interface InMatchTracker {
   playerId: string;
   player: Player;
   minutesThisMatch: number;
@@ -357,6 +535,100 @@ interface InMatchTracker {
   currentPosition?: string;
   stintMinutes: number;
 }
+
+export interface OutgoingPitchMatch {
+  outgoing: InMatchTracker;
+  targetPos: string;
+  targetCategory: BroadPosition;
+  preferenceRank: number; // 0 = primary, 1 = 2nd, 2 = 3rd, etc., -1 = unranked fallback
+}
+
+/**
+ * Finds the best on-pitch outfield player to rotate off for an incoming bench player,
+ * strictly evaluating the incoming player's positional preferences in priority order.
+ */
+export const findBestOutgoingPitchPlayer = (
+  incomingPlayer: Player,
+  onPitchOutfield: InMatchTracker[]
+): OutgoingPitchMatch | null => {
+  if (onPitchOutfield.length === 0) return null;
+
+  // 1. Check each preferred position in strict preference order:
+  // Index 0 (Primary), Index 1 (Secondary), etc.
+  for (let rank = 0; rank < incomingPlayer.preferredPositions.length; rank++) {
+    const preferredBroad = incomingPlayer.preferredPositions[rank];
+    if (preferredBroad === 'Goalkeeper') continue; // Outfield subs do not sub into GK
+
+    // Find on-pitch players whose current position matches this preference
+    const candidates = onPitchOutfield.filter((t) =>
+      positionToBroad(t.currentPosition || '') === preferredBroad
+    );
+
+    if (candidates.length > 0) {
+      // Pick the on-pitch player who has played the most minutes (needs rest most)
+      // Tie-break: highest season minutes, then longest current stint
+      candidates.sort((a, b) => {
+        if (a.minutesThisMatch !== b.minutesThisMatch) {
+          return b.minutesThisMatch - a.minutesThisMatch;
+        }
+        if ((a.player.totalMinutesPlayed || 0) !== (b.player.totalMinutesPlayed || 0)) {
+          return (b.player.totalMinutesPlayed || 0) - (a.player.totalMinutesPlayed || 0);
+        }
+        return b.stintMinutes - a.stintMinutes;
+      });
+
+      const chosen = candidates[0];
+      const targetPos = chosen.currentPosition || 'MID';
+      return {
+        outgoing: chosen,
+        targetPos,
+        targetCategory: preferredBroad,
+        preferenceRank: rank,
+      };
+    }
+  }
+
+  // 2. If incoming player has specificPositions, check if any match
+  if (incomingPlayer.specificPositions && incomingPlayer.specificPositions.length > 0) {
+    for (const spec of incomingPlayer.specificPositions) {
+      const specBroad = positionToBroad(spec);
+      if (specBroad === 'Goalkeeper') continue;
+
+      const candidates = onPitchOutfield.filter((t) =>
+        positionToBroad(t.currentPosition || '') === specBroad
+      );
+      if (candidates.length > 0) {
+        candidates.sort((a, b) => b.minutesThisMatch - a.minutesThisMatch);
+        const chosen = candidates[0];
+        return {
+          outgoing: chosen,
+          targetPos: chosen.currentPosition || 'MID',
+          targetCategory: specBroad,
+          preferenceRank: 99,
+        };
+      }
+    }
+  }
+
+  // 3. Pure goalkeeper check: pure GK should NEVER sub into outfield
+  const isPureGk =
+    incomingPlayer.preferredPositions.length === 1 &&
+    incomingPlayer.preferredPositions[0] === 'Goalkeeper';
+  if (isPureGk) {
+    return null;
+  }
+
+  // 4. Fallback: only if incoming player can play outfield positions
+  const sorted = [...onPitchOutfield].sort((a, b) => b.minutesThisMatch - a.minutesThisMatch);
+  const chosen = sorted[0];
+  const targetPos = chosen.currentPosition || 'MID';
+  return {
+    outgoing: chosen,
+    targetPos,
+    targetCategory: positionToBroad(targetPos),
+    preferenceRank: -1,
+  };
+};
 
 /**
  * Generates Sideline Suggested Substitutions based on configurable interval (e.g. every 10 mins).
@@ -372,8 +644,8 @@ export const generateSuggestedSubstitutions = (
   settings: TeamSettings,
   intervalMinutes: number = 10
 ): SuggestedSubPlan[] => {
-  const periodCount = settings.matchPeriodCount || 2;
-  const duration = settings.periodDurationMinutes || 25;
+  const periodCount = fixture.matchPeriodCount || settings.matchPeriodCount || 2;
+  const duration = fixture.periodDurationMinutes || settings.periodDurationMinutes || 25;
   const totalMatchMinutes = periodCount * duration;
   const squad = fixture.matchSquad;
   const playerMap = new Map(players.map((p) => [p.id, p]));
@@ -513,48 +785,39 @@ export const generateSuggestedSubstitutions = (
         const incoming = benchCandidates[s];
         if (!incoming) break;
 
-        // Find best outgoing player among onPitchOutfield:
-        // Try to find someone matching incoming player's position preference first
-        const preferredBroad = incoming.player.preferredPositions[0] || 'Midfield';
-        let matchedOutfield = onPitchOutfield.filter((t) =>
-          positionToBroad(t.currentPosition || '') === preferredBroad
-        );
-
-        if (matchedOutfield.length === 0) {
-          matchedOutfield = onPitchOutfield;
+        // Skip pure goalkeepers from outfield rotations
+        if (incoming.player.preferredPositions.length === 1 && incoming.player.preferredPositions[0] === 'Goalkeeper') {
+          continue;
         }
 
-        // Sort matched outgoing:
-        // 1. Highest match minutes played so far
-        // 2. Highest historical season minutes
-        // 3. Longest current stint
-        matchedOutfield.sort((a, b) => {
-          if (a.minutesThisMatch !== b.minutesThisMatch) {
-            return b.minutesThisMatch - a.minutesThisMatch;
-          }
-          if ((a.player.totalMinutesPlayed || 0) !== (b.player.totalMinutesPlayed || 0)) {
-            return (b.player.totalMinutesPlayed || 0) - (a.player.totalMinutesPlayed || 0);
-          }
-          return b.stintMinutes - a.stintMinutes;
-        });
+        // Find best outgoing player among onPitchOutfield matching incoming's preference order
+        const matchResult = findBestOutgoingPitchPlayer(incoming.player, onPitchOutfield);
+        if (!matchResult) continue;
 
-        const outgoing = matchedOutfield[0];
-        if (!outgoing) break;
+        const { outgoing, targetPos, targetCategory, preferenceRank } = matchResult;
 
         // Remove from available lists for this window
         const outgoingIdx = onPitchOutfield.findIndex((item) => item.playerId === outgoing.playerId);
         if (outgoingIdx !== -1) onPitchOutfield.splice(outgoingIdx, 1);
 
-        const targetPos = outgoing.currentPosition || 'MID';
+        const rankLabel =
+          preferenceRank === 0
+            ? 'Primary preference'
+            : preferenceRank === 1
+            ? '2nd preference'
+            : preferenceRank === 2
+            ? '3rd preference'
+            : preferenceRank > 0
+            ? `${preferenceRank + 1}th preference`
+            : 'Tactical rotation';
 
-        // Reason formulation
         let reason = '';
         if (!incoming.hasPlayedThisMatch) {
-          reason = `Unused sub: ${incoming.player.name} hasn't played yet this match (${incoming.player.totalMinutesPlayed}m season)`;
+          reason = `Unused sub: ${incoming.player.name} rotated into ${targetCategory} (${rankLabel})`;
         } else if (outgoing.minutesThisMatch > incoming.minutesThisMatch) {
-          reason = `Game time balance: ${outgoing.player.name} (${outgoing.minutesThisMatch}m played) rotated for ${incoming.player.name} (${incoming.minutesThisMatch}m played)`;
+          reason = `Game time balance: ${outgoing.player.name} (${outgoing.minutesThisMatch}m played) rotated for ${incoming.player.name} into ${targetCategory} (${rankLabel})`;
         } else {
-          reason = `Fresh legs rotation: ${incoming.player.name} rotated into ${positionToBroad(targetPos)} (${incoming.player.totalMinutesPlayed}m season total)`;
+          reason = `Fresh legs rotation: ${incoming.player.name} rotated into ${targetCategory} (${rankLabel})`;
         }
 
         subChanges.push({
@@ -563,7 +826,7 @@ export const generateSuggestedSubstitutions = (
           onPlayerId: incoming.playerId,
           onPlayerName: incoming.player.name,
           position: targetPos,
-          positionCategory: positionToBroad(targetPos),
+          positionCategory: targetCategory,
           reason,
         });
 
@@ -649,34 +912,44 @@ export const generateSuggestedSubstitutions = (
 
       bench.forEach((inc) => {
         if (subChanges.some((c) => c.onPlayerId === inc.playerId)) return;
-        const broad = inc.player.preferredPositions[0] || 'Midfield';
+        // Skip pure goalkeepers from outfield rotations
+        if (inc.player.preferredPositions.length === 1 && inc.player.preferredPositions[0] === 'Goalkeeper') return;
 
-        const matchingOutfield = onPitch.filter(
-          (out) =>
-            positionToBroad(out.currentPosition || '') === broad &&
-            !subChanges.some((c) => c.offPlayerId === out.playerId)
-        );
+        // Try preferences in order: 1st preference, then 2nd, then 3rd
+        for (let rank = 0; rank < inc.player.preferredPositions.length; rank++) {
+          const broad = inc.player.preferredPositions[rank];
+          if (broad === 'Goalkeeper') continue;
 
-        if (matchingOutfield.length > 0) {
-          matchingOutfield.sort((a, b) => b.minutesThisMatch - a.minutesThisMatch);
-          const out = matchingOutfield[0];
-          const pos = out.currentPosition || 'MID';
+          const matchingOutfield = onPitch.filter(
+            (out) =>
+              positionToBroad(out.currentPosition || '') === broad &&
+              !subChanges.some((c) => c.offPlayerId === out.playerId)
+          );
 
-          subChanges.push({
-            offPlayerId: out.playerId,
-            offPlayerName: out.player.name,
-            onPlayerId: inc.playerId,
-            onPlayerName: inc.player.name,
-            position: pos,
-            positionCategory: positionToBroad(pos),
-            reason: `Like-for-like ${broad} rotation (${inc.player.totalMinutesPlayed}m season)`,
-          });
+          if (matchingOutfield.length > 0) {
+            matchingOutfield.sort((a, b) => b.minutesThisMatch - a.minutesThisMatch);
+            const out = matchingOutfield[0];
+            const pos = out.currentPosition || 'MID';
 
-          out.isOnPitch = false;
-          out.currentPosition = undefined;
-          inc.isOnPitch = true;
-          inc.currentPosition = pos;
-          inc.hasPlayedThisMatch = true;
+            const rankDesc = rank === 0 ? 'Primary' : rank === 1 ? '2nd preference' : `${rank + 1}th preference`;
+
+            subChanges.push({
+              offPlayerId: out.playerId,
+              offPlayerName: out.player.name,
+              onPlayerId: inc.playerId,
+              onPlayerName: inc.player.name,
+              position: pos,
+              positionCategory: broad,
+              reason: `Like-for-like ${broad} rotation (${rankDesc}, ${inc.player.totalMinutesPlayed}m season)`,
+            });
+
+            out.isOnPitch = false;
+            out.currentPosition = undefined;
+            inc.isOnPitch = true;
+            inc.currentPosition = pos;
+            inc.hasPlayedThisMatch = true;
+            break;
+          }
         }
       });
 
@@ -736,40 +1009,70 @@ export const generateSuggestedSubstitutions = (
         return (a.player.totalMinutesPlayed || 0) - (b.player.totalMinutesPlayed || 0);
       });
 
-      // Pick outgoing with highest minutes
-      onPitch.sort((a, b) => {
-        if (a.minutesThisMatch !== b.minutesThisMatch) return b.minutesThisMatch - a.minutesThisMatch;
-        return (b.player.totalMinutesPlayed || 0) - (a.player.totalMinutesPlayed || 0);
-      });
+      // For each bench candidate, find their best outgoing pitch match
+      let bestPair: {
+        inc: InMatchTracker;
+        outgoingMatch: OutgoingPitchMatch;
+        score: number;
+      } | null = null;
 
-      const inc = bench[0];
-      const out = onPitch[0];
-      const targetPos = out.currentPosition || 'MID';
+      for (const inc of bench) {
+        if (inc.player.preferredPositions.length === 1 && inc.player.preferredPositions[0] === 'Goalkeeper') continue;
+        const match = findBestOutgoingPitchPlayer(inc.player, onPitch);
+        if (!match) continue;
 
-      rollingWindows.push({
-        minute: matchClockMinute,
-        period,
-        subChanges: [
-          {
-            offPlayerId: out.playerId,
-            offPlayerName: out.player.name,
-            onPlayerId: inc.playerId,
-            onPlayerName: inc.player.name,
-            position: targetPos,
-            positionCategory: positionToBroad(targetPos),
-            reason: !inc.hasPlayedThisMatch
-              ? `Unused sub priority: ${inc.player.name} enters pitch`
-              : `Single rolling rotation: ${out.player.name} rested for ${inc.player.name}`,
-          },
-        ],
-        description: `Single rolling sub at ${matchClockMinute}'`,
-      });
+        // Prioritize unplayed bench players, preference rank (0 = primary highest), minutes difference
+        let score = (match.outgoing.minutesThisMatch - inc.minutesThisMatch) * 10;
+        if (!inc.hasPlayedThisMatch) score += 500;
+        if (match.preferenceRank === 0) score += 300;
+        else if (match.preferenceRank === 1) score += 150;
+        else if (match.preferenceRank === 2) score += 75;
 
-      out.isOnPitch = false;
-      out.currentPosition = undefined;
-      inc.isOnPitch = true;
-      inc.currentPosition = targetPos;
-      inc.hasPlayedThisMatch = true;
+        if (!bestPair || score > (bestPair as { score: number }).score) {
+          bestPair = { inc, outgoingMatch: match, score };
+        }
+      }
+
+      if (bestPair) {
+        const { inc, outgoingMatch } = bestPair;
+        const { outgoing: out, targetPos, targetCategory, preferenceRank } = outgoingMatch;
+
+        const rankLabel =
+          preferenceRank === 0
+            ? 'Primary preference'
+            : preferenceRank === 1
+            ? '2nd preference'
+            : preferenceRank === 2
+            ? '3rd preference'
+            : preferenceRank > 0
+            ? `${preferenceRank + 1}th preference`
+            : 'Tactical rotation';
+
+        rollingWindows.push({
+          minute: matchClockMinute,
+          period,
+          subChanges: [
+            {
+              offPlayerId: out.playerId,
+              offPlayerName: out.player.name,
+              onPlayerId: inc.playerId,
+              onPlayerName: inc.player.name,
+              position: targetPos,
+              positionCategory: targetCategory,
+              reason: !inc.hasPlayedThisMatch
+                ? `Unused sub priority: ${inc.player.name} rotated into ${targetCategory} (${rankLabel})`
+                : `Single rolling rotation: ${out.player.name} rested for ${inc.player.name} into ${targetCategory} (${rankLabel})`,
+            },
+          ],
+          description: `Single rolling sub at ${matchClockMinute}'`,
+        });
+
+        out.isOnPitch = false;
+        out.currentPosition = undefined;
+        inc.isOnPitch = true;
+        inc.currentPosition = targetPos;
+        inc.hasPlayedThisMatch = true;
+      }
     }
   }
 
@@ -814,10 +1117,14 @@ export const generateWhatsAppAnnouncement = (
     year: 'numeric',
   });
 
+  const periodCount = fixture.matchPeriodCount || settings.matchPeriodCount || 2;
+  const duration = fixture.periodDurationMinutes || settings.periodDurationMinutes || 25;
+  const pitchCount = fixture.pitchPlayerCount || settings.pitchPlayerCount || 7;
+
   const periodLabel =
-    settings.matchPeriodCount === 2
-      ? `2 Halves × ${settings.periodDurationMinutes} mins`
-      : `${settings.matchPeriodCount} Periods × ${settings.periodDurationMinutes} mins`;
+    periodCount === 2
+      ? `2 Halves × ${duration} mins`
+      : `${periodCount} Periods × ${duration} mins`;
 
   const sortFn = (a: Player, b: Player) => {
     const numA = a.squadNumber ?? 9999;
@@ -862,7 +1169,7 @@ export const generateWhatsAppAnnouncement = (
 📅 *Date:* ${formattedDate}
 ${timeText}
 📍 *Venue:* ${fixture.venue}${groundText}${mapsText}${captainText}
-⏱ *Format:* ${settings.pitchPlayerCount}-a-side (${periodLabel})
+⏱ *Format:* ${pitchCount}-a-side (${periodLabel})
 
 📋 *MATCHDAY SQUAD (${squad?.selectedPlayerIds.length || 0})*
 ${selectedNames || 'Squad not finalised yet'}

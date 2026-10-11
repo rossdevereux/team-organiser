@@ -20,6 +20,9 @@ import {
   Download,
   Upload,
   FileSpreadsheet,
+  ArrowUp,
+  ArrowDown,
+  Star,
 } from 'lucide-react';
 
 const ALL_POSITIONS: BroadPosition[] = ['Goalkeeper', 'Defence', 'Midfield', 'Attack'];
@@ -246,6 +249,23 @@ export const SquadManager: React.FC = () => {
       }
     } else {
       setPreferredPositions([...preferredPositions, pos]);
+    }
+  };
+
+  const movePositionPriority = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= preferredPositions.length) return;
+    const newPositions = [...preferredPositions];
+    const [moved] = newPositions.splice(index, 1);
+    newPositions.splice(targetIndex, 0, moved);
+    setPreferredPositions(newPositions);
+  };
+
+  const setPrimaryPosition = (pos: BroadPosition) => {
+    if (!preferredPositions.includes(pos)) {
+      setPreferredPositions([pos, ...preferredPositions]);
+    } else {
+      setPreferredPositions([pos, ...preferredPositions.filter((p) => p !== pos)]);
     }
   };
 
@@ -818,13 +838,23 @@ export const SquadManager: React.FC = () => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-slate-400 font-semibold mb-1.5 text-xs">
-              Preferred Positions (Select 1 or more broad categories)
-            </label>
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="block text-slate-400 font-semibold text-xs">
+                Preferred Positions & Preference Order
+              </label>
+              <span className="text-[10px] text-slate-500">
+                #1 is Primary, #2 is Secondary for team selection & subs
+              </span>
+            </div>
+
+            {/* Position Category Buttons with Priority Indicators */}
             <div className="flex flex-wrap gap-2">
               {ALL_POSITIONS.map((pos) => {
-                const isSelected = preferredPositions.includes(pos);
+                const index = preferredPositions.indexOf(pos);
+                const isSelected = index !== -1;
+                const isPrimary = index === 0;
+
                 return (
                   <button
                     key={pos}
@@ -832,16 +862,106 @@ export const SquadManager: React.FC = () => {
                     onClick={() => togglePosition(pos)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer flex items-center gap-1.5 ${
                       isSelected
-                        ? 'bg-sky-500/20 text-sky-300 border-sky-500/50 shadow'
+                        ? isPrimary
+                          ? 'bg-sky-500/25 text-sky-200 border-sky-400/80 shadow-md ring-1 ring-sky-400/30'
+                          : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/50'
                         : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
                     }`}
                   >
-                    {isSelected && <Check className="w-3 h-3" />}
+                    {isSelected ? (
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded font-mono font-bold ${
+                          isPrimary
+                            ? 'bg-sky-500 text-slate-950'
+                            : 'bg-indigo-500/40 text-indigo-200'
+                        }`}
+                      >
+                        #{index + 1}
+                      </span>
+                    ) : null}
                     <span>{pos}</span>
+                    {isPrimary && (
+                      <span className="text-[9px] uppercase tracking-wider font-bold text-sky-400">
+                        Primary
+                      </span>
+                    )}
                   </button>
                 );
               })}
             </div>
+
+            {/* Preference Order Ranking Panel when multiple positions selected */}
+            {preferredPositions.length > 1 && (
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-2 animate-fade-in">
+                <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+                  Position Preference Ranking (Sub & Formation Priority)
+                </span>
+                <div className="space-y-1.5">
+                  {preferredPositions.map((pos, idx) => {
+                    const isFirst = idx === 0;
+                    const isLast = idx === preferredPositions.length - 1;
+                    return (
+                      <div
+                        key={pos}
+                        className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] ${
+                              isFirst
+                                ? 'bg-sky-500 text-slate-950'
+                                : 'bg-slate-800 text-slate-300'
+                            }`}
+                          >
+                            {idx + 1}
+                          </span>
+                          <span className="font-semibold text-white">{pos}</span>
+                          <span className="text-[10px] text-slate-500">
+                            {isFirst
+                              ? '(1st Choice / Primary)'
+                              : idx === 1
+                              ? '(2nd Choice / Secondary)'
+                              : `(${idx + 1}rd Choice)`}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          {!isFirst && (
+                            <button
+                              type="button"
+                              onClick={() => setPrimaryPosition(pos)}
+                              className="text-[10px] px-2 py-0.5 rounded bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 font-semibold transition cursor-pointer flex items-center gap-1"
+                              title="Set as 1st preference"
+                            >
+                              <Star className="w-2.5 h-2.5" />
+                              <span>Make Primary</span>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            disabled={isFirst}
+                            onClick={() => movePositionPriority(idx, 'up')}
+                            className="p-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition cursor-pointer"
+                            title="Move up priority"
+                          >
+                            <ArrowUp className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isLast}
+                            onClick={() => movePositionPriority(idx, 'down')}
+                            className="p-1 rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition cursor-pointer"
+                            title="Move down priority"
+                          >
+                            <ArrowDown className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Specific Position Roles Selector */}
@@ -988,12 +1108,20 @@ export const SquadManager: React.FC = () => {
                         )}
                       </div>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {player.preferredPositions.map((pos) => (
+                        {player.preferredPositions.map((pos, pIdx) => (
                           <span
                             key={pos}
-                            className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-medium"
+                            className={`text-[10px] px-2 py-0.5 rounded font-medium flex items-center gap-1 ${
+                              pIdx === 0
+                                ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
+                                : 'bg-slate-800 text-slate-400'
+                            }`}
                           >
-                            {pos}
+                            <span className="text-[9px] opacity-70 font-mono">#{pIdx + 1}</span>
+                            <span>{pos}</span>
+                            {pIdx === 0 && player.preferredPositions.length > 1 && (
+                              <span className="text-[8px] uppercase tracking-wider text-sky-400 font-bold">Primary</span>
+                            )}
                           </span>
                         ))}
                       </div>

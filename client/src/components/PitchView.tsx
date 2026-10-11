@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
-import { Shirt, ArrowLeftRight, X, Clock, ShieldCheck, Info } from 'lucide-react';
+import { Shirt, ArrowLeftRight, X, Clock, ShieldCheck, Info, UserX } from 'lucide-react';
 import { BroadPosition, Player } from '../types';
+import { PlayerCallOffModal } from './PlayerCallOffModal';
 
 const CATEGORY_COLORS: Record<BroadPosition, { bg: string; border: string; text: string; shirt: string }> = {
   Goalkeeper: {
@@ -56,6 +57,10 @@ export const PitchView: React.FC = () => {
     position: string;
     minutes?: number;
     percent?: number;
+  } | null>(null);
+  const [callOffPitchPlayer, setCallOffPitchPlayer] = useState<{
+    player: Player;
+    position: string;
   } | null>(null);
 
   if (!activeFixture || !activeFixture.matchSquad) {
@@ -130,12 +135,15 @@ export const PitchView: React.FC = () => {
     }
   };
 
+  const effectivePeriodCount = activeFixture?.matchPeriodCount || settings.matchPeriodCount || 2;
+  const effectivePitchPlayerCount = activeFixture?.pitchPlayerCount || settings.pitchPlayerCount || 7;
+
   const periodDisplayName =
-    settings.matchPeriodCount === 2
+    effectivePeriodCount === 2
       ? activePeriod === 1
         ? 'First Half (Period 1)'
         : 'Second Half (Period 2)'
-      : `Period ${activePeriod} of ${settings.matchPeriodCount}`;
+      : `Period ${activePeriod} of ${effectivePeriodCount}`;
 
   return (
     <div className="flex flex-col space-y-4">
@@ -187,7 +195,7 @@ export const PitchView: React.FC = () => {
         {/* Pitch Title Header Overlay */}
         <div className="absolute top-2 left-4 z-20 pointer-events-none">
           <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-emerald-300 bg-slate-950/80 border border-emerald-500/30 px-2.5 py-1 rounded-full shadow-md">
-            {periodDisplayName} • {activeFormation.name} ({settings.pitchPlayerCount}-a-side)
+            {periodDisplayName} • {activeFormation.name} ({effectivePitchPlayerCount}-a-side)
           </span>
         </div>
 
@@ -401,6 +409,21 @@ export const PitchView: React.FC = () => {
             </button>
             <button
               type="button"
+              onClick={() => {
+                setCallOffPitchPlayer({
+                  player: inspectedPlayer.player,
+                  position: inspectedPlayer.position,
+                });
+                setInspectedPlayer(null);
+              }}
+              className="min-h-[44px] px-3 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
+              title="Player ill or called off? Remove or replace"
+            >
+              <UserX className="w-4 h-4" />
+              <span>Player Ill / Call-Off</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setInspectedPlayer(null)}
               className="min-h-[44px] px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-semibold transition cursor-pointer"
             >
@@ -409,6 +432,14 @@ export const PitchView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal: Mark Pitch Player as Sick / Call-Off (Remove without replacement OR replace from rested roster) */}
+      <PlayerCallOffModal
+        player={callOffPitchPlayer ? callOffPitchPlayer.player : null}
+        positionLabel={callOffPitchPlayer ? callOffPitchPlayer.position : undefined}
+        onClose={() => setCallOffPitchPlayer(null)}
+        currentLocation="pitch"
+      />
     </div>
   );
 };

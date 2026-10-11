@@ -462,6 +462,11 @@ router.post('/fixtures', async (req: Request, res: Response) => {
       opponent: body.opponent.trim(),
       venue: body.venue || 'Home',
       status: body.status || 'Upcoming',
+      matchdaySquadCap: body.matchdaySquadCap ? Number(body.matchdaySquadCap) : undefined,
+      pitchPlayerCount: body.pitchPlayerCount ? Number(body.pitchPlayerCount) : undefined,
+      matchPeriodCount: body.matchPeriodCount ? Number(body.matchPeriodCount) : undefined,
+      periodDurationMinutes: body.periodDurationMinutes ? Number(body.periodDurationMinutes) : undefined,
+      formation: body.formation?.trim() || undefined,
     };
 
     const saved = await storage.saveFixture(newFixture);
@@ -487,9 +492,39 @@ router.put('/fixtures/:id', async (req: Request, res: Response) => {
         ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(groundAddress)}`
         : existing.mapsUrl);
 
+    const matchdaySquadCap =
+      req.body.matchdaySquadCap !== undefined
+        ? (req.body.matchdaySquadCap ? Number(req.body.matchdaySquadCap) : undefined)
+        : existing.matchdaySquadCap;
+
+    const pitchPlayerCount =
+      req.body.pitchPlayerCount !== undefined
+        ? (req.body.pitchPlayerCount ? Number(req.body.pitchPlayerCount) : undefined)
+        : existing.pitchPlayerCount;
+
+    const matchPeriodCount =
+      req.body.matchPeriodCount !== undefined
+        ? (req.body.matchPeriodCount ? Number(req.body.matchPeriodCount) : undefined)
+        : existing.matchPeriodCount;
+
+    const periodDurationMinutes =
+      req.body.periodDurationMinutes !== undefined
+        ? (req.body.periodDurationMinutes ? Number(req.body.periodDurationMinutes) : undefined)
+        : existing.periodDurationMinutes;
+
+    const formation =
+      req.body.formation !== undefined
+        ? (req.body.formation?.trim() || undefined)
+        : existing.formation;
+
     const updated: Fixture = {
       ...existing,
       ...req.body,
+      matchdaySquadCap,
+      pitchPlayerCount,
+      matchPeriodCount,
+      periodDurationMinutes,
+      formation,
       groundAddress: groundAddress || undefined,
       mapsUrl: mapsUrl || undefined,
       id,
@@ -611,14 +646,15 @@ router.get('/fixtures/:id/stats', async (req: Request, res: Response) => {
 
     const players = await storage.getPlayers(fixture.teamId);
     const settings = await storage.getSettings(fixture.teamId);
-    const stats = calculateMatchStats(fixture.matchSquad, players, settings, fixture.postMatchRecording);
+    const stats = calculateMatchStats(fixture.matchSquad, players, settings, fixture.postMatchRecording, fixture);
 
     res.json({
       fixtureId: fixture.id,
       stats,
       targetPercent: settings.targetGameTimePercent,
-      periodCount: settings.matchPeriodCount,
-      periodDuration: settings.periodDurationMinutes,
+      periodCount: fixture.matchPeriodCount || settings.matchPeriodCount,
+      periodDuration: fixture.periodDurationMinutes || settings.periodDurationMinutes,
+      pitchPlayerCount: fixture.pitchPlayerCount || settings.pitchPlayerCount,
       postMatchRecording: fixture.postMatchRecording,
     });
   } catch (err: any) {
