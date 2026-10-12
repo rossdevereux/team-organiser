@@ -106,7 +106,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   title="Switch or manage teams"
                 >
                   <Shield className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                  <span className="truncate max-w-[90px] xs:max-w-[125px] sm:max-w-[150px] lg:max-w-[170px]">
+                  <span className="truncate max-w-[110px] sm:max-w-[150px] lg:max-w-[180px]">
                     {activeTeam.name}
                   </span>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -295,13 +295,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Sub-bar: Navigation Tabs & Lineup Controls */}
-        <div className="py-2.5 flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 border-t border-slate-800/60 text-xs w-full max-w-full overflow-hidden">
+        <div className="py-2.5 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-2.5 border-t border-slate-800/60 text-xs w-full max-w-full">
           {/* Main Navigation Tabs */}
-          <div className="w-full md:w-auto max-w-full overflow-x-auto no-scrollbar scroll-smooth">
+          <div className="w-full xl:w-auto max-w-full overflow-x-auto no-scrollbar scroll-smooth shrink-0">
             <div className="inline-flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800/80 shrink-0">
               <button
                 onClick={() => setActiveTab('lineup')}
-                className={`h-7 px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
+                className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'lineup'
                     ? 'bg-sky-600 text-white shadow'
                     : 'text-slate-400 hover:text-white'
@@ -311,37 +311,37 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
               <button
                 onClick={() => setActiveTab('matrix')}
-                className={`h-7 px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
+                className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'matrix'
                     ? 'bg-sky-600 text-white shadow'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                {periodCount === 2 ? '2-Half Matrix' : `${periodCount}-Period Matrix`}
+                <span className="hidden 2xl:inline">{periodCount === 2 ? '2-Half ' : `${periodCount}-Period `}</span>Matrix
               </button>
               <button
                 onClick={() => setActiveTab('stats')}
-                className={`h-7 px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
+                className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'stats'
                     ? 'bg-sky-600 text-white shadow'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Fair Play Stats
+                Fair Play<span className="hidden 2xl:inline"> Stats</span>
               </button>
               <button
                 onClick={() => setActiveTab('squad')}
-                className={`h-7 px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
+                className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'squad'
                     ? 'bg-sky-600 text-white shadow'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Squad Roster
+                Squad<span className="hidden 2xl:inline"> Roster</span>
               </button>
               <button
                 onClick={() => setActiveTab('fixtures')}
-                className={`h-7 px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
+                className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'fixtures'
                     ? 'bg-sky-600 text-white shadow'
                     : 'text-slate-400 hover:text-white'
@@ -351,18 +351,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
               <button
                 onClick={() => setActiveTab('teams')}
-                className={`h-7 px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap gap-1.5 ${
+                className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap gap-1.5 ${
                   activeTab === 'teams'
                     ? 'bg-indigo-600 text-white shadow'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <Shield className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Teams & Sharing</span>
+                <span>Teams<span className="hidden 2xl:inline"> & Sharing</span></span>
               </button>
               <button
                 onClick={() => setActiveTab('admin')}
-                className={`h-7 px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap gap-1.5 ${
+                className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap gap-1.5 ${
                   activeTab === 'admin'
                     ? 'bg-amber-600 text-white shadow'
                     : 'text-slate-400 hover:text-white'
@@ -370,17 +370,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 title="Club Administration & RBAC Portal"
               >
                 <Crown className="w-3.5 h-3.5 text-amber-400" />
-                <span>Admin Portal</span>
+                <span>Admin<span className="hidden 2xl:inline"> Portal</span></span>
               </button>
             </div>
           </div>
 
           {/* Quick Lineup Tools (When in lineup mode) */}
           {activeTab === 'lineup' && (
-            <div className="w-full md:w-auto flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div className="w-full xl:w-auto flex items-center gap-1.5 sm:gap-2 flex-nowrap shrink-0 overflow-x-auto no-scrollbar">
               {/* Halves / Period Selector Tabs */}
               <div className="h-8 sm:h-9 flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 shrink-0">
-                <span className="text-[10px] uppercase font-bold text-slate-500 px-1.5 hidden sm:inline whitespace-nowrap">
+                <span className="text-[10px] uppercase font-bold text-slate-500 px-1.5 hidden 2xl:inline whitespace-nowrap">
                   {periodCount === 2 ? 'Halves:' : 'Periods:'}
                 </span>
                 {periods.map((p) => (
@@ -402,7 +402,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <select
                 value={settings.defaultFormation}
                 onChange={(e) => changeFormation(e.target.value)}
-                className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono font-semibold focus:outline-none focus:border-sky-500 cursor-pointer"
+                className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono font-semibold focus:outline-none focus:border-sky-500 cursor-pointer shrink-0 max-w-[130px] truncate"
                 title={`Formations for ${settings.pitchPlayerCount}-a-side`}
               >
                 {availableFormations.map((f) => (
@@ -415,7 +415,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* Matchday Squad Selector */}
               <button
                 onClick={onOpenSquadSelector}
-                className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold transition cursor-pointer whitespace-nowrap flex items-center"
+                className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold transition cursor-pointer whitespace-nowrap flex items-center shrink-0"
                 title={`Select matchday ${settings.matchdaySquadCap} players`}
               >
                 Squad ({settings.matchdaySquadCap})
@@ -423,11 +423,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               <button
                 onClick={() => (onAutoRotate ? onAutoRotate() : autoRotateCurrentFixture())}
-                className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-md transition cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+                className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-md transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 shrink-0"
                 title="Re-balance playing time automatically"
               >
                 <Wand2 className="w-3.5 h-3.5 shrink-0" />
-                <span className="hidden xs:inline">Auto-Balance</span>
+                <span className="hidden sm:inline">Auto-Balance</span>
               </button>
             </div>
           )}
