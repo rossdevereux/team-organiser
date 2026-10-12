@@ -1,5 +1,5 @@
 // SubShuffle Service Worker for Offline Pitch Usage
-const CACHE_NAME = 'subshuffle-offline-v1';
+const CACHE_NAME = 'subshuffle-offline-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -24,6 +24,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log('Purging legacy service worker cache:', key);
             return caches.delete(key);
           }
         })
@@ -36,34 +37,68 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Network-first for API requests, fall back to offline handling in context
+  // 1. Never intercept API requests with Service Worker caching
   if (url.pathname.startsWith('/api/')) {
     return;
   }
 
-  // Cache-first / Stale-while-revalidate for static assets and client navigation
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch fresh copy in background
-        fetch(event.request)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, networkResponse);
-              });
-            }
-          })
-          .catch(() => {});
-        return cachedResponse;
-      }
+  // 2. Navigation requests (HTML): Network-First with Offline Cache Fallback.
+  // CRITICAL: When online, ALWAYS fetch fresh index.html from server so the browser
+  // receives current Vite asset hashes and never requests deleted legacy chunks.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return networkResponse;
+        })
+        .catch(async () => {
+          const cached = await caches.match(event.request);
+          return cached || caches.match('/index.html') || caches.match('/');
+        })
+    );
+    return;
+  }
 
-      return fetch(event.request).catch(() => {
-        // Fallback to cached index.html for SPA client navigation
-        if (event.request.mode === 'navigate') {
-          return caches.match('/');
+  // 3. Static assets (/assets/**): Cache-First, then network.
+  // Hashed Vite assets are immutable. Never cache a fallback index.html as a script or stylesheet!
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
         }
-      });
+        return fetch(event.request).then((networkResponse) => {
+          const contentType = networkResponse.headers.get('content-type') || '';
+          // Only cache real asset responses, NOT SPA fallback HTML
+          if (networkResponse.status === 200 && !contentType.includes('text/html')) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return networkResponse;
+        });
+      })
+    );
+    return;
+  }
+
+  // 4. Other static assets (icons, fonts, manifest)
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      return (
+        cached ||
+        fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return networkResponse;
+        })
+      );
     })
   );
 });
+
