@@ -485,17 +485,17 @@
           "p4",
           "p5",
           "p6",
-          "p7",
           "p8",
           "p9",
-          "p10"
+          "p10",
+          "p11"
         ],
         "restedPlayerIds": [
-          "p11",
           "p12",
-          "p13"
+          "p13",
+          "p7"
         ],
-        "manualOverrides": false,
+        "manualOverrides": true,
         "lineupsByPeriod": [
           {
             "period": 1,
@@ -530,9 +530,9 @@
               }
             ],
             "subs": [
-              "p7",
               "p8",
-              "p10"
+              "p10",
+              "p11"
             ]
           },
           {
@@ -551,10 +551,6 @@
                 "position": "DEF_R"
               },
               {
-                "playerId": "p7",
-                "position": "MID_L"
-              },
-              {
                 "playerId": "p8",
                 "position": "MID_C"
               },
@@ -565,12 +561,16 @@
               {
                 "playerId": "p9",
                 "position": "ATT"
+              },
+              {
+                "playerId": "p1",
+                "position": "MID_L"
               }
             ],
             "subs": [
-              "p1",
               "p4",
-              "p5"
+              "p5",
+              "p11"
             ]
           }
         ]

@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
@@ -19,6 +20,7 @@ const port = parseInt(process.env.PORT || '8080', 10);
 
 // Basic middleware
 app.use(cors());
+app.use(compression());
 app.use(express.json());
 
 // Request logger

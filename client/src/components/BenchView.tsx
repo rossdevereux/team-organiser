@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
 import {
   Armchair,
@@ -40,23 +40,28 @@ export const BenchView: React.FC = () => {
   const [replacingSubPlayer, setReplacingSubPlayer] = useState<Player | null>(null);
   const [promotingRestedPlayer, setPromotingRestedPlayer] = useState<Player | null>(null);
 
-  if (!activeFixture || !activeFixture.matchSquad) return null;
+  const playerMap = useMemo(() => new Map(players.map((p) => [p.id, p])), [players]);
+  const statsMap = useMemo(() => new Map(stats.map((s) => [s.playerId, s])), [stats]);
 
-  const currentLineup = activeFixture.matchSquad.lineupsByPeriod.find(
-    (l) => l.period === activePeriod
-  );
-  if (!currentLineup) return null;
+  const currentLineup = useMemo(() => {
+    return activeFixture?.matchSquad?.lineupsByPeriod.find((l) => l.period === activePeriod) || null;
+  }, [activeFixture?.matchSquad?.lineupsByPeriod, activePeriod]);
 
-  const playerMap = new Map(players.map((p) => [p.id, p]));
-  const statsMap = new Map(stats.map((s) => [s.playerId, s]));
+  const subs = useMemo(() => {
+    if (!currentLineup) return [];
+    return currentLineup.subs
+      .map((id) => playerMap.get(id))
+      .filter((p): p is Player => Boolean(p));
+  }, [currentLineup, playerMap]);
 
-  const subs = currentLineup.subs
-    .map((id) => playerMap.get(id))
-    .filter((p): p is Player => Boolean(p));
+  const restedPlayers = useMemo(() => {
+    if (!activeFixture?.matchSquad) return [];
+    return (activeFixture.matchSquad.restedPlayerIds || [])
+      .map((id) => playerMap.get(id))
+      .filter((p): p is Player => Boolean(p));
+  }, [activeFixture?.matchSquad?.restedPlayerIds, playerMap]);
 
-  const restedPlayers = (activeFixture.matchSquad.restedPlayerIds || [])
-    .map((id) => playerMap.get(id))
-    .filter((p): p is Player => Boolean(p));
+  if (!activeFixture || !activeFixture.matchSquad || !currentLineup) return null;
 
   const selectedSquadCount = activeFixture.matchSquad.selectedPlayerIds.length;
   const squadCap = activeFixture.matchdaySquadCap || settings.matchdaySquadCap || 10;

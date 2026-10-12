@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
 import { Shirt, ArrowLeftRight, X, Clock, ShieldCheck, Info, UserX } from 'lucide-react';
 import { BroadPosition, Player } from '../types';
@@ -30,6 +30,13 @@ export const PitchView: React.FC = () => {
     position: string;
   } | null>(null);
 
+  const playerMap = useMemo(() => new Map(players.map((p) => [p.id, p])), [players]);
+  const statsMap = useMemo(() => new Map(stats.map((s) => [s.playerId, s])), [stats]);
+  const slotMap = useMemo(
+    () => new Map((activeFormation?.slots || []).map((s) => [s.code, s])),
+    [activeFormation]
+  );
+
   if (!activeFixture || !activeFixture.matchSquad) {
     return null;
   }
@@ -39,12 +46,6 @@ export const PitchView: React.FC = () => {
   );
 
   if (!currentLineup) return null;
-
-  const playerMap = new Map(players.map((p) => [p.id, p]));
-  const statsMap = new Map(stats.map((s) => [s.playerId, s]));
-
-  // Build coordinate lookup from active formation
-  const slotMap = new Map(activeFormation.slots.map((s) => [s.code, s]));
 
   const selectedPlayer = selectedSwapSource
     ? playerMap.get(selectedSwapSource.playerId)

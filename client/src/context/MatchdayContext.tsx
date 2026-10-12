@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
 } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { useLocation, useNavigate } from '@tanstack/react-router';
@@ -490,29 +491,98 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     });
   }, [activeFixture, players, settings]);
 
-  // Update MatchSquad on server
-  const updateMatchSquad = async (newSquad: MatchSquad) => {
-    if (!activeFixture) return;
-    try {
+  const squadDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingSquadUpdateRef = useRef<{ fixtureId: string; squad: MatchSquad } | null>(null);
+
+  // Helper to commit pending squad changes to the server
+  const commitSquadUpdate = useCallback(
+    async (fixtureId: string, squad: MatchSquad) => {
+      try {
+        const headers = await getAuthHeaders();
+        const res = await fetch(`/api/fixtures/${fixtureId}/squad`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(squad),
+        });
+        if (!res.ok) {
+          throw new Error('Failed to save match squad');
+        }
+      } catch (err) {
+        console.error('Error saving match squad:', err);
+      }
+    },
+    [getAuthHeaders]
+  );
+
+  // Update MatchSquad on server with 800ms debounce to collapse rapid swaps into 1 Firestore write
+  const updateMatchSquad = useCallback(
+    async (newSquad: MatchSquad, immediate = false) => {
+      if (!activeFixture) return;
+      const fixtureId = activeFixture.id;
+
+      // 1. Optimistic React state update (0ms UI latency)
       setFixtures((prev) =>
-        prev.map((f) => (f.id === activeFixture.id ? { ...f, matchSquad: newSquad } : f))
+        prev.map((f) => (f.id === fixtureId ? { ...f, matchSquad: newSquad } : f))
       );
 
-      const headers = await getAuthHeaders();
-      const res = await fetch(`/api/fixtures/${activeFixture.id}/squad`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(newSquad),
-      });
+      // 2. Immediate offline cache update
+      try {
+        const cached = localStorage.getItem(`subshuffle_cached_fixtures_${activeTeamId}`);
+        if (cached) {
+          const list = JSON.parse(cached);
+          const updated = list.map((f: Fixture) =>
+            f.id === fixtureId ? { ...f, matchSquad: newSquad } : f
+          );
+          localStorage.setItem(`subshuffle_cached_fixtures_${activeTeamId}`, JSON.stringify(updated));
+        }
+      } catch (_) {}
 
-      if (!res.ok) {
-        throw new Error('Failed to save match squad');
+      // 3. Debounced server persistence to collapse multiple swaps into 1 Firestore write
+      pendingSquadUpdateRef.current = { fixtureId, squad: newSquad };
+
+      if (squadDebounceTimerRef.current) {
+        clearTimeout(squadDebounceTimerRef.current);
+        squadDebounceTimerRef.current = null;
       }
-    } catch (err) {
-      console.error('Error saving match squad:', err);
-      refreshData();
-    }
-  };
+
+      if (immediate) {
+        pendingSquadUpdateRef.current = null;
+        await commitSquadUpdate(fixtureId, newSquad);
+      } else {
+        squadDebounceTimerRef.current = setTimeout(async () => {
+          if (pendingSquadUpdateRef.current) {
+            const { fixtureId: fId, squad } = pendingSquadUpdateRef.current;
+            pendingSquadUpdateRef.current = null;
+            await commitSquadUpdate(fId, squad);
+          }
+        }, 800);
+      }
+    },
+    [activeFixture, activeTeamId, commitSquadUpdate]
+  );
+
+  // Flush any pending squad updates on unmount or before window unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (pendingSquadUpdateRef.current) {
+        const { fixtureId, squad } = pendingSquadUpdateRef.current;
+        const blob = new Blob([JSON.stringify(squad)], { type: 'application/json' });
+        navigator.sendBeacon(`/api/fixtures/${fixtureId}/squad`, blob);
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (squadDebounceTimerRef.current) {
+        clearTimeout(squadDebounceTimerRef.current);
+      }
+      if (pendingSquadUpdateRef.current) {
+        const { fixtureId, squad } = pendingSquadUpdateRef.current;
+        commitSquadUpdate(fixtureId, squad);
+      }
+    };
+  }, [commitSquadUpdate]);
 
   const [previousLineupsMap, setPreviousLineupsMap] = useState<Record<string, MatchSquad>>({});
 

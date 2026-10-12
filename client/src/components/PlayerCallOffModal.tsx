@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
 import { useToast } from '../context/ToastContext';
 import { Player } from '../types';
@@ -28,12 +28,15 @@ export const PlayerCallOffModal: React.FC<PlayerCallOffModalProps> = ({
 
   const { showToast } = useToast();
 
-  if (!player || !activeFixture || !activeFixture.matchSquad) return null;
+  const playerMap = useMemo(() => new Map(players.map((p) => [p.id, p])), [players]);
+  const restedPlayers = useMemo(() => {
+    if (!activeFixture?.matchSquad?.restedPlayerIds) return [];
+    return activeFixture.matchSquad.restedPlayerIds
+      .map((id) => playerMap.get(id))
+      .filter((p): p is Player => Boolean(p));
+  }, [activeFixture?.matchSquad?.restedPlayerIds, playerMap]);
 
-  const playerMap = new Map(players.map((p) => [p.id, p]));
-  const restedPlayers = (activeFixture.matchSquad.restedPlayerIds || [])
-    .map((id) => playerMap.get(id))
-    .filter((p): p is Player => Boolean(p));
+  if (!player || !activeFixture || !activeFixture.matchSquad) return null;
 
   const currentPeriodLineup = activeFixture.matchSquad.lineupsByPeriod[0];
   const hasBenchSubs = currentPeriodLineup?.subs.length > 0;
