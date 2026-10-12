@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import './i18n';
 
 // Automatically recover when a new deployment renders an in-memory chunk reference obsolete
 window.addEventListener('vite:preloadError', (event) => {

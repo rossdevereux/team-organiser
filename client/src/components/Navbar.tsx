@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { AuthButton } from './AuthButton';
+import { LanguageSelector } from './LanguageSelector';
 import {
   Users,
   Calendar,
@@ -61,6 +63,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     isOffline,
   } = useMatchday();
 
+  const { t } = useTranslation();
+
   const [teamDropdownOpen, setTeamDropdownOpen] = useState(false);
   const [fixtureDropdownOpen, setFixtureDropdownOpen] = useState(false);
 
@@ -91,7 +95,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className="text-white">Shuffle</span>
                 </div>
                 <p className="text-[9px] uppercase font-bold tracking-wider text-slate-400">
-                  Smart Player Rotation
+                  {t('nav.brandSubtitle')}
                 </p>
               </div>
             </Link>
@@ -284,9 +288,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               <ContextSwitcher onOpenShowcase={onOpenShowcase} onOpenPrint={onOpenPrint} />
             </div>
 
+            <LanguageSelector compact className="shrink-0" />
+
             <button
               onClick={onOpenSettings}
-              className="h-9 w-9 shrink-0 flex items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+              className="h-9 w-9 shrink-0 flex items-center justify-center rounded-xl bg-slate-800 hover:bg-slate-755 border border-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
               title="Team Settings & League Rules"
             >
               <Sliders className="w-4 h-4 shrink-0" />
@@ -310,7 +316,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Pitch Lineup
+                {t('nav.lineup')}
               </Link>
               <Link
                 to="/matrix"
@@ -321,7 +327,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <span className="hidden 2xl:inline">{periodCount === 2 ? '2-Half ' : `${periodCount}-Period `}</span>Matrix
+                <span className="hidden 2xl:inline">{periodCount === 2 ? '2-Half ' : `${periodCount}-Period `}</span>{t('nav.matrix')}
               </Link>
               <Link
                 to="/stats"
@@ -332,7 +338,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Fair Play<span className="hidden 2xl:inline"> Stats</span>
+                {t('nav.stats')}
               </Link>
               <Link
                 to="/squad"
@@ -343,7 +349,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Squad<span className="hidden 2xl:inline"> Roster</span>
+                {t('nav.squad')}
               </Link>
               <Link
                 to="/fixtures"
@@ -354,7 +360,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                Fixtures
+                {t('nav.fixtures')}
               </Link>
               <Link
                 to="/teams"
@@ -366,7 +372,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 <Shield className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Teams<span className="hidden 2xl:inline"> & Sharing</span></span>
+                <span>{t('nav.teams')}</span>
               </Link>
               <Link
                 to="/admin"
@@ -379,7 +385,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 title="Club Administration & RBAC Portal"
               >
                 <Crown className="w-3.5 h-3.5 text-amber-400" />
-                <span>Admin<span className="hidden 2xl:inline"> Portal</span></span>
+                <span>{t('nav.admin')}</span>
               </Link>
             </div>
           </div>

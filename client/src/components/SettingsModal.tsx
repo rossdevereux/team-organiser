@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { TeamSettings } from '../types';
 import { getFormationsForTeamSize } from '../utils/formations';
 import { Sliders, X, Check, Plus } from 'lucide-react';
+import { LanguageSelector } from './LanguageSelector';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   onOpenCustomFormation,
 }) => {
+  const { t } = useTranslation();
   const { settings, updateSettings, changeFormation } = useMatchday();
 
   const [formData, setFormData] = useState<TeamSettings>(settings);
@@ -82,9 +85,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="flex items-center gap-2.5">
             <img src="/logo-icon.png" alt="SubShuffle" className="w-8 h-8 object-contain drop-shadow-md" />
             <div>
-              <h3 className="text-base font-bold text-white">Team & League Settings</h3>
+              <h3 className="text-base font-bold text-white">{t('settings.title')}</h3>
               <p className="text-xs text-slate-400">
-                Match periods, team sizes, and formation configurations
+                {t('nav.brandSubtitle')}
               </p>
             </div>
           </div>
@@ -96,11 +99,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
         </div>
 
+        {/* Application Language Selector */}
+        <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-950/70 border border-slate-800">
+          <div>
+            <label className="block text-slate-200 font-semibold text-xs">
+              {t('settings.languageLabel')}
+            </label>
+            <span className="text-[10px] text-slate-400">
+              English, Español, Français, Deutsch
+            </span>
+          </div>
+          <LanguageSelector />
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-slate-400 font-semibold mb-1">
-                Pitch Format (Team Size)
+                {t('settings.pitchPlayers')}
               </label>
               <select
                 value={formData.pitchPlayerCount}
@@ -117,7 +133,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <div>
               <label className="block text-slate-400 font-semibold mb-1">
-                Matchday Squad Cap
+                {t('settings.squadCap')}
               </label>
               <input
                 type="number"
@@ -136,7 +152,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-slate-400 font-semibold mb-1">
-                Match Periods
+                {t('settings.matchPeriods')}
               </label>
               <select
                 value={formData.matchPeriodCount}
@@ -154,7 +170,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <div>
               <label className="block text-slate-400 font-semibold mb-1">
-                Period Duration (Mins)
+                {t('settings.periodDuration')}
               </label>
               <input
                 type="number"
@@ -178,7 +194,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-slate-400 font-semibold">Default Formation</label>
+              <label className="text-slate-400 font-semibold">{t('settings.defaultFormation')}</label>
               {onOpenCustomFormation && (
                 <button
                   type="button"
@@ -208,7 +224,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           <div>
             <label className="block text-slate-400 font-semibold mb-1">
-              Target Equal Game Time %
+              {t('settings.targetGameTime')}
             </label>
             <input
               type="number"
@@ -253,7 +269,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Primary Colour</label>
+                <label className="block text-[11px] text-slate-400 mb-1">{t('settings.kitPrimary')}</label>
                 <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800">
                   <input
                     type="color"
@@ -270,7 +286,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Secondary / Trim</label>
+                <label className="block text-[11px] text-slate-400 mb-1">{t('settings.kitSecondary')}</label>
                 <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800">
                   <input
                     type="color"
@@ -324,14 +340,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onClick={onClose}
               className="px-4 py-2 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-600/20 transition cursor-pointer"
             >
               <Check className="w-4 h-4" />
-              <span>Save Settings</span>
+              <span>{t('common.save')}</span>
             </button>
           </div>
         </form>

@@ -17,7 +17,9 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import type { User } from 'firebase/auth';
+import { useTranslation } from 'react-i18next';
 import { AuthButton } from './AuthButton';
+import { LanguageSelector } from './LanguageSelector';
 
 interface LandingHeroProps {
   onStartDemo: () => void;
@@ -34,6 +36,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
   currentUser,
   onSignInSuccess,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-slate-950 font-sans">
       {/* Top Header / Navigation Bar */}
@@ -55,19 +59,20 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 <span className="text-white">Shuffle</span>
               </div>
               <p className="text-[9px] uppercase font-bold tracking-wider text-slate-400">
-                Grassroots Player Rotation
+                {t('nav.brandSubtitle')}
               </p>
             </div>
           </div>
 
           {/* Action CTAs */}
           <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageSelector compact className="shrink-0" />
             {currentUser && onGoToApp ? (
               <button
                 onClick={onGoToApp}
                 className="min-h-[44px] px-3.5 sm:px-4 flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-md shadow-emerald-500/20 transition cursor-pointer"
               >
-                <span>Go to Lineup</span>
+                <span>{t('common.goToLineup')}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             ) : (
@@ -76,7 +81,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 className="min-h-[44px] px-3.5 sm:px-4 flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-700/80 hover:border-slate-600 text-xs font-semibold text-slate-200 transition cursor-pointer"
               >
                 <Play className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
-                <span>Try Live Demo</span>
+                <span>{t('common.tryLiveDemo')}</span>
               </button>
             )}
             <AuthButton onSignInSuccess={onSignInSuccess} />
@@ -94,21 +99,20 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold shadow-sm shadow-emerald-500/10">
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>FA Youth Charter & Equal Playing Time Compliance</span>
+            <span>{t('landing.badge')}</span>
           </div>
 
           {/* Main Title */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.1] max-w-4xl mx-auto">
-            Smart Player Rotations for{' '}
+            {t('landing.heroTitle')}{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-sky-400 to-indigo-400">
-              Grassroots Football Coaches
+              {t('landing.heroTitleHighlight')}
             </span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
-            Eliminate touchline substitution disputes and notebook headaches. Build balanced period lineups,
-            calculate exact minutes per player, export to WhatsApp in one tap, and print official referee sheets.
+            {t('landing.heroSubtitle')}
           </p>
 
           {/* Main Hero Call-to-Actions */}
@@ -118,7 +122,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 onClick={onGoToApp}
                 className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 font-extrabold text-sm shadow-xl shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 cursor-pointer flex items-center justify-center gap-2"
               >
-                <span>Open Lineup Planner</span>
+                <span>{t('common.openLineup')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
@@ -127,7 +131,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 font-extrabold text-sm shadow-xl shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 cursor-pointer flex items-center justify-center gap-2"
               >
                 <Play className="w-4 h-4 fill-slate-950" />
-                <span>Launch Interactive Demo</span>
+                <span>{t('landing.launchDemoPlanner')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             )}
@@ -141,15 +145,15 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           <div className="pt-4 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-slate-400 font-medium">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>100% Free for Coaches</span>
+              <span>{t('landing.freeForCoaches')}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Works Offline at Pitchside</span>
+              <span>{t('landing.worksOffline')}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>No App Store Download Required</span>
+              <span>{t('landing.noDownload')}</span>
             </div>
           </div>
 
@@ -161,7 +165,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                   <span className="w-3 h-3 rounded-full bg-rose-500/80" />
                   <span className="w-3 h-3 rounded-full bg-amber-500/80" />
                   <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                  <span className="font-bold text-slate-300 ml-2">Matchday Planner Preview</span>
+                  <span className="font-bold text-slate-300 ml-2">{t('landing.previewTitle')}</span>
                   <span className="px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 text-[10px] font-mono">
                     The Rovers U11 vs Harrogate Town
                   </span>
@@ -169,13 +173,13 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
 
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                    Equal Playing Time: 100%
+                    {t('landing.equalTime')}
                   </span>
                   <button
                     onClick={currentUser && onGoToApp ? onGoToApp : onStartDemo}
                     className="text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 cursor-pointer"
                   >
-                    <span>{currentUser ? 'Open in Planner' : 'Open in Full App'}</span>
+                    <span>{currentUser ? t('common.openLineup') : t('common.openApp')}</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
@@ -185,11 +189,11 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 text-xs">
                 <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-2">
                   <div className="flex items-center justify-between text-slate-400 font-bold text-[11px]">
-                    <span>1ST HALF LINEUP</span>
+                    <span>{t('lineup.firstHalf').toUpperCase()}</span>
                     <span className="font-mono text-emerald-400">7 Active • 3 Subs</span>
                   </div>
                   <p className="text-slate-300 text-xs">
-                    Automated rotation assigns balanced playing time while honoring preferred positions (Goalkeeper, Defence, Midfield, Attack).
+                    {t('landing.pillar1Desc')}
                   </p>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     <span className="px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-bold">GK Finley</span>
@@ -202,7 +206,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-2">
                   <div className="flex items-center justify-between text-slate-400 font-bold text-[11px]">
                     <span>FAIR PLAY AUDIT</span>
-                    <span className="font-mono text-sky-400">Target: 50% Min</span>
+                    <span className="font-mono text-sky-400">{t('lineup.targetGameTime', { target: 50 })}</span>
                   </div>
                   <p className="text-slate-300 text-xs">
                     Tracks minutes played across both halves. Highlights substitutes bench players for rotation in the second half.
@@ -226,18 +230,18 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-2 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between text-slate-400 font-bold text-[11px]">
-                      <span>ONE-TAP EXPORT</span>
+                      <span>{t('landing.pillar3Title').toUpperCase()}</span>
                       <span className="text-[#25D366] font-bold">WhatsApp & PDF</span>
                     </div>
                     <p className="text-slate-300 text-xs mt-1">
-                      Send clean parent call-ups with meet times, ground address, and full team sheet straight to your WhatsApp group chat.
+                      {t('landing.pillar3Desc')}
                     </p>
                   </div>
                   <button
                     onClick={currentUser && onGoToApp ? onGoToApp : onStartDemo}
                     className="w-full py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <span>{currentUser ? 'Open Match Squad' : 'Try With Sample Squad'}</span>
+                    <span>{currentUser ? t('common.openLineup') : t('common.tryLiveDemo')}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -252,10 +256,10 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Designed For Real Pitchside Realities
+              {t('landing.pillarsTitle')}
             </h2>
             <p className="text-slate-400 text-sm">
-              Built by grassroots coaches for cold Sunday mornings on muddy sidelines.
+              {t('landing.pillarsSubtitle')}
             </p>
           </div>
 
@@ -265,9 +269,9 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
                 <RotateCcw className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-white">Smart Auto-Rotation</h3>
+              <h3 className="text-base font-bold text-white">{t('landing.pillar1Title')}</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Automatically calculates fair minutes across 2 halves or 3–4 periods. Re-balances your substitutes bench in 1 tap so nobody feels left out.
+                {t('landing.pillar1Desc')}
               </p>
             </div>
 
@@ -276,9 +280,9 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               <div className="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center">
                 <Zap className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-white">Pitchside Thumb Ergonomics</h3>
+              <h3 className="text-base font-bold text-white">{t('landing.pillar2Title')}</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                48px touch targets and a sticky thumb-zone bottom bar let you tap periods, initiate player swaps, and track match time with one hand on cold fields.
+                {t('landing.pillar2Desc')}
               </p>
             </div>
 
@@ -287,9 +291,9 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               <div className="w-12 h-12 rounded-2xl bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 flex items-center justify-center">
                 <MessageSquare className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-white">Instant WhatsApp Call-Up</h3>
+              <h3 className="text-base font-bold text-white">{t('landing.pillar3Title')}</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Formats kick-off times, meet venues, parking addresses, and selected match squads into a single message copied straight to parent group chats.
+                {t('landing.pillar3Desc')}
               </p>
             </div>
 
@@ -298,9 +302,9 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center">
                 <Printer className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-white">Referee Match Sheets</h3>
+              <h3 className="text-base font-bold text-white">{t('landing.pillar4Title')}</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Isolated print mode produces crisp black hairline-bordered A4 paper handouts with period lineups, goalkeeper duty, and match sign-off boxes.
+                {t('landing.pillar4Desc')}
               </p>
             </div>
           </div>
@@ -312,10 +316,10 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
           <div className="space-y-3">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Start Free Today. No Credit Card Needed.
+              {t('landing.pricingTitle')}
             </h2>
             <p className="text-slate-400 text-sm">
-              Use instantly in your browser. Sign in whenever you want cloud backup and assistant coach sharing.
+              {t('landing.pricingSubtitle')}
             </p>
           </div>
 
@@ -326,9 +330,9 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-slate-800 text-slate-300">
                   Instant Sandbox
                 </span>
-                <h3 className="text-xl font-bold text-white mt-2">Demo Guest Mode</h3>
+                <h3 className="text-xl font-bold text-white mt-2">{t('landing.demoCardTitle')}</h3>
                 <p className="text-xs text-slate-400 mt-1">
-                  Explore full features with sample team 'The Rovers U11'.
+                  {t('landing.demoCardSubtitle')}
                 </p>
               </div>
 
@@ -356,23 +360,23 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 className="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs border border-slate-700 transition cursor-pointer flex items-center justify-center gap-2"
               >
                 <Play className="w-3.5 h-3.5 fill-white" />
-                <span>Launch Demo Planner</span>
+                <span>{t('landing.launchDemoPlanner')}</span>
               </button>
             </div>
 
             {/* Cloud Account Card */}
             <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border-2 border-emerald-500/40 shadow-2xl shadow-emerald-500/10 space-y-5 relative">
               <div className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider">
-                Recommended
+                {t('landing.recommended')}
               </div>
 
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                   Google Cloud Sync
                 </span>
-                <h3 className="text-xl font-bold text-white mt-2">Coach Account</h3>
+                <h3 className="text-xl font-bold text-white mt-2">{t('landing.cloudCardTitle')}</h3>
                 <p className="text-xs text-slate-400 mt-1">
-                  Private isolated cloud workspace for your own club squads.
+                  {t('landing.cloudCardSubtitle')}
                 </p>
               </div>
 
@@ -401,7 +405,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                     onClick={onGoToApp}
                     className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-2"
                   >
-                    <span>Open Cloud Workspace</span>
+                    <span>{t('landing.openCloudWorkspace')}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 ) : (
@@ -419,7 +423,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-300">SubShuffle</span>
             <span>•</span>
-            <span>Smart Grassroots Football Rotation Manager</span>
+            <span>{t('nav.brandSubtitle')}</span>
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">
@@ -427,7 +431,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               onClick={currentUser && onGoToApp ? onGoToApp : onStartDemo}
               className="hover:text-emerald-400 transition cursor-pointer"
             >
-              {currentUser ? 'Lineup Planner' : 'Interactive Demo'}
+              {currentUser ? t('common.openLineup') : t('landing.interactiveDemo')}
             </button>
             {onOpenPrivacy && (
               <button
@@ -435,7 +439,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                 className="hover:text-emerald-400 transition cursor-pointer flex items-center gap-1"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Privacy & GDPR</span>
+                <span>{t('common.privacy')}</span>
               </button>
             )}
           </div>
