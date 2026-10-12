@@ -25,6 +25,9 @@ export default defineConfig({
           if (id.includes('node_modules/firebase/')) {
             return 'firebase';
           }
+          if (id.includes('node_modules/@tanstack/')) {
+            return 'tanstack';
+          }
           if (id.includes('node_modules/lucide-react/')) {
             return 'lucide-icons';
           }

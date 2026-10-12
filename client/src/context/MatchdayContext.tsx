@@ -7,7 +7,9 @@ import React, {
   useMemo,
 } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { auth, getAuthToken, getUserRoleFromToken, UserRole } from '../firebase';
+import { queryClient } from '../queryClient';
 import {
   Player,
   TeamSettings,
@@ -118,6 +120,9 @@ const getInitialUrlState = () => {
 };
 
 export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<UserRole>('coach');
   const [teams, setTeams] = useState<Team[]>([]);
@@ -127,12 +132,31 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [activeFixtureId, setActiveFixtureId] = useState<string>(() => getInitialUrlState().fixtureId);
   const [activePeriodState, setActivePeriodState] = useState<number>(1);
   const [selectedSwapSource, setSelectedSwapSource] = useState<SwapSource | null>(null);
-  const [activeTab, setActiveTab] = useState<
-    'lineup' | 'matrix' | 'squad' | 'fixtures' | 'stats' | 'teams' | 'admin'
-  >(() => getInitialUrlState().tab);
   const [isOffline, setIsOffline] = useState<boolean>(() => (typeof navigator !== 'undefined' ? !navigator.onLine : false));
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Derive activeTab directly from TanStack Router URL pathname
+  const activeTab = useMemo<
+    'lineup' | 'matrix' | 'squad' | 'fixtures' | 'stats' | 'teams' | 'admin'
+  >(() => {
+    const segment = location.pathname.replace(/^\//, '').split('/')[0] || '';
+    if (['lineup', 'matrix', 'squad', 'fixtures', 'stats', 'teams', 'admin'].includes(segment)) {
+      return segment as any;
+    }
+    return 'lineup';
+  }, [location.pathname]);
+
+  const setActiveTab = useCallback(
+    (tab: 'lineup' | 'matrix' | 'squad' | 'fixtures' | 'stats' | 'teams' | 'admin') => {
+      const target = tab === 'lineup' ? '/' : `/${tab}`;
+      navigate({
+        to: target,
+        search: (prev: any) => prev,
+      });
+    },
+    [navigate]
+  );
 
   // Evaluate user roles and custom claims
   const evaluateRole = useCallback(async (user: User | null, forceRefresh: boolean = false) => {
@@ -171,46 +195,26 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [evaluateRole]);
 
-  // Keep URL updated with team, fixture, and active tab for bookmarking and sharing
+  // Keep URL updated with team and fixture query params for bookmarking and sharing
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
       const params = new URLSearchParams(window.location.search);
       if (activeTeamId) params.set('team', activeTeamId);
-      if (activeTab) params.set('tab', activeTab);
       if (activeFixtureId) {
         params.set('fixture', activeFixtureId);
       } else {
         params.delete('fixture');
       }
 
-      const newQuery = `?${params.toString()}`;
+      const newQuery = params.toString() ? `?${params.toString()}` : '';
       if (window.location.search !== newQuery) {
         window.history.replaceState(null, '', `${window.location.pathname}${newQuery}`);
       }
     } catch (e) {
       console.warn('Failed to update URL search params:', e);
     }
-  }, [activeTeamId, activeTab, activeFixtureId]);
-
-  // Sync browser back/forward buttons (popstate)
-  useEffect(() => {
-    const handlePopState = () => {
-      const params = new URLSearchParams(window.location.search);
-      const urlTeam = params.get('team');
-      const urlTab = params.get('tab');
-      const urlFixture = params.get('fixture');
-
-      if (urlTeam) setActiveTeamId(urlTeam);
-      if (urlTab && ['lineup', 'matrix', 'squad', 'fixtures', 'stats', 'teams'].includes(urlTab)) {
-        setActiveTab(urlTab as any);
-      }
-      if (urlFixture) setActiveFixtureId(urlFixture);
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [activeTeamId, activeFixtureId]);
 
   // Helper to build headers with auth token or dev fallback
   const getAuthHeaders = useCallback(async (): Promise<HeadersInit> => {

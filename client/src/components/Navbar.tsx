@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from '@tanstack/react-router';
 import { useMatchday } from '../context/MatchdayContext';
 import { AuthButton } from './AuthButton';
 import {
@@ -73,8 +74,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="h-16 flex items-center justify-between gap-2 sm:gap-4 w-full min-w-0">
           {/* Brand & Team Switcher */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 min-w-0">
-            <div
-              onClick={() => setActiveTab('lineup')}
+            <Link
+              to="/"
+              search={(prev: any) => prev}
               className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group shrink-0 select-none"
               title="SubShuffle Home"
             >
@@ -92,7 +94,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   Smart Player Rotation
                 </p>
               </div>
-            </div>
+            </Link>
 
             {/* Team Switcher Pill */}
             {activeTeam && (
@@ -299,8 +301,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Main Navigation Tabs */}
           <div className="w-full xl:w-auto max-w-full overflow-x-auto no-scrollbar scroll-smooth shrink-0">
             <div className="inline-flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800/80 shrink-0">
-              <button
-                onClick={() => setActiveTab('lineup')}
+              <Link
+                to="/"
+                search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'lineup'
                     ? 'bg-sky-600 text-white shadow'
@@ -308,9 +311,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 Pitch Lineup
-              </button>
-              <button
-                onClick={() => setActiveTab('matrix')}
+              </Link>
+              <Link
+                to="/matrix"
+                search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'matrix'
                     ? 'bg-sky-600 text-white shadow'
@@ -318,9 +322,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 <span className="hidden 2xl:inline">{periodCount === 2 ? '2-Half ' : `${periodCount}-Period `}</span>Matrix
-              </button>
-              <button
-                onClick={() => setActiveTab('stats')}
+              </Link>
+              <Link
+                to="/stats"
+                search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'stats'
                     ? 'bg-sky-600 text-white shadow'
@@ -328,9 +333,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 Fair Play<span className="hidden 2xl:inline"> Stats</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('squad')}
+              </Link>
+              <Link
+                to="/squad"
+                search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'squad'
                     ? 'bg-sky-600 text-white shadow'
@@ -338,9 +344,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 Squad<span className="hidden 2xl:inline"> Roster</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('fixtures')}
+              </Link>
+              <Link
+                to="/fixtures"
+                search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'fixtures'
                     ? 'bg-sky-600 text-white shadow'
@@ -348,9 +355,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 Fixtures
-              </button>
-              <button
-                onClick={() => setActiveTab('teams')}
+              </Link>
+              <Link
+                to="/teams"
+                search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap gap-1.5 ${
                   activeTab === 'teams'
                     ? 'bg-indigo-600 text-white shadow'
@@ -359,9 +367,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <Shield className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Teams<span className="hidden 2xl:inline"> & Sharing</span></span>
-              </button>
-              <button
-                onClick={() => setActiveTab('admin')}
+              </Link>
+              <Link
+                to="/admin"
+                search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap gap-1.5 ${
                   activeTab === 'admin'
                     ? 'bg-amber-600 text-white shadow'
@@ -371,7 +380,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <Crown className="w-3.5 h-3.5 text-amber-400" />
                 <span>Admin<span className="hidden 2xl:inline"> Portal</span></span>
-              </button>
+              </Link>
             </div>
           </div>
 
