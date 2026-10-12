@@ -5,9 +5,10 @@ import { LogIn, LogOut, User as UserIcon, AlertCircle } from 'lucide-react';
 
 interface AuthButtonProps {
   onUserChange?: (user: User | null) => void;
+  onSignInSuccess?: (user: User) => void;
 }
 
-export const AuthButton: React.FC<AuthButtonProps> = ({ onUserChange }) => {
+export const AuthButton: React.FC<AuthButtonProps> = ({ onUserChange, onSignInSuccess }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -35,7 +36,10 @@ export const AuthButton: React.FC<AuthButtonProps> = ({ onUserChange }) => {
     }
 
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result.user && onSignInSuccess) {
+        onSignInSuccess(result.user);
+      }
     } catch (err: unknown) {
       console.error('Google Sign-In failed:', err);
       const message = err instanceof Error ? err.message : 'Authentication failed';

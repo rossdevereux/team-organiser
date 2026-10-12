@@ -1,7 +1,8 @@
 // SubShuffle Service Worker for Offline Pitch Usage
-const CACHE_NAME = 'subshuffle-offline-v2';
+const CACHE_NAME = 'subshuffle-offline-v3';
 const STATIC_ASSETS = [
   '/',
+  '/lineup',
   '/index.html',
   '/manifest.json',
   '/icon.svg',

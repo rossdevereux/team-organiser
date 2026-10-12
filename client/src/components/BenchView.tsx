@@ -18,13 +18,7 @@ import { Player } from '../types';
 import { EmptyState } from './EmptyState';
 import { useToast } from '../context/ToastContext';
 import { PlayerCallOffModal } from './PlayerCallOffModal';
-
-function getInitials(name?: string): string {
-  if (!name || !name.trim()) return '?';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
+import { getPlayerInitials } from '../utils/playerUtils';
 
 export const BenchView: React.FC = () => {
   const {
@@ -169,7 +163,7 @@ export const BenchView: React.FC = () => {
                         />
                       ) : (
                         <div className="w-10 h-10 rounded-xl bg-slate-800 text-white font-black text-xs flex items-center justify-center border border-slate-700 shadow-sm">
-                          {getInitials(sub.name)}
+                          {getPlayerInitials(sub.name)}
                         </div>
                       )}
                       {isCaptain && (
@@ -313,7 +307,7 @@ export const BenchView: React.FC = () => {
                   <div className="flex items-center justify-between gap-2.5 min-w-0">
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <span className="w-8 h-8 rounded-xl bg-slate-800 text-slate-200 flex items-center justify-center font-bold text-xs border border-slate-700/60 shadow-sm shrink-0">
-                        {player.squadNumber ? `#${player.squadNumber}` : getInitials(player.name)}
+                        {player.squadNumber ? `#${player.squadNumber}` : getPlayerInitials(player.name)}
                       </span>
                       <div className="min-w-0 flex-1">
                         <h4 className="text-xs font-bold text-white leading-snug truncate" title={player.name}>
@@ -440,7 +434,7 @@ export const BenchView: React.FC = () => {
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span className="w-7 h-7 rounded-lg bg-slate-800 text-slate-200 flex items-center justify-center font-bold text-xs shrink-0">
-                        {p.squadNumber || getInitials(p.name)}
+                        {p.squadNumber || getPlayerInitials(p.name)}
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="text-xs font-bold text-white group-hover:text-indigo-300 flex items-center flex-wrap gap-1 leading-snug">

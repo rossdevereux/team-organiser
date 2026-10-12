@@ -3,6 +3,7 @@ import { useMatchday } from '../context/MatchdayContext';
 import { useToast } from '../context/ToastContext';
 import { Player } from '../types';
 import { UserX, UserMinus, X, AlertCircle, ArrowRight } from 'lucide-react';
+import { getPlayerInitials } from '../utils/playerUtils';
 
 interface PlayerCallOffModalProps {
   player: Player | null;
@@ -11,12 +12,6 @@ interface PlayerCallOffModalProps {
   positionLabel?: string;
 }
 
-function getInitials(name?: string): string {
-  if (!name || !name.trim()) return '?';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 
 export const PlayerCallOffModal: React.FC<PlayerCallOffModalProps> = ({
   player,
@@ -96,7 +91,7 @@ export const PlayerCallOffModal: React.FC<PlayerCallOffModalProps> = ({
         <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2.5">
             <span className="w-8 h-8 rounded-xl bg-slate-800 text-slate-200 font-bold flex items-center justify-center text-xs border border-slate-700 shrink-0">
-              {player.squadNumber ? `#${player.squadNumber}` : getInitials(player.name)}
+              {player.squadNumber ? `#${player.squadNumber}` : getPlayerInitials(player.name)}
             </span>
             <div>
               <div className="font-bold text-white">{player.name}</div>
@@ -179,7 +174,7 @@ export const PlayerCallOffModal: React.FC<PlayerCallOffModalProps> = ({
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <span className="w-7 h-7 rounded-lg bg-slate-800 text-slate-200 flex items-center justify-center font-bold text-xs shrink-0">
-                      {r.squadNumber || getInitials(r.name)}
+                      {r.squadNumber || getPlayerInitials(r.name)}
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="text-xs font-bold text-white group-hover:text-emerald-300 break-words leading-snug">

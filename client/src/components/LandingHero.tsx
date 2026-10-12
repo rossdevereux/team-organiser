@@ -16,21 +16,34 @@ import {
   Heart,
   RotateCcw,
 } from 'lucide-react';
+import type { User } from 'firebase/auth';
 import { AuthButton } from './AuthButton';
 
 interface LandingHeroProps {
   onStartDemo: () => void;
+  onGoToApp?: () => void;
   onOpenPrivacy?: () => void;
+  currentUser?: User | null;
+  onSignInSuccess?: (user: User) => void;
 }
 
-export const LandingHero: React.FC<LandingHeroProps> = ({ onStartDemo, onOpenPrivacy }) => {
+export const LandingHero: React.FC<LandingHeroProps> = ({
+  onStartDemo,
+  onGoToApp,
+  onOpenPrivacy,
+  currentUser,
+  onSignInSuccess,
+}) => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-slate-950 font-sans">
       {/* Top Header / Navigation Bar */}
       <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Brand */}
-          <div className="flex items-center gap-2.5 select-none cursor-pointer" onClick={onStartDemo}>
+          <div
+            className="flex items-center gap-2.5 select-none cursor-pointer"
+            onClick={currentUser && onGoToApp ? onGoToApp : onStartDemo}
+          >
             <img
               src="/logo-icon.png"
               alt="SubShuffle Logo"
@@ -49,14 +62,24 @@ export const LandingHero: React.FC<LandingHeroProps> = ({ onStartDemo, onOpenPri
 
           {/* Action CTAs */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              onClick={onStartDemo}
-              className="min-h-[44px] px-3.5 sm:px-4 flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-700/80 hover:border-slate-600 text-xs font-semibold text-slate-200 transition cursor-pointer"
-            >
-              <Play className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
-              <span>Try Live Demo</span>
-            </button>
-            <AuthButton />
+            {currentUser && onGoToApp ? (
+              <button
+                onClick={onGoToApp}
+                className="min-h-[44px] px-3.5 sm:px-4 flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-md shadow-emerald-500/20 transition cursor-pointer"
+              >
+                <span>Go to Lineup</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <button
+                onClick={onStartDemo}
+                className="min-h-[44px] px-3.5 sm:px-4 flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-700/80 hover:border-slate-600 text-xs font-semibold text-slate-200 transition cursor-pointer"
+              >
+                <Play className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
+                <span>Try Live Demo</span>
+              </button>
+            )}
+            <AuthButton onSignInSuccess={onSignInSuccess} />
           </div>
         </div>
       </header>
@@ -90,17 +113,27 @@ export const LandingHero: React.FC<LandingHeroProps> = ({ onStartDemo, onOpenPri
 
           {/* Main Hero Call-to-Actions */}
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-md mx-auto">
-            <button
-              onClick={onStartDemo}
-              className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 font-extrabold text-sm shadow-xl shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 cursor-pointer flex items-center justify-center gap-2"
-            >
-              <Play className="w-4 h-4 fill-slate-950" />
-              <span>Launch Interactive Demo</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            {currentUser && onGoToApp ? (
+              <button
+                onClick={onGoToApp}
+                className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 font-extrabold text-sm shadow-xl shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Open Lineup Planner</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                onClick={onStartDemo}
+                className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 font-extrabold text-sm shadow-xl shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Play className="w-4 h-4 fill-slate-950" />
+                <span>Launch Interactive Demo</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
 
             <div className="w-full sm:w-auto">
-              <AuthButton />
+              <AuthButton onSignInSuccess={onSignInSuccess} />
             </div>
           </div>
 
@@ -139,10 +172,10 @@ export const LandingHero: React.FC<LandingHeroProps> = ({ onStartDemo, onOpenPri
                     Equal Playing Time: 100%
                   </span>
                   <button
-                    onClick={onStartDemo}
-                    className="text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1"
+                    onClick={currentUser && onGoToApp ? onGoToApp : onStartDemo}
+                    className="text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 cursor-pointer"
                   >
-                    <span>Open in Full App</span>
+                    <span>{currentUser ? 'Open in Planner' : 'Open in Full App'}</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
@@ -201,10 +234,10 @@ export const LandingHero: React.FC<LandingHeroProps> = ({ onStartDemo, onOpenPri
                     </p>
                   </div>
                   <button
-                    onClick={onStartDemo}
+                    onClick={currentUser && onGoToApp ? onGoToApp : onStartDemo}
                     className="w-full py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <span>Try With Sample Squad</span>
+                    <span>{currentUser ? 'Open Match Squad' : 'Try With Sample Squad'}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -363,7 +396,17 @@ export const LandingHero: React.FC<LandingHeroProps> = ({ onStartDemo, onOpenPri
               </ul>
 
               <div className="pt-1">
-                <AuthButton />
+                {currentUser && onGoToApp ? (
+                  <button
+                    onClick={onGoToApp}
+                    className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <span>Open Cloud Workspace</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <AuthButton onSignInSuccess={onSignInSuccess} />
+                )}
               </div>
             </div>
           </div>
@@ -381,10 +424,10 @@ export const LandingHero: React.FC<LandingHeroProps> = ({ onStartDemo, onOpenPri
 
           <div className="flex items-center gap-4 text-slate-400">
             <button
-              onClick={onStartDemo}
+              onClick={currentUser && onGoToApp ? onGoToApp : onStartDemo}
               className="hover:text-emerald-400 transition cursor-pointer"
             >
-              Interactive Demo
+              {currentUser ? 'Lineup Planner' : 'Interactive Demo'}
             </button>
             {onOpenPrivacy && (
               <button

@@ -4,7 +4,6 @@ import { ToastProvider, useToast } from './context/ToastContext';
 import { MatchdayProvider, useMatchday } from './context/MatchdayContext';
 import { DesignSystemProvider, useDesignSystem } from './design-system';
 import { Navbar } from './components/Navbar';
-import { ConfirmModal } from './components/ConfirmModal';
 import { AuthButton } from './components/AuthButton';
 import {
   Users,
@@ -28,43 +27,7 @@ import {
   Wand2,
 } from 'lucide-react';
 
-// Modals (lazy loaded on demand via bundle-conditional)
-const WhatsAppExportModal = lazy(() =>
-  import('./components/WhatsAppExportModal').then((m) => ({ default: m.WhatsAppExportModal }))
-);
-const PrintMatchSheet = lazy(() =>
-  import('./components/PrintMatchSheet').then((m) => ({ default: m.PrintMatchSheet }))
-);
-const SettingsModal = lazy(() =>
-  import('./components/SettingsModal').then((m) => ({ default: m.SettingsModal }))
-);
-const MatchdaySelectorModal = lazy(() =>
-  import('./components/MatchdaySelectorModal').then((m) => ({ default: m.MatchdaySelectorModal }))
-);
-const CustomFormationModal = lazy(() =>
-  import('./components/CustomFormationModal').then((m) => ({ default: m.CustomFormationModal }))
-);
-const PostMatchModal = lazy(() =>
-  import('./components/PostMatchModal').then((m) => ({ default: m.PostMatchModal }))
-);
-const SuggestedSubsModal = lazy(() =>
-  import('./components/SuggestedSubsModal').then((m) => ({ default: m.SuggestedSubsModal }))
-);
-const PrivacyPolicyModal = lazy(() =>
-  import('./components/PrivacyPolicyModal').then((m) => ({ default: m.PrivacyPolicyModal }))
-);
-const LiveMatchModal = lazy(() =>
-  import('./components/LiveMatchModal').then((m) => ({ default: m.LiveMatchModal }))
-);
-const EditFixtureModal = lazy(() =>
-  import('./components/EditFixtureModal').then((m) => ({ default: m.EditFixtureModal }))
-);
-const DesignSystemShowcase = lazy(() =>
-  import('./design-system').then((m) => ({ default: m.DesignSystemShowcase }))
-);
-const LandingHero = lazy(() =>
-  import('./components/LandingHero').then((m) => ({ default: m.LandingHero }))
-);
+import { GlobalModals } from './components/GlobalModals';
 
 function DashboardShell() {
   const {
@@ -103,38 +66,8 @@ function DashboardShell() {
   const [showcaseOpen, setShowcaseOpen] = useState(false);
   const [editActiveFixtureOpen, setEditActiveFixtureOpen] = useState(false);
 
-  const [showLanding, setShowLanding] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('landing') === 'true') return true;
-    if (
-      params.get('tab') ||
-      params.get('team') ||
-      params.get('fixture') ||
-      params.get('demo') === 'true'
-    ) {
-      return false;
-    }
-    if (sessionStorage.getItem('subshuffle_demo_entered') === 'true') {
-      return false;
-    }
-    if (navigator.webdriver && params.get('landing') !== 'true') {
-      return false;
-    }
-    return true;
-  });
-
-  useEffect(() => {
-    if (currentUser) {
-      setShowLanding(false);
-    }
-  }, [currentUser]);
-
-  const handleStartDemo = () => {
-    setShowLanding(false);
-    sessionStorage.setItem('subshuffle_demo_entered', 'true');
-    showToast('Entered Demo Mode with sample squad: The Rovers U11', 'info');
-  };
+  const location = useLocation();
+  const isLandingRoute = location.pathname === '/';
 
   useEffect(() => {
     const handleBeforePrint = () => {
@@ -166,14 +99,39 @@ function DashboardShell() {
     showToast('Match sheet period lineups cleared.', 'info');
   };
 
-  if (showLanding && !currentUser) {
+  if (isLandingRoute) {
     return (
-      <Suspense fallback={<div className="min-h-screen bg-[var(--surface-base,#020617)]" />}>
-        <LandingHero
-          onStartDemo={handleStartDemo}
-          onOpenPrivacy={() => setPrivacyOpen(true)}
+      <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
+        <Outlet />
+        <GlobalModals
+          confirmResetOpen={confirmResetOpen}
+          onConfirmResetClose={() => setConfirmResetOpen(false)}
+          onResetLineups={handleResetLineups}
+          showcaseOpen={showcaseOpen}
+          onShowcaseClose={() => setShowcaseOpen(false)}
+          whatsAppOpen={whatsAppOpen}
+          onWhatsAppClose={() => setWhatsAppOpen(false)}
+          printOpen={printOpen}
+          onPrintClose={() => setPrintOpen(false)}
+          settingsOpen={settingsOpen}
+          onSettingsClose={() => setSettingsOpen(false)}
+          onOpenCustomFormation={() => setCustomFormationOpen(true)}
+          squadSelectorOpen={squadSelectorOpen}
+          onSquadSelectorClose={() => setSquadSelectorOpen(false)}
+          customFormationOpen={customFormationOpen}
+          onCustomFormationClose={() => setCustomFormationOpen(false)}
+          postMatchOpen={postMatchOpen}
+          onPostMatchClose={() => setPostMatchOpen(false)}
+          suggestedSubsOpen={suggestedSubsOpen}
+          onSuggestedSubsClose={() => setSuggestedSubsOpen(false)}
+          privacyOpen={privacyOpen}
+          onPrivacyClose={() => setPrivacyOpen(false)}
+          liveMatchOpen={liveMatchOpen}
+          onLiveMatchClose={() => setLiveMatchOpen(false)}
+          editActiveFixtureOpen={editActiveFixtureOpen}
+          onEditActiveFixtureClose={() => setEditActiveFixtureOpen(false)}
         />
-      </Suspense>
+      </div>
     );
   }
 
@@ -299,7 +257,7 @@ function DashboardShell() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={() => setShowLanding(true)}
+                onClick={() => navigate({ to: '/', search: (prev: any) => ({ ...prev, tour: 'true' }) })}
                 className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-755 text-slate-200 hover:text-white text-xs font-semibold border border-slate-700 transition cursor-pointer"
                 title="View SubShuffle product tour and features"
               >
@@ -521,7 +479,7 @@ function DashboardShell() {
 
           <div className="flex items-center gap-4 text-slate-400">
             <button
-              onClick={() => setShowLanding(true)}
+              onClick={() => navigate({ to: '/', search: (prev: any) => ({ ...prev, tour: 'true' }) })}
               className="hover:text-emerald-400 transition cursor-pointer"
             >
               Product Tour
@@ -571,120 +529,35 @@ function DashboardShell() {
         </div>
       </footer>
 
-      {/* Modals: dynamically loaded on demand with Suspense */}
-      <ConfirmModal
-        isOpen={confirmResetOpen}
-        title="Reset Match Sheet Lineups?"
-        message={`Are you sure you want to reset all period lineups for vs ${activeFixture?.opponent}? This will unassign players from pitch positions and place all matchday squad members on the bench so you can build fresh.`}
-        confirmLabel="Reset Lineups"
-        cancelLabel="Keep Current Lineups"
-        isDestructive={true}
-        onConfirm={handleResetLineups}
-        onCancel={() => setConfirmResetOpen(false)}
+      {/* Consolidated Global Modals */}
+      <GlobalModals
+        confirmResetOpen={confirmResetOpen}
+        onConfirmResetClose={() => setConfirmResetOpen(false)}
+        onResetLineups={handleResetLineups}
+        showcaseOpen={showcaseOpen}
+        onShowcaseClose={() => setShowcaseOpen(false)}
+        whatsAppOpen={whatsAppOpen}
+        onWhatsAppClose={() => setWhatsAppOpen(false)}
+        printOpen={printOpen}
+        onPrintClose={() => setPrintOpen(false)}
+        settingsOpen={settingsOpen}
+        onSettingsClose={() => setSettingsOpen(false)}
+        onOpenCustomFormation={() => setCustomFormationOpen(true)}
+        squadSelectorOpen={squadSelectorOpen}
+        onSquadSelectorClose={() => setSquadSelectorOpen(false)}
+        customFormationOpen={customFormationOpen}
+        onCustomFormationClose={() => setCustomFormationOpen(false)}
+        postMatchOpen={postMatchOpen}
+        onPostMatchClose={() => setPostMatchOpen(false)}
+        suggestedSubsOpen={suggestedSubsOpen}
+        onSuggestedSubsClose={() => setSuggestedSubsOpen(false)}
+        privacyOpen={privacyOpen}
+        onPrivacyClose={() => setPrivacyOpen(false)}
+        liveMatchOpen={liveMatchOpen}
+        onLiveMatchClose={() => setLiveMatchOpen(false)}
+        editActiveFixtureOpen={editActiveFixtureOpen}
+        onEditActiveFixtureClose={() => setEditActiveFixtureOpen(false)}
       />
-
-      {showcaseOpen && (
-        <Suspense fallback={null}>
-          <DesignSystemShowcase
-            isOpen={showcaseOpen}
-            onClose={() => setShowcaseOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {whatsAppOpen && (
-        <Suspense fallback={null}>
-          <WhatsAppExportModal
-            isOpen={whatsAppOpen}
-            onClose={() => setWhatsAppOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {printOpen && (
-        <Suspense fallback={null}>
-          <PrintMatchSheet
-            isOpen={printOpen}
-            onClose={() => setPrintOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {settingsOpen && (
-        <Suspense fallback={null}>
-          <SettingsModal
-            isOpen={settingsOpen}
-            onClose={() => setSettingsOpen(false)}
-            onOpenCustomFormation={() => setCustomFormationOpen(true)}
-          />
-        </Suspense>
-      )}
-
-      {squadSelectorOpen && (
-        <Suspense fallback={null}>
-          <MatchdaySelectorModal
-            isOpen={squadSelectorOpen}
-            onClose={() => setSquadSelectorOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {customFormationOpen && (
-        <Suspense fallback={null}>
-          <CustomFormationModal
-            isOpen={customFormationOpen}
-            onClose={() => setCustomFormationOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {postMatchOpen && (
-        <Suspense fallback={null}>
-          <PostMatchModal
-            fixture={activeFixture}
-            isOpen={postMatchOpen}
-            onClose={() => setPostMatchOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {suggestedSubsOpen && (
-        <Suspense fallback={null}>
-          <SuggestedSubsModal
-            fixture={activeFixture}
-            isOpen={suggestedSubsOpen}
-            onClose={() => setSuggestedSubsOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {privacyOpen && (
-        <Suspense fallback={null}>
-          <PrivacyPolicyModal
-            isOpen={privacyOpen}
-            onClose={() => setPrivacyOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {liveMatchOpen && (
-        <Suspense fallback={null}>
-          <LiveMatchModal
-            isOpen={liveMatchOpen}
-            onClose={() => setLiveMatchOpen(false)}
-          />
-        </Suspense>
-      )}
-
-      {editActiveFixtureOpen && (
-        <Suspense fallback={null}>
-          <EditFixtureModal
-            fixture={activeFixture}
-            isOpen={editActiveFixtureOpen}
-            onClose={() => setEditActiveFixtureOpen(false)}
-          />
-        </Suspense>
-      )}
     </div>
   );
 }

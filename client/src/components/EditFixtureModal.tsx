@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
 import { Fixture, Player } from '../types';
+import { calculateMeetTime } from '../utils/dateUtils';
 import {
   Trophy,
   Calendar,
@@ -95,19 +96,9 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
 
   if (!isOpen || !fixture) return null;
 
-  const calcMeetTime = (ko: string, offsetMins: number = 30): string => {
-    const [h, m] = ko.split(':').map(Number);
-    if (isNaN(h) || isNaN(m)) return '09:30';
-    let total = h * 60 + m - offsetMins;
-    if (total < 0) total += 24 * 60;
-    const newH = Math.floor(total / 60) % 24;
-    const newM = total % 60;
-    return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
-  };
-
   const handleKickOffChange = (newKo: string) => {
     setKickOffTime(newKo);
-    setMeetTime(calcMeetTime(newKo, 30));
+    setMeetTime(calculateMeetTime(newKo, 30));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -285,7 +276,7 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
                 </label>
                 <button
                   type="button"
-                  onClick={() => setMeetTime(calcMeetTime(kickOffTime, 30))}
+                  onClick={() => setMeetTime(calculateMeetTime(kickOffTime, 30))}
                   className="text-[10px] text-sky-400 hover:text-sky-300 font-medium"
                 >
                   ⚡ Auto -30m

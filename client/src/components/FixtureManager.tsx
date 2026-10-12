@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
 import { Fixture, Player } from '../types';
+import { calculateMeetTime, getTodayDateString } from '../utils/dateUtils';
 import { PostMatchModal } from './PostMatchModal';
 import { SuggestedSubsModal } from './SuggestedSubsModal';
 import { AllFixturesTable } from './AllFixturesTable';
@@ -60,20 +61,9 @@ export const FixtureManager: React.FC = () => {
     allDistinctSeasons.unshift(currentDefaultSeason);
   }
 
-  // Helper to compute meet time 30 mins before kick off
-  const calcMeetTime = (ko: string, offsetMins: number = 30): string => {
-    const [h, m] = ko.split(':').map(Number);
-    if (isNaN(h) || isNaN(m)) return '09:30';
-    let total = h * 60 + m - offsetMins;
-    if (total < 0) total += 24 * 60;
-    const newH = Math.floor(total / 60) % 24;
-    const newM = total % 60;
-    return `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
-  };
-
   const [isAdding, setIsAdding] = useState<boolean>(false);
   const [opponent, setOpponent] = useState<string>('');
-  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState<string>(getTodayDateString());
   const [kickOffTime, setKickOffTime] = useState<string>('10:00');
   const [meetTime, setMeetTime] = useState<string>('09:30');
   const [groundAddress, setGroundAddress] = useState<string>('');
@@ -106,7 +96,7 @@ export const FixtureManager: React.FC = () => {
 
   const handleKickOffChange = (newKo: string) => {
     setKickOffTime(newKo);
-    setMeetTime(calcMeetTime(newKo, 30));
+    setMeetTime(calculateMeetTime(newKo, 30));
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -423,7 +413,7 @@ export const FixtureManager: React.FC = () => {
                 </label>
                 <button
                   type="button"
-                  onClick={() => setMeetTime(calcMeetTime(kickOffTime, 30))}
+                  onClick={() => setMeetTime(calculateMeetTime(kickOffTime, 30))}
                   className="text-[10px] text-sky-400 hover:text-sky-300 font-medium"
                 >
                   ⚡ Auto -30m

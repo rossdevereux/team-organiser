@@ -149,9 +149,8 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const setActiveTab = useCallback(
     (tab: 'lineup' | 'matrix' | 'squad' | 'fixtures' | 'stats' | 'teams' | 'admin') => {
-      const target = tab === 'lineup' ? '/' : `/${tab}`;
       navigate({
-        to: target,
+        to: `/${tab}`,
         search: (prev: any) => prev,
       });
     },
@@ -197,7 +196,7 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Keep URL updated with team and fixture query params for bookmarking and sharing
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || window.location.pathname === '/') return;
     try {
       const params = new URLSearchParams(window.location.search);
       if (activeTeamId) params.set('team', activeTeamId);

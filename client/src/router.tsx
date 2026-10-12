@@ -4,6 +4,7 @@ import {
   createRootRoute,
 } from '@tanstack/react-router';
 import { RootLayout } from './RootLayout';
+import { LandingPage } from './pages/LandingPage';
 import { LineupPage } from './pages/LineupPage';
 import { MatrixPage } from './pages/MatrixPage';
 import { SquadPage } from './pages/SquadPage';
@@ -19,7 +20,7 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: LineupPage,
+  component: LandingPage,
 });
 
 const lineupRoute = createRoute({

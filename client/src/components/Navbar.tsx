@@ -75,10 +75,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Brand & Team Switcher */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 min-w-0">
             <Link
-              to="/"
+              to="/lineup"
               search={(prev: any) => prev}
               className="flex items-center gap-2 sm:gap-2.5 cursor-pointer group shrink-0 select-none"
-              title="SubShuffle Home"
+              title="SubShuffle Lineup Planner"
             >
               <img
                 src="/logo-icon.png"
@@ -302,7 +302,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="w-full xl:w-auto max-w-full overflow-x-auto no-scrollbar scroll-smooth shrink-0">
             <div className="inline-flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800/80 shrink-0">
               <Link
-                to="/"
+                to="/lineup"
                 search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'lineup'

@@ -23,7 +23,7 @@
         ],
         "defaultSubIntervalMinutes": 10
       },
-      "createdAt": "2026-10-12T19:49:51.733Z"
+      "createdAt": "2026-10-12T20:21:42.735Z"
     },
     {
       "id": "team-2",
@@ -48,7 +48,7 @@
         ],
         "defaultSubIntervalMinutes": 10
       },
-      "createdAt": "2026-10-12T19:49:51.733Z"
+      "createdAt": "2026-10-12T20:21:42.735Z"
     }
   ],
   "players": [
@@ -631,7 +631,7 @@
     "contactEmail": "admin@therovers.local",
     "welfareOfficer": "Club Child Welfare Officer",
     "publicGuestView": true,
-    "updatedAt": "2026-10-12T19:49:51.732Z"
+    "updatedAt": "2026-10-12T20:21:42.735Z"
   },
   "adminUsers": []
 }

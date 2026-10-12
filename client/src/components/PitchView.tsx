@@ -3,40 +3,7 @@ import { useMatchday } from '../context/MatchdayContext';
 import { Shirt, ArrowLeftRight, X, Clock, ShieldCheck, Info, UserX } from 'lucide-react';
 import { BroadPosition, Player } from '../types';
 import { PlayerCallOffModal } from './PlayerCallOffModal';
-
-const CATEGORY_COLORS: Record<BroadPosition, { bg: string; border: string; text: string; shirt: string }> = {
-  Goalkeeper: {
-    bg: 'bg-amber-500/20',
-    border: 'border-amber-500/50',
-    text: 'text-amber-300',
-    shirt: '#f59e0b',
-  },
-  Defence: {
-    bg: 'bg-sky-500/20',
-    border: 'border-sky-500/50',
-    text: 'text-sky-300',
-    shirt: '#0ea5e9',
-  },
-  Midfield: {
-    bg: 'bg-indigo-500/20',
-    border: 'border-indigo-500/50',
-    text: 'text-indigo-300',
-    shirt: '#6366f1',
-  },
-  Attack: {
-    bg: 'bg-rose-500/20',
-    border: 'border-rose-500/50',
-    text: 'text-rose-300',
-    shirt: '#f43f5e',
-  },
-};
-
-function getInitials(name?: string): string {
-  if (!name || !name.trim()) return '?';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
+import { getPlayerInitials, POSITION_CATEGORY_STYLES } from '../utils/playerUtils';
 
 export const PitchView: React.FC = () => {
   const {
@@ -241,13 +208,13 @@ export const PitchView: React.FC = () => {
             y: 50,
           };
 
-          const colors = CATEGORY_COLORS[slotDef.category] || CATEGORY_COLORS['Midfield'];
+          const colors = POSITION_CATEGORY_STYLES[slotDef.category] || POSITION_CATEGORY_STYLES.Midfield;
           const isSelected = selectedSwapSource?.playerId === entry.playerId;
           const isEligibleTarget = Boolean(selectedSwapSource && !isSelected);
           const isDragOver = dragOverPosition === entry.position;
           const isCaptain = activeFixture.captainId === entry.playerId;
           const playerName = player ? player.name : 'Unknown Player';
-          const initials = getInitials(player?.name);
+          const initials = getPlayerInitials(player?.name);
 
           return (
             <div
@@ -370,7 +337,7 @@ export const PitchView: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-slate-800 text-white font-extrabold flex items-center justify-center text-sm border border-slate-700 shrink-0">
               {inspectedPlayer.player.squadNumber
                 ? `#${inspectedPlayer.player.squadNumber}`
-                : getInitials(inspectedPlayer.player.name)}
+                : getPlayerInitials(inspectedPlayer.player.name)}
             </div>
             <div className="min-w-0">
               <h4 className="text-sm font-bold text-white truncate flex items-center gap-1.5">
