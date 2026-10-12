@@ -103,16 +103,19 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
 
   // Load suggested substitutions when fixture changes
   useEffect(() => {
-    if (activeFixture) {
-      getSuggestedSubs(activeFixture.id, settings.defaultSubIntervalMinutes || 10).then(
-        (plans) => {
-          if (plans.length > 0 && plans[0].windows.length > 0) {
-            setSuggestedChanges(plans[0].windows[0].subChanges);
-          }
+    if (!isOpen || !activeFixture) return;
+    let isCurrent = true;
+    getSuggestedSubs(activeFixture.id, settings.defaultSubIntervalMinutes || 10).then(
+      (plans) => {
+        if (isCurrent && plans.length > 0 && plans[0].windows.length > 0) {
+          setSuggestedChanges(plans[0].windows[0].subChanges);
         }
-      );
-    }
-  }, [activeFixture, getSuggestedSubs, settings.defaultSubIntervalMinutes]);
+      }
+    );
+    return () => {
+      isCurrent = false;
+    };
+  }, [isOpen, activeFixture, getSuggestedSubs, settings.defaultSubIntervalMinutes]);
 
   // Main match timer tick
   useEffect(() => {

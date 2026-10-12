@@ -51,78 +51,86 @@ export const FairPlayStats: React.FC = () => {
 
     const completedFixtures = relevantFixtures.filter((f) => f.status === 'Completed' || Boolean(f.matchSquad));
 
-    // Calculate aggregated minutes and matches per player
-    return players.map((p) => {
-      // Historical base minutes
-      let minutes = p.totalMinutesPlayed || 0;
-      let matches = p.matchesPlayed || 0;
-      let gkCount = 0;
-      let defPeriods = 0;
-      let midPeriods = 0;
-      let attPeriods = 0;
-      let captainCount = 0;
-      let potmCount = 0;
+    // Pre-aggregate fixture metrics in a single pass O(F * N * S) using an index Map (js-index-maps, js-combine-iterations)
+    interface PlayerFixtureAgg {
+      fixtureMatches: number;
+      fixtureMinutes: number;
+      gkCount: number;
+      defPeriods: number;
+      midPeriods: number;
+      attPeriods: number;
+      captainCount: number;
+      potmCount: number;
+    }
 
-      // Count actual lineups in fixtures matching filter
-      let fixtureMinutes = 0;
-      let fixtureMatches = 0;
+    const aggMap = new Map<string, PlayerFixtureAgg>();
+    const getAgg = (id: string): PlayerFixtureAgg => {
+      let agg = aggMap.get(id);
+      if (!agg) {
+        agg = { fixtureMatches: 0, fixtureMinutes: 0, gkCount: 0, defPeriods: 0, midPeriods: 0, attPeriods: 0, captainCount: 0, potmCount: 0 };
+        aggMap.set(id, agg);
+      }
+      return agg;
+    };
 
-      relevantFixtures.forEach((f) => {
-        if (f.captainId === p.id) captainCount++;
-        if (f.playerOfTheMatchId === p.id) potmCount++;
-        if (!f.matchSquad) return;
+    relevantFixtures.forEach((f) => {
+      if (f.captainId) getAgg(f.captainId).captainCount++;
+      if (f.playerOfTheMatchId) getAgg(f.playerOfTheMatchId).potmCount++;
+      if (!f.matchSquad) return;
 
-        const playedInMatch = f.matchSquad.lineupsByPeriod.some((l) =>
-          l.onPitch.some((op) => op.playerId === p.id)
-        );
+      const duration = f.periodDurationMinutes || settings.periodDurationMinutes || 25;
+      const matchParticipantIds = new Set<string>();
 
-        if (playedInMatch) {
-          fixtureMatches++;
-          let periodsInMatch = 0;
-          f.matchSquad.lineupsByPeriod.forEach((l) => {
-            const entry = l.onPitch.find((op) => op.playerId === p.id);
-            if (entry) {
-              periodsInMatch++;
-              const pos = entry.position.toUpperCase();
-              if (pos === 'GK') {
-                gkCount++;
-              } else if (
-                pos.startsWith('DEF') ||
-                pos === 'CB' ||
-                pos === 'LB' ||
-                pos === 'RB' ||
-                pos === 'LWB' ||
-                pos === 'RWB'
-              ) {
-                defPeriods++;
-              } else if (
-                pos.startsWith('MID') ||
-                pos === 'CM' ||
-                pos === 'CDM' ||
-                pos === 'CAM' ||
-                pos === 'LM' ||
-                pos === 'RM' ||
-                pos === 'LW' ||
-                pos === 'RW'
-              ) {
-                midPeriods++;
-              } else if (pos.startsWith('ATT') || pos === 'ST' || pos === 'CF') {
-                attPeriods++;
-              } else {
-                midPeriods++;
-              }
-            }
-          });
-          fixtureMinutes += periodsInMatch * settings.periodDurationMinutes;
-        }
+      f.matchSquad.lineupsByPeriod.forEach((lineup) => {
+        lineup.onPitch.forEach((entry) => {
+          matchParticipantIds.add(entry.playerId);
+          const agg = getAgg(entry.playerId);
+          agg.fixtureMinutes += duration;
+          const pos = entry.position.toUpperCase();
+          if (pos === 'GK') {
+            agg.gkCount++;
+          } else if (
+            pos.startsWith('DEF') ||
+            pos === 'CB' ||
+            pos === 'LB' ||
+            pos === 'RB' ||
+            pos === 'LWB' ||
+            pos === 'RWB'
+          ) {
+            agg.defPeriods++;
+          } else if (pos.startsWith('ATT') || pos === 'ST' || pos === 'CF') {
+            agg.attPeriods++;
+          } else {
+            agg.midPeriods++;
+          }
+        });
       });
 
-      // Use whichever is higher (fixture aggregations or recorded profile totals)
-      const totalMinutes = Math.max(minutes, fixtureMinutes);
-      const totalMatches = Math.max(matches, fixtureMatches);
+      matchParticipantIds.forEach((pid) => {
+        getAgg(pid).fixtureMatches++;
+      });
+    });
+
+    // Map players in O(P) using pre-calculated aggregates
+    return players.map((p) => {
+      const agg = aggMap.get(p.id) || {
+        fixtureMatches: 0,
+        fixtureMinutes: 0,
+        gkCount: 0,
+        defPeriods: 0,
+        midPeriods: 0,
+        attPeriods: 0,
+        captainCount: 0,
+        potmCount: 0,
+      };
+
+      const minutes = p.totalMinutesPlayed || 0;
+      const matches = p.matchesPlayed || 0;
+      const totalMinutes = Math.max(minutes, agg.fixtureMinutes);
+      const totalMatches = Math.max(matches, agg.fixtureMatches);
       const avgMinutesPerMatch = totalMatches > 0 ? Math.round(totalMinutes / totalMatches) : 0;
 
-      const thirdsPlayedCount = [defPeriods > 0, midPeriods > 0, attPeriods > 0, gkCount > 0].filter(
+      const thirdsPlayedCount = [agg.defPeriods > 0, agg.midPeriods > 0, agg.attPeriods > 0, agg.gkCount > 0].filter(
         Boolean
       ).length;
 
@@ -132,33 +140,35 @@ export const FairPlayStats: React.FC = () => {
         totalMinutes,
         totalMatches,
         avgMinutesPerMatch,
-        gkCount,
-        defPeriods,
-        midPeriods,
-        attPeriods,
-        captainCount,
-        potmCount,
+        gkCount: agg.gkCount,
+        defPeriods: agg.defPeriods,
+        midPeriods: agg.midPeriods,
+        attPeriods: agg.attPeriods,
+        captainCount: agg.captainCount,
+        potmCount: agg.potmCount,
         thirdsPlayedCount,
       };
     });
   }, [players, fixtures, seasonFilter, currentDefaultSeason, settings.periodDurationMinutes]);
 
-  // Squad average season minutes
-  const squadAvgMinutes = useMemo(() => {
-    if (seasonStats.length === 0) return 0;
-    const sum = seasonStats.reduce((acc, s) => acc + s.totalMinutes, 0);
-    return Math.round(sum / seasonStats.length);
-  }, [seasonStats]);
-
-  // Max minutes across squad
-  const maxSeasonMinutes = useMemo(() => {
-    if (seasonStats.length === 0) return 1;
-    return Math.max(...seasonStats.map((s) => s.totalMinutes), 1);
-  }, [seasonStats]);
-
-  const minSeasonMinutes = useMemo(() => {
-    if (seasonStats.length === 0) return 0;
-    return Math.min(...seasonStats.map((s) => s.totalMinutes));
+  // Combined squad summary statistics in a single pass (js-combine-iterations, js-min-max-loop)
+  const { squadAvgMinutes, maxSeasonMinutes, minSeasonMinutes } = useMemo(() => {
+    if (seasonStats.length === 0) {
+      return { squadAvgMinutes: 0, maxSeasonMinutes: 1, minSeasonMinutes: 0 };
+    }
+    let sum = 0;
+    let min = Infinity;
+    let max = -Infinity;
+    for (const s of seasonStats) {
+      sum += s.totalMinutes;
+      if (s.totalMinutes < min) min = s.totalMinutes;
+      if (s.totalMinutes > max) max = s.totalMinutes;
+    }
+    return {
+      squadAvgMinutes: Math.round(sum / seasonStats.length),
+      maxSeasonMinutes: Math.max(max, 1),
+      minSeasonMinutes: min === Infinity ? 0 : min,
+    };
   }, [seasonStats]);
 
   // Equity compliance: players within 15% of squad average

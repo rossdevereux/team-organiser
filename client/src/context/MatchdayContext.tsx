@@ -118,20 +118,19 @@ const getInitialUrlState = () => {
 };
 
 export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const initialUrl = getInitialUrlState();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<UserRole>('coach');
   const [teams, setTeams] = useState<Team[]>([]);
-  const [activeTeamId, setActiveTeamId] = useState<string>(initialUrl.teamId);
+  const [activeTeamId, setActiveTeamId] = useState<string>(() => getInitialUrlState().teamId);
   const [players, setPlayers] = useState<Player[]>([]);
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
-  const [activeFixtureId, setActiveFixtureId] = useState<string>(initialUrl.fixtureId);
-  const [activePeriod, setActivePeriod] = useState<number>(1);
+  const [activeFixtureId, setActiveFixtureId] = useState<string>(() => getInitialUrlState().fixtureId);
+  const [activePeriodState, setActivePeriodState] = useState<number>(1);
   const [selectedSwapSource, setSelectedSwapSource] = useState<SwapSource | null>(null);
   const [activeTab, setActiveTab] = useState<
     'lineup' | 'matrix' | 'squad' | 'fixtures' | 'stats' | 'teams' | 'admin'
-  >(initialUrl.tab);
-  const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
+  >(() => getInitialUrlState().tab);
+  const [isOffline, setIsOffline] = useState<boolean>(() => (typeof navigator !== 'undefined' ? !navigator.onLine : false));
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -413,13 +412,12 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     );
   }, [activeFixture?.formation, activeFixture?.pitchPlayerCount, settings.defaultFormation, settings.pitchPlayerCount, settings.customFormations]);
 
-  // Clamp activePeriod if fixture has fewer periods (e.g. 2 halves vs 3/4 periods)
-  useEffect(() => {
-    const periodCount = activeFixture?.matchPeriodCount || settings.matchPeriodCount || 2;
-    if (activePeriod > periodCount) {
-      setActivePeriod(1);
-    }
-  }, [activeFixture?.matchPeriodCount, settings.matchPeriodCount, activePeriod]);
+  // Derive safe clamped activePeriod during render (rerender-derived-state-no-effect)
+  const currentPeriodCount = activeFixture?.matchPeriodCount || settings.matchPeriodCount || 2;
+  const activePeriod = activePeriodState > currentPeriodCount ? 1 : activePeriodState;
+  const setActivePeriod = useCallback((p: number) => {
+    setActivePeriodState(p);
+  }, []);
 
   // Compute fair play match statistics
   const stats = useMemo(() => {

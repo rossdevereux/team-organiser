@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
 import { Users, Check, X, Wand2, AlertTriangle, ArrowRight, Clock, UserX } from 'lucide-react';
 
@@ -74,19 +74,21 @@ export const MatchdaySelectorModal: React.FC<MatchdaySelectorModalProps> = ({
 
   if (!isOpen || !activeFixture) return null;
 
+  const selectedIdsSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+
   const toggleSelection = (id: string) => {
     const player = players.find((p) => p.id === id);
     if (!player) return;
 
     const { isEligible, reason } = getPlayerEligibility(player);
-    if (!isEligible && !selectedIds.includes(id)) {
+    if (!isEligible && !selectedIdsSet.has(id)) {
       const confirmOverride = window.confirm(
         `${player.name} is marked as unavailable: ${reason}.\n\nDo you want to select them anyway as a matchday override (e.g. called in, emergency sub)?`
       );
       if (!confirmOverride) return;
     }
 
-    if (selectedIds.includes(id)) {
+    if (selectedIdsSet.has(id)) {
       setSelectedIds(selectedIds.filter((pId) => pId !== id));
     } else {
       if (selectedIds.length < squadCap) {
@@ -219,7 +221,7 @@ export const MatchdaySelectorModal: React.FC<MatchdaySelectorModalProps> = ({
         {/* Player Selection List */}
         <div className="flex-1 overflow-y-auto space-y-2 pr-1">
           {players.map((player) => {
-            const isSelected = selectedIds.includes(player.id);
+            const isSelected = selectedIdsSet.has(player.id);
             const { isEligible, isBeforeSignOn, isAfterLeave, isOnHoliday } = getPlayerEligibility(player);
 
             return (

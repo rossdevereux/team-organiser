@@ -1,30 +1,46 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { MatchdayProvider, useMatchday } from './context/MatchdayContext';
 import { ToastProvider, useToast } from './context/ToastContext';
 import { ConfirmModal } from './components/ConfirmModal';
 import { Navbar } from './components/Navbar';
 import { PitchView } from './components/PitchView';
 import { BenchView } from './components/BenchView';
-import { RotationMatrix } from './components/RotationMatrix';
-import { FairPlayStats } from './components/FairPlayStats';
-import { SquadManager } from './components/SquadManager';
-import { FixtureManager } from './components/FixtureManager';
-import { TeamManager } from './components/TeamManager';
-import { WhatsAppExportModal } from './components/WhatsAppExportModal';
-import { PrintMatchSheet } from './components/PrintMatchSheet';
-import { SettingsModal } from './components/SettingsModal';
-import { MatchdaySelectorModal } from './components/MatchdaySelectorModal';
-import { CustomFormationModal } from './components/CustomFormationModal';
-import { PostMatchModal } from './components/PostMatchModal';
-import { SuggestedSubsModal } from './components/SuggestedSubsModal';
-import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
-import { LiveMatchModal } from './components/LiveMatchModal';
-import { EditFixtureModal } from './components/EditFixtureModal';
-import { LandingHero } from './components/LandingHero';
 import { AuthButton } from './components/AuthButton';
 import { AdminRoute } from './components/AdminRoute';
-import { AdminPortal } from './components/AdminPortal';
-import { DesignSystemProvider, DesignSystemShowcase, useDesignSystem } from './design-system';
+import { DesignSystemProvider, useDesignSystem } from './design-system';
+
+// Dynamic lazy imports for non-critical views (bundle-dynamic-imports)
+const RotationMatrix = lazy(() => import('./components/RotationMatrix').then((m) => ({ default: m.RotationMatrix })));
+const FairPlayStats = lazy(() => import('./components/FairPlayStats').then((m) => ({ default: m.FairPlayStats })));
+const SquadManager = lazy(() => import('./components/SquadManager').then((m) => ({ default: m.SquadManager })));
+const FixtureManager = lazy(() => import('./components/FixtureManager').then((m) => ({ default: m.FixtureManager })));
+const TeamManager = lazy(() => import('./components/TeamManager').then((m) => ({ default: m.TeamManager })));
+const AdminPortal = lazy(() => import('./components/AdminPortal').then((m) => ({ default: m.AdminPortal })));
+const LandingHero = lazy(() => import('./components/LandingHero').then((m) => ({ default: m.LandingHero })));
+
+// Dynamic lazy imports for modals (bundle-conditional)
+const WhatsAppExportModal = lazy(() => import('./components/WhatsAppExportModal').then((m) => ({ default: m.WhatsAppExportModal })));
+const PrintMatchSheet = lazy(() => import('./components/PrintMatchSheet').then((m) => ({ default: m.PrintMatchSheet })));
+const SettingsModal = lazy(() => import('./components/SettingsModal').then((m) => ({ default: m.SettingsModal })));
+const MatchdaySelectorModal = lazy(() => import('./components/MatchdaySelectorModal').then((m) => ({ default: m.MatchdaySelectorModal })));
+const CustomFormationModal = lazy(() => import('./components/CustomFormationModal').then((m) => ({ default: m.CustomFormationModal })));
+const PostMatchModal = lazy(() => import('./components/PostMatchModal').then((m) => ({ default: m.PostMatchModal })));
+const SuggestedSubsModal = lazy(() => import('./components/SuggestedSubsModal').then((m) => ({ default: m.SuggestedSubsModal })));
+const PrivacyPolicyModal = lazy(() => import('./components/PrivacyPolicyModal').then((m) => ({ default: m.PrivacyPolicyModal })));
+const LiveMatchModal = lazy(() => import('./components/LiveMatchModal').then((m) => ({ default: m.LiveMatchModal })));
+const EditFixtureModal = lazy(() => import('./components/EditFixtureModal').then((m) => ({ default: m.EditFixtureModal })));
+const DesignSystemShowcase = lazy(() => import('./design-system').then((m) => ({ default: m.DesignSystemShowcase })));
+
+function TabLoadingSkeleton({ label }: { label: string }) {
+  return (
+    <div className="p-12 rounded-3xl bg-slate-900/40 border border-slate-800/80 flex flex-col items-center justify-center space-y-3 min-h-[360px] animate-pulse">
+      <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500/20 to-indigo-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400">
+        <RefreshCw className="w-5 h-5 animate-spin" />
+      </div>
+      <p className="text-xs font-semibold text-slate-400 tracking-wide">{label}</p>
+    </div>
+  );
+}
 import {
   Users,
   Calendar,
@@ -147,10 +163,12 @@ function DashboardContent() {
 
   if (showLanding && !currentUser) {
     return (
-      <LandingHero
-        onStartDemo={handleStartDemo}
-        onOpenPrivacy={() => setPrivacyOpen(true)}
-      />
+      <Suspense fallback={<div className="min-h-screen bg-[var(--surface-base,#020617)]" />}>
+        <LandingHero
+          onStartDemo={handleStartDemo}
+          onOpenPrivacy={() => setPrivacyOpen(true)}
+        />
+      </Suspense>
     );
   }
 
@@ -425,24 +443,46 @@ function DashboardContent() {
         )}
 
         {/* Tab 2: 2-Half / N-Period Rotation Matrix */}
-        {activeTab === 'matrix' && <RotationMatrix />}
+        {activeTab === 'matrix' && (
+          <Suspense fallback={<TabLoadingSkeleton label="Loading Rotation Matrix..." />}>
+            <RotationMatrix />
+          </Suspense>
+        )}
 
         {/* Tab 3: Fair Play Stats & Compliance */}
-        {activeTab === 'stats' && <FairPlayStats />}
+        {activeTab === 'stats' && (
+          <Suspense fallback={<TabLoadingSkeleton label="Loading Fair Play Statistics..." />}>
+            <FairPlayStats />
+          </Suspense>
+        )}
 
         {/* Tab 4: Squad Roster */}
-        {activeTab === 'squad' && <SquadManager />}
+        {activeTab === 'squad' && (
+          <Suspense fallback={<TabLoadingSkeleton label="Loading Squad Roster..." />}>
+            <SquadManager />
+          </Suspense>
+        )}
 
         {/* Tab 5: Fixtures */}
-        {activeTab === 'fixtures' && <FixtureManager />}
+        {activeTab === 'fixtures' && (
+          <Suspense fallback={<TabLoadingSkeleton label="Loading Fixtures..." />}>
+            <FixtureManager />
+          </Suspense>
+        )}
 
         {/* Tab 6: Teams & Sharing */}
-        {activeTab === 'teams' && <TeamManager />}
+        {activeTab === 'teams' && (
+          <Suspense fallback={<TabLoadingSkeleton label="Loading Teams & Sharing..." />}>
+            <TeamManager />
+          </Suspense>
+        )}
 
         {/* Tab 7: Admin Portal (Protected via AdminRoute Guard) */}
         {activeTab === 'admin' && (
           <AdminRoute allowedRoles={['owner', 'coach']} onNavigateHome={() => setActiveTab('lineup')}>
-            <AdminPortal onNavigateHome={() => setActiveTab('lineup')} />
+            <Suspense fallback={<TabLoadingSkeleton label="Loading Admin Portal..." />}>
+              <AdminPortal onNavigateHome={() => setActiveTab('lineup')} />
+            </Suspense>
           </AdminRoute>
         )}
       </main>
@@ -590,65 +630,110 @@ function DashboardContent() {
         onCancel={() => setConfirmResetOpen(false)}
       />
 
-      <DesignSystemShowcase
-        isOpen={showcaseOpen}
-        onClose={() => setShowcaseOpen(false)}
-      />
+      {/* Conditionally rendered modals with Suspense (bundle-conditional) */}
+      {showcaseOpen && (
+        <Suspense fallback={null}>
+          <DesignSystemShowcase
+            isOpen={showcaseOpen}
+            onClose={() => setShowcaseOpen(false)}
+          />
+        </Suspense>
+      )}
 
-      <WhatsAppExportModal
-        isOpen={whatsAppOpen}
-        onClose={() => setWhatsAppOpen(false)}
-      />
+      {whatsAppOpen && (
+        <Suspense fallback={null}>
+          <WhatsAppExportModal
+            isOpen={whatsAppOpen}
+            onClose={() => setWhatsAppOpen(false)}
+          />
+        </Suspense>
+      )}
 
-      <PrintMatchSheet
-        isOpen={printOpen}
-        onClose={() => setPrintOpen(false)}
-      />
+      {printOpen && (
+        <Suspense fallback={null}>
+          <PrintMatchSheet
+            isOpen={printOpen}
+            onClose={() => setPrintOpen(false)}
+          />
+        </Suspense>
+      )}
 
-      <SettingsModal
-        isOpen={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        onOpenCustomFormation={() => setCustomFormationOpen(true)}
-      />
+      {settingsOpen && (
+        <Suspense fallback={null}>
+          <SettingsModal
+            isOpen={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+            onOpenCustomFormation={() => setCustomFormationOpen(true)}
+          />
+        </Suspense>
+      )}
 
-      <MatchdaySelectorModal
-        isOpen={squadSelectorOpen}
-        onClose={() => setSquadSelectorOpen(false)}
-      />
+      {squadSelectorOpen && (
+        <Suspense fallback={null}>
+          <MatchdaySelectorModal
+            isOpen={squadSelectorOpen}
+            onClose={() => setSquadSelectorOpen(false)}
+          />
+        </Suspense>
+      )}
 
-      <CustomFormationModal
-        isOpen={customFormationOpen}
-        onClose={() => setCustomFormationOpen(false)}
-      />
+      {customFormationOpen && (
+        <Suspense fallback={null}>
+          <CustomFormationModal
+            isOpen={customFormationOpen}
+            onClose={() => setCustomFormationOpen(false)}
+          />
+        </Suspense>
+      )}
 
-      <PostMatchModal
-        fixture={activeFixture}
-        isOpen={postMatchOpen}
-        onClose={() => setPostMatchOpen(false)}
-      />
+      {postMatchOpen && (
+        <Suspense fallback={null}>
+          <PostMatchModal
+            fixture={activeFixture}
+            isOpen={postMatchOpen}
+            onClose={() => setPostMatchOpen(false)}
+          />
+        </Suspense>
+      )}
 
-      <SuggestedSubsModal
-        fixture={activeFixture}
-        isOpen={suggestedSubsOpen}
-        onClose={() => setSuggestedSubsOpen(false)}
-      />
+      {suggestedSubsOpen && (
+        <Suspense fallback={null}>
+          <SuggestedSubsModal
+            fixture={activeFixture}
+            isOpen={suggestedSubsOpen}
+            onClose={() => setSuggestedSubsOpen(false)}
+          />
+        </Suspense>
+      )}
 
-      <PrivacyPolicyModal
-        isOpen={privacyOpen}
-        onClose={() => setPrivacyOpen(false)}
-      />
+      {privacyOpen && (
+        <Suspense fallback={null}>
+          <PrivacyPolicyModal
+            isOpen={privacyOpen}
+            onClose={() => setPrivacyOpen(false)}
+          />
+        </Suspense>
+      )}
 
-      <LiveMatchModal
-        isOpen={liveMatchOpen}
-        onClose={() => setLiveMatchOpen(false)}
-      />
+      {liveMatchOpen && (
+        <Suspense fallback={null}>
+          <LiveMatchModal
+            isOpen={liveMatchOpen}
+            onClose={() => setLiveMatchOpen(false)}
+          />
+        </Suspense>
+      )}
 
       {/* Edit Fixture Modal */}
-      <EditFixtureModal
-        fixture={activeFixture}
-        isOpen={editActiveFixtureOpen}
-        onClose={() => setEditActiveFixtureOpen(false)}
-      />
+      {editActiveFixtureOpen && (
+        <Suspense fallback={null}>
+          <EditFixtureModal
+            fixture={activeFixture}
+            isOpen={editActiveFixtureOpen}
+            onClose={() => setEditActiveFixtureOpen(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

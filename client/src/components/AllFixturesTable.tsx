@@ -214,16 +214,16 @@ export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeas
                               {fixture.matchdaySquadCap} Sheet
                             </span>
                           )}
-                          {fixture.pitchPlayerCount && fixture.pitchPlayerCount !== settings.pitchPlayerCount && (
+                          {fixture.pitchPlayerCount && fixture.pitchPlayerCount !== settings.pitchPlayerCount ? (
                             <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-violet-500/10 text-violet-300 border border-violet-500/20">
                               {fixture.pitchPlayerCount}-a-side
                             </span>
-                          )}
-                          {fixture.matchPeriodCount && fixture.matchPeriodCount !== settings.matchPeriodCount && (
+                          ) : null}
+                          {fixture.matchPeriodCount && fixture.matchPeriodCount !== settings.matchPeriodCount ? (
                             <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
                               {fixture.matchPeriodCount}P
                             </span>
-                          )}
+                          ) : null}
                         </div>
 
                         <div className="font-extrabold text-sm text-white hover:text-sky-400 transition flex items-center justify-between gap-1">

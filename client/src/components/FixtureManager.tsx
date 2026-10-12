@@ -629,18 +629,18 @@ export const FixtureManager: React.FC = () => {
                         <span>{fixture.matchdaySquadCap} Sheet</span>
                       </span>
                     )}
-                    {fixture.pitchPlayerCount && fixture.pitchPlayerCount !== settings.pitchPlayerCount && (
+                    {fixture.pitchPlayerCount && fixture.pitchPlayerCount !== settings.pitchPlayerCount ? (
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-300 border border-violet-500/20 flex items-center gap-1">
                         <Shield className="w-2.5 h-2.5" />
                         <span>{fixture.pitchPlayerCount}-a-side</span>
                       </span>
-                    )}
-                    {fixture.matchPeriodCount && fixture.matchPeriodCount !== settings.matchPeriodCount && (
+                    ) : null}
+                    {fixture.matchPeriodCount && fixture.matchPeriodCount !== settings.matchPeriodCount ? (
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 flex items-center gap-1">
                         <Layers className="w-2.5 h-2.5" />
                         <span>{fixture.matchPeriodCount} Periods</span>
                       </span>
-                    )}
+                    ) : null}
                     {isPostMatchDone && (
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                         <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
