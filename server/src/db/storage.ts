@@ -483,21 +483,55 @@ interface DataStore {
   adminUsers?: AdminUser[];
 }
 
-class StorageManager {
+/**
+ * Recursively strips keys with `undefined` values from an object or array.
+ * This provides an additional layer of defence for Firestore document writes.
+ */
+export function cleanUndefined<T>(value: T): T {
+  if (value === null || value === undefined) {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => cleanUndefined(item)) as unknown as T;
+  }
+  if (typeof value === 'object' && value.constructor === Object) {
+    const result: Record<string, any> = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (v !== undefined) {
+        result[k] = cleanUndefined(v);
+      }
+    }
+    return result as T;
+  }
+  return value;
+}
+
+export class StorageManager {
   private memoryStore: DataStore;
   private isFirestoreAvailable: boolean = false;
   private firestoreInstance: any = null;
+  private initPromise: Promise<void>;
 
-  constructor() {
+  constructor(customFirestore?: any) {
     this.memoryStore = {
-      teams: SEED_TEAMS,
-      players: SEED_PLAYERS,
-      settings: DEFAULT_SETTINGS,
-      fixtures: SEED_FIXTURES,
-      clubSettings: DEFAULT_CLUB_SETTINGS,
+      teams: [...SEED_TEAMS],
+      players: [...SEED_PLAYERS],
+      settings: { ...DEFAULT_SETTINGS },
+      fixtures: [...SEED_FIXTURES],
+      clubSettings: { ...DEFAULT_CLUB_SETTINGS },
       adminUsers: [],
     };
-    this.initStorage();
+    if (customFirestore !== undefined) {
+      this.firestoreInstance = customFirestore;
+      this.isFirestoreAvailable = customFirestore !== null;
+      this.initPromise = Promise.resolve();
+    } else {
+      this.initPromise = this.initStorage();
+    }
+  }
+
+  async ensureInitialized(): Promise<void> {
+    await this.initPromise;
   }
 
   private async initStorage() {
@@ -507,7 +541,10 @@ class StorageManager {
       try {
         const { Firestore } = await import('@google-cloud/firestore');
         const projectId = process.env.GCP_PROJECT_ID || process.env.FIRESTORE_PROJECT_ID || 'team-organiser-prod';
-        this.firestoreInstance = new Firestore({ projectId });
+        this.firestoreInstance = new Firestore({
+          projectId,
+          ignoreUndefinedProperties: true,
+        });
         this.isFirestoreAvailable = true;
         console.log(' Connected to Cloud Firestore database on project:', projectId);
         return;
@@ -559,6 +596,7 @@ class StorageManager {
 
   // ================= Teams CRUD with User Isolation & Sharing =================
   async getTeams(userId?: string, userEmail?: string): Promise<Team[]> {
+    await this.ensureInitialized();
     if (this.isFirestoreAvailable && this.firestoreInstance) {
       try {
         const snap = await this.firestoreInstance.collection('teams').get();
@@ -592,11 +630,23 @@ class StorageManager {
   }
 
   async getTeamById(id: string): Promise<Team | null> {
+    await this.ensureInitialized();
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        const doc = await this.firestoreInstance.collection('teams').doc(id).get();
+        if (doc.exists) {
+          return { id: doc.id, ...doc.data() } as Team;
+        }
+      } catch (err) {
+        console.warn('Firestore getTeamById error, using fallback:', err);
+      }
+    }
     const teams = await this.getTeams();
     return teams.find((t) => t.id === id) || null;
   }
 
   async saveTeam(team: Team): Promise<Team> {
+    await this.ensureInitialized();
     const existingIndex = this.memoryStore.teams.findIndex((t) => t.id === team.id);
     if (existingIndex >= 0) {
       this.memoryStore.teams[existingIndex] = team;
@@ -607,7 +657,7 @@ class StorageManager {
 
     if (this.isFirestoreAvailable && this.firestoreInstance) {
       try {
-        await this.firestoreInstance.collection('teams').doc(team.id).set(team);
+        await this.firestoreInstance.collection('teams').doc(team.id).set(cleanUndefined(team));
       } catch (err) {
         console.error('Firestore save error:', err);
       }
@@ -616,6 +666,7 @@ class StorageManager {
   }
 
   async deleteTeam(id: string): Promise<boolean> {
+    await this.ensureInitialized();
     const prevLen = this.memoryStore.teams.length;
     this.memoryStore.teams = this.memoryStore.teams.filter((t) => t.id !== id);
     // Also remove associated players and fixtures
@@ -634,6 +685,7 @@ class StorageManager {
   }
 
   async shareTeam(teamId: string, emailOrUserId: string): Promise<Team | null> {
+    await this.ensureInitialized();
     const team = await this.getTeamById(teamId);
     if (!team) return null;
 
@@ -646,6 +698,7 @@ class StorageManager {
   }
 
   async addSeason(teamId: string, seasonName: string): Promise<Team | null> {
+    await this.ensureInitialized();
     const team = await this.getTeamById(teamId);
     if (!team) return null;
 
@@ -663,6 +716,7 @@ class StorageManager {
 
   // ================= Players CRUD (Scoped by teamId) =================
   async getPlayers(teamId?: string): Promise<Player[]> {
+    await this.ensureInitialized();
     if (this.isFirestoreAvailable && this.firestoreInstance) {
       try {
         let query = this.firestoreInstance.collection('players');
@@ -672,6 +726,13 @@ class StorageManager {
         const snap = await query.get();
         if (!snap.empty) {
           return snap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+        }
+        // If teamId was queried and returned empty, check if players collection is seeded
+        if (teamId) {
+          const hasAny = await this.firestoreInstance.collection('players').limit(1).get();
+          if (!hasAny.empty) {
+            return [];
+          }
         }
       } catch (err) {
         console.warn('Firestore read error, falling back to memory:', err);
@@ -685,11 +746,23 @@ class StorageManager {
   }
 
   async getPlayerById(id: string): Promise<Player | null> {
+    await this.ensureInitialized();
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        const doc = await this.firestoreInstance.collection('players').doc(id).get();
+        if (doc.exists) {
+          return { id: doc.id, ...doc.data() } as Player;
+        }
+      } catch (err) {
+        console.warn('Firestore getPlayerById error, using fallback:', err);
+      }
+    }
     const all = await this.getPlayers();
     return all.find((p) => p.id === id) || null;
   }
 
   async savePlayer(player: Player): Promise<Player> {
+    await this.ensureInitialized();
     const existingIndex = this.memoryStore.players.findIndex((p) => p.id === player.id);
     if (existingIndex >= 0) {
       this.memoryStore.players[existingIndex] = player;
@@ -700,7 +773,7 @@ class StorageManager {
 
     if (this.isFirestoreAvailable && this.firestoreInstance) {
       try {
-        await this.firestoreInstance.collection('players').doc(player.id).set(player);
+        await this.firestoreInstance.collection('players').doc(player.id).set(cleanUndefined(player));
       } catch (err) {
         console.error('Firestore save error:', err);
       }
@@ -709,6 +782,7 @@ class StorageManager {
   }
 
   async bulkSavePlayers(players: Player[]): Promise<Player[]> {
+    await this.ensureInitialized();
     for (const player of players) {
       const existingIndex = this.memoryStore.players.findIndex((p) => p.id === player.id);
       if (existingIndex >= 0) {
@@ -724,7 +798,7 @@ class StorageManager {
         const batch = this.firestoreInstance.batch();
         for (const player of players) {
           const docRef = this.firestoreInstance.collection('players').doc(player.id);
-          batch.set(docRef, player);
+          batch.set(docRef, cleanUndefined(player));
         }
         await batch.commit();
       } catch (err) {
@@ -735,6 +809,7 @@ class StorageManager {
   }
 
   async deletePlayer(id: string): Promise<boolean> {
+    await this.ensureInitialized();
     const prevLen = this.memoryStore.players.length;
     this.memoryStore.players = this.memoryStore.players.filter((p) => p.id !== id);
     this.saveToFile();
@@ -751,6 +826,7 @@ class StorageManager {
 
   // ================= Team Settings =================
   async getSettings(teamId?: string): Promise<TeamSettings> {
+    await this.ensureInitialized();
     if (teamId) {
       const team = await this.getTeamById(teamId);
       if (team && team.settings) {
@@ -761,6 +837,7 @@ class StorageManager {
   }
 
   async updateSettings(settings: TeamSettings, teamId?: string): Promise<TeamSettings> {
+    await this.ensureInitialized();
     if (teamId) {
       const team = await this.getTeamById(teamId);
       if (team) {
@@ -777,33 +854,54 @@ class StorageManager {
 
   // ================= Fixtures CRUD (Scoped by teamId) =================
   async getFixtures(teamId?: string): Promise<Fixture[]> {
+    await this.ensureInitialized();
     if (this.isFirestoreAvailable && this.firestoreInstance) {
       try {
         let query = this.firestoreInstance.collection('fixtures');
         if (teamId) {
           query = query.where('teamId', '==', teamId);
         }
-        const snap = await query.orderBy('date', 'desc').get();
+        // Fetch matching documents and sort in-memory to prevent composite index errors
+        const snap = await query.get();
         if (!snap.empty) {
-          return snap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+          const fixtures: Fixture[] = snap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+          return fixtures.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        }
+        if (teamId) {
+          const hasAny = await this.firestoreInstance.collection('fixtures').limit(1).get();
+          if (!hasAny.empty) {
+            return [];
+          }
         }
       } catch (err) {
         console.warn('Firestore fixtures error, using memory:', err);
       }
     }
 
-    if (teamId) {
-      return this.memoryStore.fixtures.filter((f) => f.teamId === teamId);
-    }
-    return this.memoryStore.fixtures;
+    const fixtures = teamId
+      ? this.memoryStore.fixtures.filter((f) => f.teamId === teamId)
+      : this.memoryStore.fixtures;
+    return [...fixtures].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   }
 
   async getFixtureById(id: string): Promise<Fixture | null> {
+    await this.ensureInitialized();
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        const doc = await this.firestoreInstance.collection('fixtures').doc(id).get();
+        if (doc.exists) {
+          return { id: doc.id, ...doc.data() } as Fixture;
+        }
+      } catch (err) {
+        console.warn('Firestore getFixtureById error, using fallback:', err);
+      }
+    }
     const fixtures = await this.getFixtures();
     return fixtures.find((f) => f.id === id) || null;
   }
 
   async saveFixture(fixture: Fixture): Promise<Fixture> {
+    await this.ensureInitialized();
     const existingIndex = this.memoryStore.fixtures.findIndex((f) => f.id === fixture.id);
     if (existingIndex >= 0) {
       this.memoryStore.fixtures[existingIndex] = fixture;
@@ -814,7 +912,7 @@ class StorageManager {
 
     if (this.isFirestoreAvailable && this.firestoreInstance) {
       try {
-        await this.firestoreInstance.collection('fixtures').doc(fixture.id).set(fixture);
+        await this.firestoreInstance.collection('fixtures').doc(fixture.id).set(cleanUndefined(fixture));
       } catch (err) {
         console.error('Firestore save fixture error:', err);
       }
@@ -823,6 +921,7 @@ class StorageManager {
   }
 
   async updateMatchSquad(fixtureId: string, matchSquad: MatchSquad): Promise<Fixture | null> {
+    await this.ensureInitialized();
     const fixture = await this.getFixtureById(fixtureId);
     if (!fixture) return null;
 
@@ -835,6 +934,7 @@ class StorageManager {
     fixtureId: string,
     postMatchRecording: PostMatchRecording
   ): Promise<Fixture | null> {
+    await this.ensureInitialized();
     const fixture = await this.getFixtureById(fixtureId);
     if (!fixture) return null;
 
@@ -845,6 +945,7 @@ class StorageManager {
   }
 
   async deleteFixture(id: string): Promise<boolean> {
+    await this.ensureInitialized();
     const prevLen = this.memoryStore.fixtures.length;
     this.memoryStore.fixtures = this.memoryStore.fixtures.filter((f) => f.id !== id);
     this.saveToFile();
@@ -861,11 +962,23 @@ class StorageManager {
 
   // ================= Club Settings & Brand Identity =================
   async getClubSettings(): Promise<ClubSettings> {
+    await this.ensureInitialized();
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        const doc = await this.firestoreInstance.collection('settings').doc('club').get();
+        if (doc.exists) {
+          return { ...DEFAULT_CLUB_SETTINGS, ...doc.data() };
+        }
+      } catch (err) {
+        console.warn('Firestore read club settings error, using memory:', err);
+      }
+    }
     return this.memoryStore.clubSettings || DEFAULT_CLUB_SETTINGS;
   }
 
   async updateClubSettings(updates: Partial<ClubSettings>): Promise<ClubSettings> {
-    const current = this.memoryStore.clubSettings || DEFAULT_CLUB_SETTINGS;
+    await this.ensureInitialized();
+    const current = await this.getClubSettings();
     const updated: ClubSettings = {
       ...current,
       ...updates,
@@ -873,20 +986,51 @@ class StorageManager {
     };
     this.memoryStore.clubSettings = updated;
     this.saveToFile();
+
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        await this.firestoreInstance.collection('settings').doc('club').set(cleanUndefined(updated));
+      } catch (err) {
+        console.error('Firestore save club settings error:', err);
+      }
+    }
     return updated;
   }
 
   // ================= Admin Users & Custom Claims Registry =================
   async getAdminUsers(): Promise<AdminUser[]> {
+    await this.ensureInitialized();
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        const snap = await this.firestoreInstance.collection('adminUsers').get();
+        if (!snap.empty) {
+          return snap.docs.map((doc: any) => ({ uid: doc.id, ...doc.data() }));
+        }
+      } catch (err) {
+        console.warn('Firestore read admin users error, using memory:', err);
+      }
+    }
     return this.memoryStore.adminUsers || [];
   }
 
   async getAdminUserByUid(uid: string): Promise<AdminUser | null> {
+    await this.ensureInitialized();
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        const doc = await this.firestoreInstance.collection('adminUsers').doc(uid).get();
+        if (doc.exists) {
+          return { uid: doc.id, ...doc.data() } as AdminUser;
+        }
+      } catch (err) {
+        console.warn('Firestore read admin user error, using memory:', err);
+      }
+    }
     const users = this.memoryStore.adminUsers || [];
     return users.find((u) => u.uid === uid) || null;
   }
 
   async upsertAdminUser(user: Partial<AdminUser> & { uid: string }): Promise<AdminUser> {
+    await this.ensureInitialized();
     if (!this.memoryStore.adminUsers) {
       this.memoryStore.adminUsers = [];
     }
@@ -911,31 +1055,50 @@ class StorageManager {
       this.memoryStore.adminUsers.push(result);
     }
     this.saveToFile();
+
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        await this.firestoreInstance.collection('adminUsers').doc(result.uid).set(cleanUndefined(result));
+      } catch (err) {
+        console.error('Firestore save admin user error:', err);
+      }
+    }
     return result;
   }
 
   async deleteAdminUser(uid: string): Promise<boolean> {
+    await this.ensureInitialized();
     if (!this.memoryStore.adminUsers) return false;
     const prevLen = this.memoryStore.adminUsers.length;
     this.memoryStore.adminUsers = this.memoryStore.adminUsers.filter((u) => u.uid !== uid);
     this.saveToFile();
+
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        await this.firestoreInstance.collection('adminUsers').doc(uid).delete();
+      } catch (err) {
+        console.error('Firestore delete admin user error:', err);
+      }
+    }
     return this.memoryStore.adminUsers.length < prevLen;
   }
 
   // ================= System Backups & Disaster Recovery =================
   async exportBackup(): Promise<BackupData> {
+    await this.ensureInitialized();
     return {
       exportedAt: new Date().toISOString(),
       version: '1.0.0',
-      clubSettings: this.memoryStore.clubSettings || DEFAULT_CLUB_SETTINGS,
-      teams: this.memoryStore.teams,
-      players: this.memoryStore.players,
-      fixtures: this.memoryStore.fixtures,
-      users: this.memoryStore.adminUsers || [],
+      clubSettings: await this.getClubSettings(),
+      teams: await this.getTeams(),
+      players: await this.getPlayers(),
+      fixtures: await this.getFixtures(),
+      users: await this.getAdminUsers(),
     };
   }
 
   async restoreBackup(backup: BackupData): Promise<{ teams: number; players: number; fixtures: number }> {
+    await this.ensureInitialized();
     if (!backup || !Array.isArray(backup.teams) || !Array.isArray(backup.players) || !Array.isArray(backup.fixtures)) {
       throw new Error('Invalid backup file format. Expected teams, players, and fixtures arrays.');
     }
@@ -952,6 +1115,30 @@ class StorageManager {
 
     this.saveToFile();
 
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        for (const team of backup.teams) {
+          await this.firestoreInstance.collection('teams').doc(team.id).set(cleanUndefined(team));
+        }
+        for (const player of backup.players) {
+          await this.firestoreInstance.collection('players').doc(player.id).set(cleanUndefined(player));
+        }
+        for (const fixture of backup.fixtures) {
+          await this.firestoreInstance.collection('fixtures').doc(fixture.id).set(cleanUndefined(fixture));
+        }
+        if (backup.clubSettings) {
+          await this.firestoreInstance.collection('settings').doc('club').set(cleanUndefined(backup.clubSettings));
+        }
+        if (backup.users && Array.isArray(backup.users)) {
+          for (const user of backup.users) {
+            await this.firestoreInstance.collection('adminUsers').doc(user.uid).set(cleanUndefined(user));
+          }
+        }
+      } catch (err) {
+        console.error('Firestore restore backup error:', err);
+      }
+    }
+
     return {
       teams: this.memoryStore.teams.length,
       players: this.memoryStore.players.length,
@@ -961,3 +1148,4 @@ class StorageManager {
 }
 
 export const storage = new StorageManager();
+
