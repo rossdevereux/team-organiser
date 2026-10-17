@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 
 import { GlobalModals } from './components/GlobalModals';
+import { AppVersion } from './components/AppVersion';
+import { ChangelogModal } from './components/ChangelogModal';
 
 function DashboardShell() {
   const {
@@ -65,6 +67,7 @@ function DashboardShell() {
   const [liveMatchOpen, setLiveMatchOpen] = useState(false);
   const [showcaseOpen, setShowcaseOpen] = useState(false);
   const [editActiveFixtureOpen, setEditActiveFixtureOpen] = useState(false);
+  const [changelogOpen, setChangelogOpen] = useState(false);
 
   const location = useLocation();
   const isLandingRoute = location.pathname === '/';
@@ -483,12 +486,14 @@ function DashboardShell() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 py-6 bg-slate-950 text-slate-500 text-xs mt-12 print:hidden">
+      <footer className="border-t border-slate-800/80 pt-6 pb-24 lg:pb-8 bg-slate-950 text-slate-500 text-xs mt-12 print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-slate-300">SubShuffle</span>
             <span>•</span>
             <span>{activeTeam?.name} ({settings.pitchPlayerCount}-a-side)</span>
+            <span>•</span>
+            <AppVersion onClick={() => setChangelogOpen(true)} />
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">
@@ -571,6 +576,12 @@ function DashboardShell() {
         onLiveMatchClose={() => setLiveMatchOpen(false)}
         editActiveFixtureOpen={editActiveFixtureOpen}
         onEditActiveFixtureClose={() => setEditActiveFixtureOpen(false)}
+      />
+
+      {/* Changelog & Release Notes Modal */}
+      <ChangelogModal
+        isOpen={changelogOpen}
+        onClose={() => setChangelogOpen(false)}
       />
     </div>
   );

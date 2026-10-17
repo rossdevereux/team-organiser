@@ -20,6 +20,8 @@ import type { User } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
 import { AuthButton } from './AuthButton';
 import { LanguageSelector } from './LanguageSelector';
+import { AppVersion } from './AppVersion';
+import { ChangelogModal } from './ChangelogModal';
 
 interface LandingHeroProps {
   onStartDemo: () => void;
@@ -37,6 +39,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
   onSignInSuccess,
 }) => {
   const { t } = useTranslation();
+  const [changelogOpen, setChangelogOpen] = React.useState(false);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-slate-950 font-sans">
@@ -420,10 +423,12 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
       {/* Footer */}
       <footer className="mt-auto py-8 bg-slate-950 text-slate-500 text-xs border-t border-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold text-slate-300">SubShuffle</span>
             <span>•</span>
             <span>{t('nav.brandSubtitle')}</span>
+            <span>•</span>
+            <AppVersion onClick={() => setChangelogOpen(true)} />
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">
@@ -445,6 +450,12 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           </div>
         </div>
       </footer>
+
+      {/* Changelog & Release Notes Modal */}
+      <ChangelogModal
+        isOpen={changelogOpen}
+        onClose={() => setChangelogOpen(false)}
+      />
     </div>
   );
 };

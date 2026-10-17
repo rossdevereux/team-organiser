@@ -6,6 +6,7 @@ import {
   generateWhatsAppAnnouncement,
   generateSuggestedSubstitutions,
 } from '../services/rotationService.js';
+import { getChangelogData } from '../services/changelogService.js';
 import { getFormationsForTeamSize, DEFAULT_FORMATIONS } from '../db/formations.js';
 import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
 import { Player, TeamSettings, Fixture, MatchSquad, Team, Formation, PostMatchRecording } from '../types.js';
@@ -755,6 +756,17 @@ router.get('/fixtures/:id/export/whatsapp', async (req: Request, res: Response) 
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to generate announcement', details: err.message });
+  }
+});
+
+// GET /api/changelog (Public changelog endpoint with cache-control)
+router.get('/changelog', async (_req: Request, res: Response) => {
+  try {
+    const changelog = getChangelogData();
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+    res.json(changelog);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to retrieve changelog', details: err.message });
   }
 });
 
