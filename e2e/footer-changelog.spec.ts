@@ -81,4 +81,28 @@ test.describe('Footer Version & Changelog Modal Suite', () => {
     // Close modal
     await page.keyboard.press('Escape');
   });
+
+  test('footer does not display duplicate operational items and defers to top menu items (#8)', async ({ page }) => {
+    await page.goto('/lineup');
+
+    const footer = page.locator('footer');
+    await expect(footer).toBeVisible();
+
+    // Verify duplicate operational items are NOT in footer
+    await expect(footer.getByText('Print Pitch Sheet')).not.toBeVisible();
+    await expect(footer.getByText('Teams & Sharing')).not.toBeVisible();
+    await expect(footer.getByText('League Settings')).not.toBeVisible();
+    await expect(footer.getByText('WhatsApp Announcement')).not.toBeVisible();
+
+    // Verify footer retains general non-duplicate items
+    await expect(footer.getByText('Product Tour')).toBeVisible();
+    await expect(footer.getByText('Privacy & GDPR')).toBeVisible();
+
+    // Verify operational items are available in the top navbar / header
+    const header = page.locator('header');
+    await expect(header).toBeVisible();
+    await expect(header.locator('button[title*="WhatsApp"]')).toBeVisible();
+    await expect(header.locator('button[title*="Team Settings & League Rules"]')).toBeVisible();
+    await expect(header.getByRole('button', { name: /Teams/i })).toBeVisible();
+  });
 });

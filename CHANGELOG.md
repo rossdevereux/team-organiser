@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- **Duplicate Footer Action Items**: Removed redundant action buttons from the global footer bar (*Print Pitch Sheet*, *Teams & Sharing*, *League Settings*, and *WhatsApp Announcement*) in [`RootLayout.tsx`](client/src/RootLayout.tsx) in favor of the primary navigation tabs and utility controls in the top navbar header ([#8](https://github.com/rossdevereux/team-organiser/issues/8)).
+
 ## [1.1.0] - 2026-10-17
 
 ### Added

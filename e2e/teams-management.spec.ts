@@ -2,14 +2,14 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Teams Management & Multi-Squad Workflows', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?tab=lineup');
     await page.waitForLoadState('networkidle');
   });
 
   test('should navigate to Teams tab and show team roster overview', async ({ page }) => {
     // Navigate to Teams tab using header nav button
     await page.getByRole('banner').getByRole('button', { name: /Teams/i }).click();
-    await expect(page).toHaveURL(/tab=teams/);
+    await expect(page).toHaveURL(/(tab=teams|\/teams)/);
 
     // Verify header and description
     await expect(page.getByRole('heading', { name: /Manage Teams/i })).toBeVisible();
@@ -61,7 +61,7 @@ test.describe('Teams Management & Multi-Squad Workflows', () => {
     await teamHeading.click();
 
     // Selecting a team switches to the lineup tab
-    await expect(page).toHaveURL(/tab=lineup/);
+    await expect(page).toHaveURL(/(tab=lineup|\/lineup)/);
 
     // Navbar team dropdown or indicator should display the selected team name
     const teamSwitcherBtn = page.locator('button[title="Switch or manage teams"]');

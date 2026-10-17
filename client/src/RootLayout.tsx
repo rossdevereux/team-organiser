@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   RefreshCw,
   Shield,
-  Share2,
   Trophy,
   ArrowRightLeft,
   Sliders,
@@ -516,37 +515,12 @@ function DashboardShell() {
               Product Tour
             </button>
             <button
-              onClick={() => setWhatsAppOpen(true)}
-              className="hover:text-emerald-400 transition cursor-pointer"
-            >
-              WhatsApp Announcement
-            </button>
-            <button
-              onClick={() => setPrintOpen(true)}
-              className="hover:text-sky-400 transition cursor-pointer"
-            >
-              Print Pitch Sheet
-            </button>
-            <button
-              onClick={() => setActiveTab('teams')}
-              className="hover:text-indigo-400 transition cursor-pointer flex items-center gap-1"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>Teams & Sharing</span>
-            </button>
-            <button
               onClick={() => setShowcaseOpen(true)}
               className="hover:text-indigo-400 transition cursor-pointer flex items-center gap-1 font-semibold text-indigo-300"
               title="Open design tokens, club kit customizer, and component styleguide"
             >
               <Palette className="w-3.5 h-3.5 text-indigo-400" />
               <span>Design System & Kits</span>
-            </button>
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="hover:text-white transition cursor-pointer"
-            >
-              League Settings
             </button>
             <button
               onClick={() => setPrivacyOpen(true)}

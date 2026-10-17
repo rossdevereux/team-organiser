@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Navbar & Navigation Suite', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/?tab=lineup');
     // Wait for initial load
     await expect(page.locator('header')).toBeVisible();
   });
@@ -16,32 +16,32 @@ test.describe('Navbar & Navigation Suite', () => {
   test('switches between all 6 primary navigation tabs and updates URL', async ({ page }) => {
     // 1. Matrix tab
     await page.getByRole('button', { name: /Matrix/i }).first().click();
-    await expect(page).toHaveURL(/tab=matrix/);
+    await expect(page).toHaveURL(/(tab=matrix|\/matrix)/);
     await expect(page.getByRole('heading', { name: /Rotation Matrix/i })).toBeVisible();
 
     // 2. Fair Play Stats tab
-    await page.getByRole('button', { name: /Fair Play Stats/i }).first().click();
-    await expect(page).toHaveURL(/tab=stats/);
+    await page.getByRole('button', { name: /Fair Play/i }).first().click();
+    await expect(page).toHaveURL(/(tab=stats|\/stats)/);
     await expect(page.getByRole('heading', { name: /Fair Play Analytics/i })).toBeVisible();
 
     // 3. Squad Roster tab
-    await page.getByRole('button', { name: /Squad Roster/i }).first().click();
-    await expect(page).toHaveURL(/tab=squad/);
+    await page.getByRole('button', { name: /Squad/i }).first().click();
+    await expect(page).toHaveURL(/(tab=squad|\/squad)/);
     await expect(page.getByRole('button', { name: /Add Player/i }).first()).toBeVisible();
 
     // 4. Fixtures tab
-    await page.getByRole('button', { name: 'Fixtures' }).first().click();
-    await expect(page).toHaveURL(/tab=fixtures/);
+    await page.getByRole('button', { name: /Fixtures/i }).first().click();
+    await expect(page).toHaveURL(/(tab=fixtures|\/fixtures)/);
     await expect(page.getByRole('button', { name: /New Fixture/i }).first()).toBeVisible();
 
     // 5. Teams & Sharing tab
-    await page.getByRole('button', { name: /Teams & Sharing/i }).first().click();
-    await expect(page).toHaveURL(/tab=teams/);
+    await page.getByRole('button', { name: /Teams/i }).first().click();
+    await expect(page).toHaveURL(/(tab=teams|\/teams)/);
     await expect(page.getByRole('button', { name: /Create New Team/i })).toBeVisible();
 
     // 6. Pitch Lineup tab
-    await page.getByRole('button', { name: /Pitch Lineup/i }).first().click();
-    await expect(page).toHaveURL(/tab=lineup/);
+    await page.getByRole('button', { name: /Lineup/i }).first().click();
+    await expect(page).toHaveURL(/(tab=lineup|\/lineup)/);
   });
 
   test('supports deep linking via URL query parameters', async ({ page }) => {

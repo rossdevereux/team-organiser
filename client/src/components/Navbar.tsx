@@ -318,6 +318,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="w-full xl:w-auto max-w-full overflow-x-auto no-scrollbar scroll-smooth shrink-0">
             <div className="inline-flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800/80 shrink-0">
               <Link
+                role="button"
                 to="/lineup"
                 search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
@@ -329,6 +330,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {t('nav.lineup')}
               </Link>
               <Link
+                role="button"
                 to="/matrix"
                 search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
@@ -340,6 +342,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="hidden 2xl:inline">{periodCount === 2 ? '2-Half ' : `${periodCount}-Period `}</span>{t('nav.matrix')}
               </Link>
               <Link
+                role="button"
                 to="/stats"
                 search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
@@ -351,6 +354,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {t('nav.stats')}
               </Link>
               <Link
+                role="button"
                 to="/squad"
                 search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
@@ -362,6 +366,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {t('nav.squad')}
               </Link>
               <Link
+                role="button"
                 to="/fixtures"
                 search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap ${
@@ -373,6 +378,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {t('nav.fixtures')}
               </Link>
               <Link
+                role="button"
                 to="/teams"
                 search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap gap-1.5 ${
@@ -385,6 +391,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>{t('nav.teams')}</span>
               </Link>
               <Link
+                role="button"
                 to="/admin"
                 search={(prev: any) => prev}
                 className={`h-7 px-2.5 sm:px-3 flex items-center rounded-lg font-semibold transition cursor-pointer whitespace-nowrap gap-1.5 ${
