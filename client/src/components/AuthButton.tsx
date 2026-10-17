@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { User, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { User, signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { auth, googleProvider, isFirebaseConfigured } from '../firebase';
+import { useMatchday } from '../context/MatchdayContext';
 import { LogIn, LogOut, User as UserIcon, AlertCircle } from 'lucide-react';
 
 interface AuthButtonProps {
@@ -9,6 +10,7 @@ interface AuthButtonProps {
 }
 
 export const AuthButton: React.FC<AuthButtonProps> = ({ onUserChange, onSignInSuccess }) => {
+  const { signOutUser } = useMatchday();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -53,7 +55,7 @@ export const AuthButton: React.FC<AuthButtonProps> = ({ onUserChange, onSignInSu
     setAuthError(null);
     setLoading(true);
     try {
-      await signOut(auth);
+      await signOutUser();
     } catch (err: unknown) {
       console.error('Sign-out failed:', err);
       setAuthError('Failed to sign out');

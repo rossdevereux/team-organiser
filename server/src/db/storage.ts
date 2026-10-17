@@ -602,13 +602,23 @@ export class StorageManager {
         const snap = await this.firestoreInstance.collection('teams').get();
         if (!snap.empty) {
           const allTeams: Team[] = snap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
-          return this.filterTeamsForUser(allTeams, userId, userEmail);
+          const filtered = this.filterTeamsForUser(allTeams, userId, userEmail);
+          if (filtered.length > 0) return filtered;
+          // If no user teams found and unauthenticated or demo user, always fall back to demo seed teams
+          if (!userId || userId === 'dev-user-123') {
+            return this.memoryStore.teams;
+          }
+          return [];
         }
       } catch (err) {
         console.warn('Firestore read error, falling back to memory:', err);
       }
     }
-    return this.filterTeamsForUser(this.memoryStore.teams, userId, userEmail);
+    const filtered = this.filterTeamsForUser(this.memoryStore.teams, userId, userEmail);
+    if (filtered.length === 0 && (!userId || userId === 'dev-user-123')) {
+      return this.memoryStore.teams;
+    }
+    return filtered;
   }
 
   hasTeamAccess(team: Team, userId?: string, userEmail?: string): boolean {
@@ -641,8 +651,7 @@ export class StorageManager {
         console.warn('Firestore getTeamById error, using fallback:', err);
       }
     }
-    const teams = await this.getTeams();
-    return teams.find((t) => t.id === id) || null;
+    return this.memoryStore.teams.find((t) => t.id === id) || null;
   }
 
   async saveTeam(team: Team): Promise<Team> {
@@ -726,6 +735,10 @@ export class StorageManager {
         const snap = await query.get();
         if (!snap.empty) {
           return snap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
+        }
+        // If teamId is a seed/demo team and not in Firestore, fall back to memoryStore
+        if (teamId === 'team-1' || teamId === 'team-2') {
+          return this.memoryStore.players.filter((p) => p.teamId === teamId);
         }
         // If teamId was queried and returned empty, check if players collection is seeded
         if (teamId) {
@@ -866,6 +879,12 @@ export class StorageManager {
         if (!snap.empty) {
           const fixtures: Fixture[] = snap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
           return fixtures.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        }
+        // If teamId is a seed/demo team and not in Firestore, fall back to memoryStore
+        if (teamId === 'team-1' || teamId === 'team-2') {
+          return this.memoryStore.fixtures
+            .filter((f) => f.teamId === teamId)
+            .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
         }
         if (teamId) {
           const hasAny = await this.firestoreInstance.collection('fixtures').limit(1).get();

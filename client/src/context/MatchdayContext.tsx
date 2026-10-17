@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { auth, getAuthToken, getUserRoleFromToken, UserRole } from '../firebase';
 import { queryClient } from '../queryClient';
@@ -23,6 +23,7 @@ import {
   SuggestedSubPlan,
 } from '../types';
 import { getFormationsForTeamSize, findFormation, DEFAULT_FORMATIONS } from '../utils/formations';
+import { DEMO_TEAMS, DEMO_PLAYERS, DEMO_FIXTURES, isDemoTeamId } from '../utils/demoData';
 
 export interface SwapSource {
   type: 'pitch' | 'sub' | 'rested';
@@ -94,6 +95,8 @@ interface MatchdayContextType {
   savePostMatchRecording: (fixtureId: string, recording: PostMatchRecording) => Promise<void>;
   getSuggestedSubs: (fixtureId: string, interval?: number) => Promise<SuggestedSubPlan[]>;
   refreshData: () => Promise<void>;
+  enterDemoMode: () => void;
+  signOutUser: () => Promise<void>;
 }
 
 const MatchdayContext = createContext<MatchdayContextType | null>(null);
@@ -185,6 +188,15 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const unsub = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       evaluateRole(user);
+      if (!user) {
+        // User logged out: clear private memory state so it is never shown after logout
+        setSelectedSwapSource(null);
+        setTeams([]);
+        setActiveTeamId('');
+        setPlayers([]);
+        setFixtures([]);
+        setActiveFixtureId('');
+      }
     });
     return () => unsub();
   }, [evaluateRole]);
@@ -214,7 +226,7 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (e) {
       console.warn('Failed to update URL search params:', e);
     }
-  }, [activeTeamId, activeFixtureId]);
+  }, [activeTeamId, activeFixtureId, location.pathname]);
 
   // Helper to build headers with auth token or dev fallback
   const getAuthHeaders = useCallback(async (): Promise<HeadersInit> => {
@@ -243,18 +255,102 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return headers;
   }, [currentUser]);
 
-  // Fetch teams list with offline cache fallback
+  // Dedicated clean Demo Mode launcher
+  const enterDemoMode = useCallback(() => {
+    sessionStorage.setItem('subshuffle_demo_entered', 'true');
+    localStorage.setItem('subshuffle_has_visited', 'true');
+
+    setSelectedSwapSource(null);
+    setError(null);
+
+    const demoTeam = DEMO_TEAMS[0];
+    const demoPlayers = DEMO_PLAYERS.filter((p) => p.teamId === demoTeam.id);
+    const demoFixtures = DEMO_FIXTURES.filter((f) => f.teamId === demoTeam.id);
+    const firstFixture = demoFixtures[0];
+
+    setTeams(DEMO_TEAMS);
+    setActiveTeamId(demoTeam.id);
+    setPlayers(demoPlayers);
+    setFixtures(demoFixtures);
+    setActiveFixtureId(firstFixture ? firstFixture.id : '');
+    setActivePeriodState(1);
+    setLoading(false);
+
+    try {
+      localStorage.setItem('subshuffle_cached_teams', JSON.stringify(DEMO_TEAMS));
+      localStorage.setItem(`subshuffle_cached_players_${demoTeam.id}`, JSON.stringify(demoPlayers));
+      localStorage.setItem(`subshuffle_cached_fixtures_${demoTeam.id}`, JSON.stringify(demoFixtures));
+    } catch (_) {}
+
+    navigate({
+      to: '/lineup',
+      search: () => ({ team: demoTeam.id, fixture: firstFixture ? firstFixture.id : undefined }),
+    });
+  }, [navigate]);
+
+  // Clean sign-out handler wiping private memory and cached data
+  const signOutUser = useCallback(async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.error('Failed to sign out from Firebase:', e);
+    }
+
+    setCurrentUser(null);
+    setUserRole('viewer');
+
+    setSelectedSwapSource(null);
+    setError(null);
+    setTeams([]);
+    setActiveTeamId('');
+    setPlayers([]);
+    setFixtures([]);
+    setActiveFixtureId('');
+
+    try {
+      localStorage.removeItem('subshuffle_cached_teams');
+      localStorage.removeItem('squadrotate_cached_teams');
+      localStorage.removeItem('subshuffle_role_override');
+      sessionStorage.removeItem('subshuffle_demo_entered');
+
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (
+          k &&
+          (k.startsWith('subshuffle_cached_players_') ||
+            k.startsWith('subshuffle_cached_fixtures_') ||
+            k.startsWith('squadrotate_cached_players_') ||
+            k.startsWith('squadrotate_cached_fixtures_'))
+        ) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    } catch (_) {}
+
+    try {
+      window.history.replaceState(null, '', '/');
+    } catch (_) {}
+
+    navigate({
+      to: '/',
+      search: () => ({}),
+    });
+  }, [navigate]);
+
+  // Fetch teams list with offline cache and built-in demo fallback
   const refreshTeams = useCallback(async () => {
     try {
       const headers = await getAuthHeaders();
       const res = await fetch('/api/teams', { headers });
       if (res.ok) {
         const data: Team[] = await res.json();
-        setTeams(data);
-        try {
-          localStorage.setItem('subshuffle_cached_teams', JSON.stringify(data));
-        } catch (_) {}
         if (data.length > 0) {
+          setTeams(data);
+          try {
+            localStorage.setItem('subshuffle_cached_teams', JSON.stringify(data));
+          } catch (_) {}
           const urlTeam = new URLSearchParams(window.location.search).get('team');
           const matched = data.find((t) => t.id === urlTeam);
           if (matched) {
@@ -262,8 +358,8 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           } else if (!activeTeamId || !data.some((t) => t.id === activeTeamId)) {
             setActiveTeamId(data[0].id);
           }
+          return;
         }
-        return;
       }
     } catch (err) {
       console.warn('Network error fetching teams, trying offline cache:', err);
@@ -274,8 +370,8 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const cached = localStorage.getItem('subshuffle_cached_teams') || localStorage.getItem('squadrotate_cached_teams');
       if (cached) {
         const data: Team[] = JSON.parse(cached);
-        setTeams(data);
         if (data.length > 0) {
+          setTeams(data);
           const urlTeam = new URLSearchParams(window.location.search).get('team');
           const matched = data.find((t) => t.id === urlTeam);
           if (matched) {
@@ -283,17 +379,31 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           } else if (!activeTeamId || !data.some((t) => t.id === activeTeamId)) {
             setActiveTeamId(data[0].id);
           }
+          return;
         }
       }
     } catch (e) {
       console.error('Failed reading cached teams:', e);
     }
-  }, [getAuthHeaders, activeTeamId]);
+
+    // Unauthenticated / Demo Fallback: Never leave teams empty for guest or demo users
+    if (!currentUser) {
+      setTeams(DEMO_TEAMS);
+      const urlTeam = new URLSearchParams(window.location.search).get('team');
+      const matched = DEMO_TEAMS.find((t) => t.id === urlTeam);
+      setActiveTeamId(matched ? matched.id : DEMO_TEAMS[0].id);
+      setLoading(false);
+    } else {
+      setTeams([]);
+      setActiveTeamId('');
+      setLoading(false);
+    }
+  }, [getAuthHeaders, activeTeamId, currentUser]);
 
   // Active Team object
   const activeTeam = useMemo(() => {
-    return teams.find((t) => t.id === activeTeamId) || teams[0] || null;
-  }, [teams, activeTeamId]);
+    return teams.find((t) => t.id === activeTeamId) || teams[0] || (currentUser ? null : DEMO_TEAMS[0]);
+  }, [teams, activeTeamId, currentUser]);
 
   // Team settings (falls back to defaults if not present)
   const settings: TeamSettings = useMemo(() => {
@@ -312,9 +422,12 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
   }, [activeTeam]);
 
-  // Load team-scoped players & fixtures with offline cache fallback
+  // Load team-scoped players & fixtures with offline cache and demo fallback
   const refreshTeamData = useCallback(async () => {
-    if (!activeTeamId) return;
+    if (!activeTeamId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -325,21 +438,28 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         fetch(`/api/fixtures?teamId=${activeTeamId}`, { headers }),
       ]);
 
+      let hasPlayers = false;
+      let hasFixtures = false;
+
       if (pRes.ok) {
         const pData: Player[] = await pRes.json();
-        setPlayers(pData);
-        try {
-          localStorage.setItem(`subshuffle_cached_players_${activeTeamId}`, JSON.stringify(pData));
-        } catch (_) {}
+        if (pData.length > 0) {
+          setPlayers(pData);
+          hasPlayers = true;
+          try {
+            localStorage.setItem(`subshuffle_cached_players_${activeTeamId}`, JSON.stringify(pData));
+          } catch (_) {}
+        }
       }
 
       if (fRes.ok) {
         const fData: Fixture[] = await fRes.json();
-        setFixtures(fData);
-        try {
-          localStorage.setItem(`subshuffle_cached_fixtures_${activeTeamId}`, JSON.stringify(fData));
-        } catch (_) {}
         if (fData.length > 0) {
+          setFixtures(fData);
+          hasFixtures = true;
+          try {
+            localStorage.setItem(`subshuffle_cached_fixtures_${activeTeamId}`, JSON.stringify(fData));
+          } catch (_) {}
           const urlFixture = new URLSearchParams(window.location.search).get('fixture');
           const matched = fData.find((f) => f.id === urlFixture);
           if (matched) {
@@ -348,31 +468,70 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             const upcoming = fData.find((f) => f.status === 'Upcoming') || fData[0];
             setActiveFixtureId(upcoming.id);
           }
-        } else {
-          setActiveFixtureId('');
+        }
+      }
+
+      // If demo team and backend didn't return players/fixtures, load from DEMO dataset
+      if (isDemoTeamId(activeTeamId)) {
+        if (!hasPlayers) {
+          const demoP = DEMO_PLAYERS.filter((p) => p.teamId === activeTeamId);
+          setPlayers(demoP);
+        }
+        if (!hasFixtures) {
+          const demoF = DEMO_FIXTURES.filter((f) => f.teamId === activeTeamId);
+          setFixtures(demoF);
+          if (demoF.length > 0 && (!activeFixtureId || !demoF.some((f) => f.id === activeFixtureId))) {
+            setActiveFixtureId(demoF[0].id);
+          }
         }
       }
     } catch (err: unknown) {
       console.warn('Network error loading team data, trying offline cache:', err);
+      let hasCachedP = false;
+      let hasCachedF = false;
       try {
         const cachedP =
           localStorage.getItem(`subshuffle_cached_players_${activeTeamId}`) ||
           localStorage.getItem(`squadrotate_cached_players_${activeTeamId}`);
-        if (cachedP) setPlayers(JSON.parse(cachedP));
+        if (cachedP) {
+          const pData = JSON.parse(cachedP);
+          if (pData.length > 0) {
+            setPlayers(pData);
+            hasCachedP = true;
+          }
+        }
         const cachedF =
           localStorage.getItem(`subshuffle_cached_fixtures_${activeTeamId}`) ||
           localStorage.getItem(`squadrotate_cached_fixtures_${activeTeamId}`);
         if (cachedF) {
           const fData: Fixture[] = JSON.parse(cachedF);
-          setFixtures(fData);
-          if (fData.length > 0 && (!activeFixtureId || !fData.some((f) => f.id === activeFixtureId))) {
-            setActiveFixtureId(fData[0].id);
+          if (fData.length > 0) {
+            setFixtures(fData);
+            hasCachedF = true;
+            if (!activeFixtureId || !fData.some((f) => f.id === activeFixtureId)) {
+              setActiveFixtureId(fData[0].id);
+            }
           }
         }
       } catch (cacheErr) {
         console.error('Failed reading cached players/fixtures:', cacheErr);
       }
-      setError(err instanceof Error ? err.message : 'Offline pitch mode active');
+
+      // If offline cache was also empty for demo team, fall back to built-in demo dataset
+      if (isDemoTeamId(activeTeamId)) {
+        if (!hasCachedP) {
+          setPlayers(DEMO_PLAYERS.filter((p) => p.teamId === activeTeamId));
+        }
+        if (!hasCachedF) {
+          const demoF = DEMO_FIXTURES.filter((f) => f.teamId === activeTeamId);
+          setFixtures(demoF);
+          if (demoF.length > 0 && (!activeFixtureId || !demoF.some((f) => f.id === activeFixtureId))) {
+            setActiveFixtureId(demoF[0].id);
+          }
+        }
+      } else {
+        setError(err instanceof Error ? err.message : 'Offline pitch mode active');
+      }
     } finally {
       setLoading(false);
     }
@@ -1244,6 +1403,8 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         savePostMatchRecording,
         getSuggestedSubs,
         refreshData,
+        enterDemoMode,
+        signOutUser,
       }}
     >
       {children}

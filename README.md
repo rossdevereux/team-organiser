@@ -270,5 +270,11 @@ Because this application stores player names, squad numbers, holiday/absence rec
 
 ---
 
+## 📝 Changelog
+All notable changes and release versions are documented in [CHANGELOG.md](CHANGELOG.md) following [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) standards.
+
+---
+
 ## 📜 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+

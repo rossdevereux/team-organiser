@@ -82,6 +82,8 @@ export interface Player {
   totalMinutesPlayed: number;
   captainCount?: number;
   playerOfTheMatchCount?: number;
+  isFixedPosition?: boolean; // When true, player remains in their fixed position all match without being rotated out
+  fixedPosition?: string; // Position slot code or category to fix (e.g. "GK", "CB", "DEF_L")
 }
 
 export interface PeriodLineup {
@@ -96,6 +98,7 @@ export interface MatchSquad {
   restedPlayerIds: string[]; // Rotated off (e.g. 3)
   lineupsByPeriod: PeriodLineup[];
   manualOverrides: boolean;
+  fixedPlayerPositions?: Record<string, string>; // playerId -> position code (e.g. { "p1": "GK" })
 }
 
 export interface PostMatchRecording {
@@ -124,6 +127,7 @@ export interface Fixture {
   matchPeriodCount?: number; // Override number of periods (e.g. 2, 3, 4) for this fixture
   periodDurationMinutes?: number; // Override period duration (e.g. 15, 20, 25, 30) for this fixture
   formation?: string; // Optional formation override for this fixture
+  fixedPlayerPositions?: Record<string, string>; // playerId -> position code (e.g. { "p1": "GK" })
   matchSquad?: MatchSquad;
   postMatchRecording?: PostMatchRecording;
 }

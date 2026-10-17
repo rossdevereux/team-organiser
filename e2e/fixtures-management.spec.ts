@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Fixtures Management Suite', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/?tab=fixtures');
+    await page.goto('/fixtures');
     await expect(page.locator('header')).toBeVisible();
     await expect(page.getByRole('heading', { name: /Fixtures & Matches/i })).toBeVisible();
   });
@@ -55,7 +55,7 @@ test.describe('Fixtures Management Suite', () => {
     await expect(page.getByRole('heading', { name: /Edit Fixture Logistics/i })).toBeVisible();
 
     // Verify team sheet input is present and fill
-    const teamSheetInput = page.getByPlaceholder(/Standard team setting/i);
+    const teamSheetInput = page.getByPlaceholder(/Default \(.*players\)|Standard team setting/i);
     await expect(teamSheetInput).toBeVisible();
     await teamSheetInput.fill('12');
 

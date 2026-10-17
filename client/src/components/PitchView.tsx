@@ -16,6 +16,8 @@ export const PitchView: React.FC = () => {
     selectedSwapSource,
     selectSwapSource,
     handleSwap,
+    enterDemoMode,
+    setActiveTab,
   } = useMatchday();
 
   const [dragOverPosition, setDragOverPosition] = useState<string | null>(null);
@@ -37,15 +39,39 @@ export const PitchView: React.FC = () => {
     [activeFormation]
   );
 
-  if (!activeFixture || !activeFixture.matchSquad) {
-    return null;
-  }
-
-  const currentLineup = activeFixture.matchSquad.lineupsByPeriod.find(
+  const currentLineup = activeFixture?.matchSquad?.lineupsByPeriod.find(
     (l) => l.period === activePeriod
   );
 
-  if (!currentLineup) return null;
+  if (!activeFixture || !activeFixture.matchSquad || !currentLineup) {
+    return (
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 sm:p-12 text-center space-y-4 shadow-xl">
+        <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 mx-auto flex items-center justify-center">
+          <Shirt className="w-7 h-7" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-base font-bold text-white">No Matchday Lineup Active</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            Select an upcoming match or launch the sample demo squad to explore tactical lineups and rotation controls.
+          </p>
+        </div>
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <button
+            onClick={() => enterDemoMode()}
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition cursor-pointer"
+          >
+            Launch Demo Squad
+          </button>
+          <button
+            onClick={() => setActiveTab('fixtures')}
+            className="px-4 py-2 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-200 text-xs font-semibold border border-slate-700 transition cursor-pointer"
+          >
+            Manage Fixtures
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const selectedPlayer = selectedSwapSource
     ? playerMap.get(selectedSwapSource.playerId)

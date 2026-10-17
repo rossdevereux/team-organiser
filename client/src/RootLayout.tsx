@@ -77,6 +77,20 @@ function DashboardShell() {
     return () => window.removeEventListener('beforeprint', handleBeforePrint);
   }, []);
 
+  // Backward compatibility: handle legacy /?tab= redirects for bookmarks and tests
+  useEffect(() => {
+    if (location.pathname === '/') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab && ['lineup', 'matrix', 'squad', 'fixtures', 'stats', 'teams', 'admin'].includes(tab)) {
+        (navigate as any)({
+          to: `/${tab}`,
+          search: (prev: any) => prev,
+        });
+      }
+    }
+  }, [location.pathname, navigate]);
+
   const handleAutoRotate = async () => {
     await autoRotateCurrentFixture();
     showToast(

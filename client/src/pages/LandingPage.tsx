@@ -9,16 +9,14 @@ const PrivacyPolicyModal = React.lazy(() =>
 );
 
 export const LandingPage: React.FC = () => {
-  const { currentUser } = useMatchday();
+  const { currentUser, enterDemoMode } = useMatchday();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [privacyOpen, setPrivacyOpen] = useState(false);
 
   const handleStartDemo = () => {
-    sessionStorage.setItem('subshuffle_demo_entered', 'true');
-    localStorage.setItem('subshuffle_has_visited', 'true');
-    showToast('Entered Demo Mode with sample squad: The Rovers U11', 'info');
-    navigate({ to: '/lineup', search: (prev) => prev });
+    enterDemoMode();
+    showToast('Entered Demo Mode with sample squad: The Rovers FC', 'info');
   };
 
   const handleGoToApp = () => {

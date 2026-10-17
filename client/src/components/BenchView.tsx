@@ -61,7 +61,21 @@ export const BenchView: React.FC = () => {
       .filter((p): p is Player => Boolean(p));
   }, [activeFixture?.matchSquad?.restedPlayerIds, playerMap]);
 
-  if (!activeFixture || !activeFixture.matchSquad || !currentLineup) return null;
+  if (!activeFixture || !activeFixture.matchSquad || !currentLineup) {
+    return (
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-center space-y-4 shadow-xl">
+        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 mx-auto flex items-center justify-center">
+          <Armchair className="w-6 h-6" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-base font-bold text-white">Substitutes Bench</h3>
+          <p className="text-xs text-slate-400 max-w-xs mx-auto">
+            Substitutes and rotation candidates will appear here during active matchdays.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const selectedSquadCount = activeFixture.matchSquad.selectedPlayerIds.length;
   const squadCap = activeFixture.matchdaySquadCap || settings.matchdaySquadCap || 10;
