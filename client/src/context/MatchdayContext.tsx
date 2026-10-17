@@ -21,6 +21,7 @@ import {
   MatchPlayerStats,
   PostMatchRecording,
   SuggestedSubPlan,
+  GoalScorer,
 } from '../types';
 import { getFormationsForTeamSize, findFormation, DEFAULT_FORMATIONS } from '../utils/formations';
 import { DEMO_TEAMS, DEMO_PLAYERS, DEMO_FIXTURES, isDemoTeamId } from '../utils/demoData';
@@ -93,6 +94,16 @@ interface MatchdayContextType {
   createSeason: (seasonName: string) => Promise<void>;
   // Post-Match & Subs
   savePostMatchRecording: (fixtureId: string, recording: PostMatchRecording) => Promise<void>;
+  updateFixtureScore: (
+    fixtureId: string,
+    scoreData: {
+      homeScore: number;
+      awayScore: number;
+      scorers?: GoalScorer[];
+      status?: Fixture['status'];
+      isLive?: boolean;
+    }
+  ) => Promise<void>;
   getSuggestedSubs: (fixtureId: string, interval?: number) => Promise<SuggestedSubPlan[]>;
   isPlayerFixed: (playerId: string, fixture?: Fixture) => boolean;
   getFixedPlayerPosition: (playerId: string, fixture?: Fixture) => string | undefined;
@@ -1296,6 +1307,51 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const updateFixtureScore = async (
+    fixtureId: string,
+    scoreData: {
+      homeScore: number;
+      awayScore: number;
+      scorers?: GoalScorer[];
+      status?: Fixture['status'];
+      isLive?: boolean;
+    }
+  ) => {
+    try {
+      // Optimistic update locally
+      setFixtures((prev) =>
+        prev.map((f) => {
+          if (f.id === fixtureId) {
+            return {
+              ...f,
+              homeScore: scoreData.homeScore,
+              awayScore: scoreData.awayScore,
+              scorers: scoreData.scorers || [],
+              status: scoreData.status || (scoreData.isLive ? 'In Progress' : f.status),
+              isLive: scoreData.isLive !== undefined ? scoreData.isLive : f.isLive,
+            };
+          }
+          return f;
+        })
+      );
+
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/fixtures/${fixtureId}/score`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(scoreData),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.fixture) {
+          setFixtures((prev) => prev.map((f) => (f.id === fixtureId ? data.fixture : f)));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update fixture score:', err);
+    }
+  };
+
   const getSuggestedSubs = async (
     fixtureId: string,
     interval: number = 10
@@ -1652,6 +1708,7 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateSettings,
         createSeason,
         savePostMatchRecording,
+        updateFixtureScore,
         getSuggestedSubs,
         isPlayerFixed,
         getFixedPlayerPosition,

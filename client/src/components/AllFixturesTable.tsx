@@ -224,6 +224,15 @@ export const AllFixturesTable: React.FC<AllFixturesTableProps> = ({ selectedSeas
                               {fixture.matchPeriodCount}P
                             </span>
                           ) : null}
+                          {typeof fixture.homeScore === 'number' && typeof fixture.awayScore === 'number' && (
+                            <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded border ${
+                              fixture.isLive
+                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+                                : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                            }`}>
+                              {fixture.isLive ? '🔴 ' : '⚽ '}{fixture.homeScore} - {fixture.awayScore}
+                            </span>
+                          )}
                         </div>
 
                         <div className="font-extrabold text-sm text-white hover:text-sky-400 transition flex items-center justify-between gap-1">

@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Fixture Final Score & Goal Scorers (Live Match & Post-Match Results)**:
+  - Added ability to record match scores (Home and Away) and individual goal scorers with player attribution, stoppage time minutes format (e.g. `23`, `45+2`), and own-goal (`OG`) flags ([#4](https://github.com/rossdevereux/team-organiser/issues/4)).
+  - Implemented interactive [`ScoreScorersModal.tsx`](client/src/components/ScoreScorersModal.tsx) with score steppers, reactive validation banners preventing goal scorers from exceeding entered score totals, and quick live/final status toggling.
+  - Implemented live scoreboard controls and real-time score adjustment buttons inside [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx).
+  - Added prominent score badges and goal scorers breakdown tags on fixture cards in [`FixtureManager.tsx`](client/src/components/FixtureManager.tsx), [`AllFixturesTable.tsx`](client/src/components/AllFixturesTable.tsx), and active match header in [`RootLayout.tsx`](client/src/RootLayout.tsx).
+  - Integrated goal metrics into season player fair play and match participation statistics in [`FairPlayStats.tsx`](client/src/components/FairPlayStats.tsx) and [`SeasonFairPlayView.tsx`](client/src/components/fairplay/SeasonFairPlayView.tsx).
+  - Added backend endpoint `PUT /api/fixtures/:id/score` in [`api.ts`](server/src/routes/api.ts) and `updateFixtureScore` in [`storage.ts`](server/src/db/storage.ts) with input sanitization and validation rules.
+  - Added unit test suite in [`fixtureScore.test.ts`](server/src/tests/fixtureScore.test.ts) and end-to-end tests across Chromium, Mobile, and Tablet viewports in [`fixture-score.spec.ts`](e2e/fixture-score.spec.ts).
 - **Application Version & Interactive Changelog View**:
   - Dynamically injected the semver application version from `package.json` into the client build via Vite (`import.meta.env.VITE_APP_VERSION`), accessible via [`version.ts`](client/src/utils/version.ts).
   - Added discrete, accessible version indicator button in the global footer across both the main matchday layout ([`RootLayout.tsx`](client/src/RootLayout.tsx)) and public landing page ([`LandingHero.tsx`](client/src/components/LandingHero.tsx)).

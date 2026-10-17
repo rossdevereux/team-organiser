@@ -47,13 +47,14 @@ export const FairPlayStats: React.FC = () => {
       attPeriods: number;
       captainCount: number;
       potmCount: number;
+      goalsCount: number;
     }
 
     const aggMap = new Map<string, PlayerFixtureAgg>();
     const getAgg = (id: string): PlayerFixtureAgg => {
       let agg = aggMap.get(id);
       if (!agg) {
-        agg = { fixtureMatches: 0, fixtureMinutes: 0, gkCount: 0, defPeriods: 0, midPeriods: 0, attPeriods: 0, captainCount: 0, potmCount: 0 };
+        agg = { fixtureMatches: 0, fixtureMinutes: 0, gkCount: 0, defPeriods: 0, midPeriods: 0, attPeriods: 0, captainCount: 0, potmCount: 0, goalsCount: 0 };
         aggMap.set(id, agg);
       }
       return agg;
@@ -62,6 +63,13 @@ export const FairPlayStats: React.FC = () => {
     relevantFixtures.forEach((f) => {
       if (f.captainId) getAgg(f.captainId).captainCount++;
       if (f.playerOfTheMatchId) getAgg(f.playerOfTheMatchId).potmCount++;
+      if (f.scorers) {
+        f.scorers.forEach((s) => {
+          if (s.playerId) {
+            getAgg(s.playerId).goalsCount++;
+          }
+        });
+      }
       if (!f.matchSquad) return;
 
       const duration = f.periodDurationMinutes || settings.periodDurationMinutes || 25;
@@ -121,6 +129,7 @@ export const FairPlayStats: React.FC = () => {
         attPeriods: 0,
         captainCount: 0,
         potmCount: 0,
+        goalsCount: 0,
       };
 
       const totalMatches = completedFixtures.length > 0 ? agg.fixtureMatches : p.matchesPlayed || 0;
@@ -144,6 +153,7 @@ export const FairPlayStats: React.FC = () => {
         thirdsPlayedCount: thirdsCount,
         captainCount: agg.captainCount,
         potmCount: agg.potmCount,
+        goalsCount: agg.goalsCount,
       };
     });
 

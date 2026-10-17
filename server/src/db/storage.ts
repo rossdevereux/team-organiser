@@ -11,6 +11,7 @@ import {
   ClubSettings,
   AdminUser,
   BackupData,
+  GoalScorer,
 } from '../types.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -959,6 +960,33 @@ export class StorageManager {
 
     fixture.postMatchRecording = postMatchRecording;
     fixture.status = 'Completed';
+    await this.saveFixture(fixture);
+    return fixture;
+  }
+
+  async updateFixtureScore(
+    fixtureId: string,
+    scoreData: {
+      homeScore: number;
+      awayScore: number;
+      scorers?: GoalScorer[];
+      status?: Fixture['status'];
+      isLive?: boolean;
+    }
+  ): Promise<Fixture | null> {
+    await this.ensureInitialized();
+    const fixture = await this.getFixtureById(fixtureId);
+    if (!fixture) return null;
+
+    fixture.homeScore = Math.max(0, Math.floor(scoreData.homeScore));
+    fixture.awayScore = Math.max(0, Math.floor(scoreData.awayScore));
+    fixture.scorers = Array.isArray(scoreData.scorers) ? scoreData.scorers : [];
+    if (scoreData.status) {
+      fixture.status = scoreData.status;
+    }
+    if (scoreData.isLive !== undefined) {
+      fixture.isLive = scoreData.isLive;
+    }
     await this.saveFixture(fixture);
     return fixture;
   }

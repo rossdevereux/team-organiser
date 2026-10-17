@@ -9,7 +9,7 @@ import {
 import { getChangelogData } from '../services/changelogService.js';
 import { getFormationsForTeamSize, DEFAULT_FORMATIONS } from '../db/formations.js';
 import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
-import { Player, TeamSettings, Fixture, MatchSquad, Team, Formation, PostMatchRecording } from '../types.js';
+import { Player, TeamSettings, Fixture, MatchSquad, Team, Formation, PostMatchRecording, GoalScorer } from '../types.js';
 
 const router = Router();
 
@@ -710,6 +710,109 @@ router.put('/fixtures/:id/post-match', async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to save post-match recording', details: err.message });
+  }
+});
+
+// PUT /api/fixtures/:id/score (Record final score and goal scorers or live-match updates)
+router.put('/fixtures/:id/score', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const fixture = await storage.getFixtureById(id);
+    if (!fixture) {
+      return res.status(404).json({ error: 'Fixture not found' });
+    }
+
+    // Permission check: ensure user has team access if fixture belongs to a team and token is provided
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (fixture.teamId && userId) {
+      const team = await storage.getTeamById(fixture.teamId);
+      if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
+        return res.status(403).json({ error: 'Access denied: only authorised coaches or organisers can record match scores' });
+      }
+    }
+
+    const { homeScore, awayScore, scorers, status, isLive } = req.body as {
+      homeScore: number;
+      awayScore: number;
+      scorers?: GoalScorer[];
+      status?: Fixture['status'];
+      isLive?: boolean;
+    };
+
+    // Validation: scores must be non-negative integers
+    if (typeof homeScore !== 'number' || isNaN(homeScore) || homeScore < 0 || !Number.isInteger(homeScore)) {
+      return res.status(400).json({ error: 'Home score must be a non-negative whole integer (>= 0)' });
+    }
+    if (typeof awayScore !== 'number' || isNaN(awayScore) || awayScore < 0 || !Number.isInteger(awayScore)) {
+      return res.status(400).json({ error: 'Away score must be a non-negative whole integer (>= 0)' });
+    }
+
+    // Validation: scorers array and counts per team
+    const validScorers: GoalScorer[] = [];
+    if (scorers !== undefined) {
+      if (!Array.isArray(scorers)) {
+        return res.status(400).json({ error: 'Scorers must be provided as an array' });
+      }
+
+      for (let i = 0; i < scorers.length; i++) {
+        const s = scorers[i];
+        if (!s || (s.team !== 'home' && s.team !== 'away')) {
+          return res.status(400).json({ error: `Scorer at index ${i} must have a valid team ('home' or 'away')` });
+        }
+        if (s.minute !== undefined && s.minute !== null && s.minute !== '') {
+          const minuteStr = String(s.minute).trim();
+          // Allow numeric or stoppage time formats like '45', '45+2', '90+4'
+          const minuteRegex = /^\d+(\+\d+)?$/;
+          if (!minuteRegex.test(minuteStr)) {
+            return res.status(400).json({
+              error: `Invalid goal minute '${s.minute}' at index ${i}. Must be numeric (e.g. 15) or stoppage time (e.g. 45+2)`,
+            });
+          }
+        }
+        validScorers.push({
+          id: s.id || `scorer_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          playerId: s.playerId?.trim() || undefined,
+          playerName: s.playerName?.trim() || undefined,
+          team: s.team,
+          minute: s.minute !== undefined && s.minute !== null && s.minute !== '' ? String(s.minute).trim() : undefined,
+          isOwnGoal: Boolean(s.isOwnGoal),
+        });
+      }
+
+      const homeScorerCount = validScorers.filter((s) => s.team === 'home').length;
+      const awayScorerCount = validScorers.filter((s) => s.team === 'away').length;
+
+      if (homeScorerCount > homeScore) {
+        return res.status(400).json({
+          error: `Total home scorers (${homeScorerCount}) cannot exceed entered home score (${homeScore})`,
+        });
+      }
+      if (awayScorerCount > awayScore) {
+        return res.status(400).json({
+          error: `Total away scorers (${awayScorerCount}) cannot exceed entered away score (${awayScore})`,
+        });
+      }
+    }
+
+    const updated = await storage.updateFixtureScore(id, {
+      homeScore,
+      awayScore,
+      scorers: validScorers,
+      status: status || (isLive ? 'In Progress' : fixture.status === 'Upcoming' ? 'Completed' : fixture.status),
+      isLive: isLive !== undefined ? isLive : false,
+    });
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Fixture not found' });
+    }
+
+    res.json({
+      message: 'Fixture score and goal scorers saved successfully',
+      fixture: updated,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to save fixture score', details: err.message });
   }
 });
 

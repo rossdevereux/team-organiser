@@ -6,6 +6,7 @@ import { PostMatchModal } from './PostMatchModal';
 import { SuggestedSubsModal } from './SuggestedSubsModal';
 import { AllFixturesTable } from './AllFixturesTable';
 import { EditFixtureModal } from './EditFixtureModal';
+import { ScoreScorersModal } from './ScoreScorersModal';
 import { EmptyState } from './EmptyState';
 import { useToast } from '../context/ToastContext';
 import {
@@ -88,6 +89,7 @@ export const FixtureManager: React.FC = () => {
   const [postMatchFixture, setPostMatchFixture] = useState<Fixture | null>(null);
   const [suggestedSubsFixture, setSuggestedSubsFixture] = useState<Fixture | null>(null);
   const [editingFixture, setEditingFixture] = useState<Fixture | null>(null);
+  const [scoreFixture, setScoreFixture] = useState<Fixture | null>(null);
 
   const filteredFixtures = fixtures.filter((f) => {
     if (selectedSeasonFilter === 'ALL') return true;
@@ -637,10 +639,29 @@ export const FixtureManager: React.FC = () => {
                         <span>{fixture.postMatchRecording?.trackingMode === 'full_credit' ? '100% Credit' : 'Exact Recorded'}</span>
                       </span>
                     )}
+                    {typeof fixture.homeScore === 'number' && typeof fixture.awayScore === 'number' && (
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                          fixture.isLive
+                            ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+                            : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                        }`}
+                      >
+                        <span>{fixture.isLive ? '🔴 LIVE' : '⚽'}</span>
+                        <span>{fixture.homeScore} - {fixture.awayScore}</span>
+                      </span>
+                    )}
                   </div>
-                  <h3 className="text-base font-bold text-white mt-2">
-                    vs {fixture.opponent}
-                  </h3>
+                  <div className="flex items-center gap-2 mt-2">
+                    <h3 className="text-base font-bold text-white">
+                      vs {fixture.opponent}
+                    </h3>
+                    {typeof fixture.homeScore === 'number' && typeof fixture.awayScore === 'number' && (
+                      <span className="text-xs font-extrabold px-2 py-0.5 rounded-lg bg-slate-800 text-sky-400 font-mono border border-slate-700">
+                        {fixture.homeScore} - {fixture.awayScore}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {isActive && (
@@ -730,10 +751,56 @@ export const FixtureManager: React.FC = () => {
                     </span>
                   </div>
                 )}
+
+                {/* Goal Scorers list preview */}
+                {fixture.scorers && fixture.scorers.length > 0 && (
+                  <div className="pt-1.5 flex items-center gap-1.5 flex-wrap text-[10px]">
+                    <span className="text-slate-400 font-semibold flex items-center gap-1">
+                      <span>⚽</span>
+                      <span>Goals:</span>
+                    </span>
+                    {fixture.scorers.map((s, idx) => (
+                      <span
+                        key={s.id || idx}
+                        className={`px-1.5 py-0.5 rounded-md font-medium border ${
+                          s.team === 'home'
+                            ? 'bg-sky-500/10 text-sky-300 border-sky-500/20'
+                            : 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                        }`}
+                      >
+                        {s.playerName || 'Goal'}{s.minute ? ` (${s.minute}')` : ''}{s.isOwnGoal ? ' [OG]' : ''}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Action Buttons: Suggested Subs & Post-Match Recording */}
+              {/* Action Buttons: Suggested Subs, Post-Match Recording & Score & Scorers */}
               <div className="pt-2 flex items-center gap-2 flex-wrap text-xs">
+                {/* Score & Scorers Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setScoreFixture(fixture);
+                  }}
+                  className={`flex-1 py-1.5 px-2.5 rounded-xl border font-semibold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer ${
+                    typeof fixture.homeScore === 'number'
+                      ? 'bg-slate-800 hover:bg-slate-700 text-white border-slate-700'
+                      : fixture.status === 'Completed' || fixture.status === 'Played'
+                      ? 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border-indigo-500/40'
+                      : 'bg-slate-850 hover:bg-slate-800 text-slate-300 border-slate-800'
+                  }`}
+                  aria-label={`Record or edit score for fixture vs ${fixture.opponent}`}
+                >
+                  <span>⚽</span>
+                  <span>
+                    {typeof fixture.homeScore === 'number'
+                      ? `Score (${fixture.homeScore}-${fixture.awayScore})`
+                      : 'Score & Scorers'}
+                  </span>
+                </button>
+
                 {fixture.matchSquad && (
                   <button
                     type="button"
@@ -741,7 +808,7 @@ export const FixtureManager: React.FC = () => {
                       e.stopPropagation();
                       setSuggestedSubsFixture(fixture);
                     }}
-                    className="flex-1 py-1.5 px-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold text-[11px] flex items-center justify-center gap-1 transition"
+                    className="flex-1 py-1.5 px-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer"
                   >
                     <ArrowRightLeft className="w-3 h-3 text-amber-400" />
                     <span>Suggested Subs</span>
@@ -755,10 +822,10 @@ export const FixtureManager: React.FC = () => {
                       e.stopPropagation();
                       setPostMatchFixture(fixture);
                     }}
-                    className="flex-1 py-1.5 px-2.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold text-[11px] flex items-center justify-center gap-1 transition"
+                    className="flex-1 py-1.5 px-2.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold text-[11px] flex items-center justify-center gap-1 transition cursor-pointer"
                   >
                     <Sliders className="w-3 h-3 text-indigo-400" />
-                    <span>Post-Match Record</span>
+                    <span>Post-Match</span>
                   </button>
                 )}
               </div>
@@ -947,6 +1014,13 @@ export const FixtureManager: React.FC = () => {
         fixture={editingFixture}
         isOpen={Boolean(editingFixture)}
         onClose={() => setEditingFixture(null)}
+      />
+
+      {/* Score & Goal Scorers Modal */}
+      <ScoreScorersModal
+        fixture={scoreFixture}
+        isOpen={Boolean(scoreFixture)}
+        onClose={() => setScoreFixture(null)}
       />
     </div>
   );

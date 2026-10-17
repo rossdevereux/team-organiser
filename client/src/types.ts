@@ -110,6 +110,15 @@ export interface PostMatchRecording {
   notes?: string;
 }
 
+export interface GoalScorer {
+  id?: string;
+  playerId?: string; // Optional if opposition or unassigned player
+  playerName?: string; // Player display name
+  team: 'home' | 'away'; // 'home' or 'away'
+  minute?: string | number; // e.g. 15, "45+2"
+  isOwnGoal?: boolean;
+}
+
 export interface Fixture {
   id: string;
   teamId?: string;
@@ -123,7 +132,7 @@ export interface Fixture {
   playerOfTheMatchId?: string; // Player ID of Player of the Match / Sportsmanship Award
   opponent: string;
   venue: 'Home' | 'Away';
-  status: 'Upcoming' | 'Completed' | 'Draft';
+  status: 'Upcoming' | 'In Progress' | 'Completed' | 'Played' | 'Draft' | 'Cancelled' | 'Postponed';
   matchdaySquadCap?: number; // Override standard team sheet / squad size (e.g. for friendlies/tournaments)
   pitchPlayerCount?: number; // Override pitch player count (e.g. 5, 7, 9, 11) for this fixture
   matchPeriodCount?: number; // Override number of periods (e.g. 2, 3, 4) for this fixture
@@ -132,6 +141,10 @@ export interface Fixture {
   fixedPlayerPositions?: Record<string, string>; // playerId -> position code (e.g. { "p1": "GK" })
   matchSquad?: MatchSquad;
   postMatchRecording?: PostMatchRecording;
+  homeScore?: number;
+  awayScore?: number;
+  scorers?: GoalScorer[];
+  isLive?: boolean;
 }
 
 // Stats computed per player in a match

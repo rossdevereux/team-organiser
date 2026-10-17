@@ -20,6 +20,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { SingleSubChange } from '../types';
+import { ScoreScorersModal } from './ScoreScorersModal';
 
 interface LiveMatchModalProps {
   isOpen: boolean;
@@ -72,6 +73,8 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     players,
     handleSwap,
     getSuggestedSubs,
+    updateFixtureScore,
+    activeTeam,
   } = useMatchday();
 
   const [isRunning, setIsRunning] = useState<boolean>(false);
@@ -82,6 +85,27 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
   const [suggestedChanges, setSuggestedChanges] = useState<SingleSubChange[]>([]);
   const [selectedOffId, setSelectedOffId] = useState<string>('');
   const [selectedOnId, setSelectedOnId] = useState<string>('');
+  const [isScoreModalOpen, setIsScoreModalOpen] = useState<boolean>(false);
+
+  const homeScore = typeof activeFixture?.homeScore === 'number' ? activeFixture.homeScore : 0;
+  const awayScore = typeof activeFixture?.awayScore === 'number' ? activeFixture.awayScore : 0;
+  const liveScorers = activeFixture?.scorers || [];
+  const ourTeamName = activeTeam?.name || 'Our Team';
+  const isOurTeamHome = activeFixture?.venue !== 'Away';
+
+  const handleLiveScoreChange = async (team: 'home' | 'away', delta: number) => {
+    if (!activeFixture) return;
+    const newHome = team === 'home' ? Math.max(0, homeScore + delta) : homeScore;
+    const newAway = team === 'away' ? Math.max(0, awayScore + delta) : awayScore;
+
+    await updateFixtureScore(activeFixture.id, {
+      homeScore: newHome,
+      awayScore: newAway,
+      scorers: liveScorers,
+      status: 'In Progress',
+      isLive: true,
+    });
+  };
 
   const intervalSeconds = (settings.defaultSubIntervalMinutes || 10) * 60;
   const periodDurationSeconds = (settings.periodDurationMinutes || 25) * 60;
@@ -147,9 +171,9 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     };
   }, [isRunning, intervalSeconds, soundEnabled]);
 
-  if (!isOpen || !activeFixture || !activeFixture.matchSquad) return null;
+  if (!isOpen || !activeFixture) return null;
 
-  const currentLineup = activeFixture.matchSquad.lineupsByPeriod.find(
+  const currentLineup = activeFixture.matchSquad?.lineupsByPeriod?.find(
     (l) => l.period === activePeriod
   );
   const playerMap = new Map(players.map((p) => [p.id, p]));
@@ -293,6 +317,96 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
               title="Close live match (Esc)"
             >
               <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Live Match Scoreboard Strip */}
+        <div
+          className={`p-4 rounded-3xl border flex items-center justify-between gap-4 flex-wrap shadow-xl ${
+            highContrast ? 'bg-black border-yellow-400' : 'bg-slate-900 border-slate-800'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">⚽</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase font-black tracking-widest text-slate-400">
+                  Live Match Score
+                </span>
+                <span className="text-[10px] px-2 py-0.2 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30 animate-pulse">
+                  IN PROGRESS
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5 mt-1">
+                <span className="text-sm font-bold text-white truncate max-w-[120px] sm:max-w-[180px]">
+                  {isOurTeamHome ? ourTeamName : activeFixture.opponent}
+                </span>
+                <span className="text-2xl font-mono font-black text-amber-400 bg-slate-950 px-3 py-0.5 rounded-xl border border-slate-800">
+                  {homeScore} - {awayScore}
+                </span>
+                <span className="text-sm font-bold text-white truncate max-w-[120px] sm:max-w-[180px]">
+                  {isOurTeamHome ? activeFixture.opponent : ourTeamName}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Steppers & Scorers Action */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-2xl border border-slate-800">
+              <span className="text-[10px] text-slate-400 font-bold px-1.5">Home:</span>
+              <button
+                type="button"
+                onClick={() => handleLiveScoreChange('home', -1)}
+                aria-label="Decrease home score live"
+                className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center cursor-pointer"
+              >
+                -
+              </button>
+              <span className="w-5 text-center font-mono font-bold text-xs text-white">
+                {homeScore}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleLiveScoreChange('home', 1)}
+                aria-label="Increase home score live"
+                className="w-7 h-7 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs flex items-center justify-center cursor-pointer"
+              >
+                +
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-2xl border border-slate-800">
+              <span className="text-[10px] text-slate-400 font-bold px-1.5">Away:</span>
+              <button
+                type="button"
+                onClick={() => handleLiveScoreChange('away', -1)}
+                aria-label="Decrease away score live"
+                className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-xs flex items-center justify-center cursor-pointer"
+              >
+                -
+              </button>
+              <span className="w-5 text-center font-mono font-bold text-xs text-white">
+                {awayScore}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleLiveScoreChange('away', 1)}
+                aria-label="Increase away score live"
+                className="w-7 h-7 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs flex items-center justify-center cursor-pointer"
+              >
+                +
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsScoreModalOpen(true)}
+              className="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>⚽</span>
+              <span>Scorers ({liveScorers.length})</span>
             </button>
           </div>
         </div>
@@ -561,6 +675,14 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
           </div>
         )}
       </div>
+
+      {/* Score & Scorers Modal */}
+      <ScoreScorersModal
+        fixture={activeFixture}
+        isOpen={isScoreModalOpen}
+        onClose={() => setIsScoreModalOpen(false)}
+        defaultLiveMode={true}
+      />
     </div>
   );
 };

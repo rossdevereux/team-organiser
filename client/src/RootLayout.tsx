@@ -314,10 +314,22 @@ function DashboardShell() {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-xl sm:text-2xl font-black text-[var(--text-main)] tracking-tight">
                     {activeTeam ? activeTeam.name : 'Team'} vs {activeFixture.opponent}
                   </h1>
+                  {typeof activeFixture.homeScore === 'number' && typeof activeFixture.awayScore === 'number' && (
+                    <span
+                      className={`text-sm sm:text-base font-black px-2.5 py-0.5 rounded-xl font-mono border ${
+                        activeFixture.isLive
+                          ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+                          : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                      }`}
+                    >
+                      {activeFixture.isLive ? '🔴 ' : '⚽ '}
+                      {activeFixture.homeScore} - {activeFixture.awayScore}
+                    </span>
+                  )}
                   <button
                     onClick={() => setEditActiveFixtureOpen(true)}
                     className="p-1.5 rounded-xl bg-[var(--surface-base)] hover:bg-indigo-600/20 text-slate-400 hover:text-indigo-300 border border-[var(--surface-border)] transition cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"

@@ -23,6 +23,7 @@ export interface SeasonPlayerStat {
   thirdsPlayedCount: number;
   captainCount: number;
   potmCount: number;
+  goalsCount: number;
   diffFromAvg: number;
   equityCompliant: boolean;
   equityPercent: number;
@@ -222,6 +223,7 @@ export const SeasonFairPlayView: React.FC<SeasonFairPlayViewProps> = ({
                     </span>
                     <span className="text-[11px] text-slate-400">
                       {item.totalMatches} matches logged
+                      {item.goalsCount > 0 ? ` • ⚽ ${item.goalsCount} goal${item.goalsCount > 1 ? 's' : ''}` : ''}
                     </span>
                   </div>
                 </div>
@@ -250,6 +252,12 @@ export const SeasonFairPlayView: React.FC<SeasonFairPlayViewProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
+                  {item.goalsCount > 0 && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                      <span>⚽</span>
+                      <span>{item.goalsCount}</span>
+                    </span>
+                  )}
                   <span
                     className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                       item.equityCompliant
