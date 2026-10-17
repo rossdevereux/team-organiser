@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-17
+
 ### Added
 - **Coach Release Notes**: Simplified release notes without technical jargon to help you quickly see what is new.
 
