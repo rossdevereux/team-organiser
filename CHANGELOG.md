@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-17
+
 ### Added
 - **Fixture Final Score & Goal Scorers (Live Match & Post-Match Results)**:
   - Added ability to record match scores (Home and Away) and individual goal scorers with player attribution, stoppage time minutes format (e.g. `23`, `45+2`), and own-goal (`OG`) flags ([#4](https://github.com/rossdevereux/team-organiser/issues/4)).
