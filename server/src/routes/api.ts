@@ -467,6 +467,7 @@ router.post('/fixtures', async (req: Request, res: Response) => {
       matchPeriodCount: body.matchPeriodCount ? Number(body.matchPeriodCount) : undefined,
       periodDurationMinutes: body.periodDurationMinutes ? Number(body.periodDurationMinutes) : undefined,
       formation: body.formation?.trim() || undefined,
+      fixedPlayerPositions: body.fixedPlayerPositions || undefined,
     };
 
     const saved = await storage.saveFixture(newFixture);
@@ -517,6 +518,11 @@ router.put('/fixtures/:id', async (req: Request, res: Response) => {
         ? (req.body.formation?.trim() || undefined)
         : existing.formation;
 
+    const fixedPlayerPositions =
+      req.body.fixedPlayerPositions !== undefined
+        ? req.body.fixedPlayerPositions
+        : existing.fixedPlayerPositions;
+
     const updated: Fixture = {
       ...existing,
       ...req.body,
@@ -525,6 +531,7 @@ router.put('/fixtures/:id', async (req: Request, res: Response) => {
       matchPeriodCount,
       periodDurationMinutes,
       formation,
+      fixedPlayerPositions,
       groundAddress: groundAddress || undefined,
       mapsUrl: mapsUrl || undefined,
       id,
@@ -534,6 +541,26 @@ router.put('/fixtures/:id', async (req: Request, res: Response) => {
     res.json(saved);
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to update fixture', details: err.message });
+  }
+});
+
+// PUT /api/fixtures/:id/fixed-positions (Lock/unlock players in position all match)
+router.put('/fixtures/:id/fixed-positions', async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const { fixedPlayerPositions } = req.body as { fixedPlayerPositions?: Record<string, string> };
+    const existing = await storage.getFixtureById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Fixture not found' });
+    }
+    existing.fixedPlayerPositions = fixedPlayerPositions;
+    if (existing.matchSquad) {
+      existing.matchSquad.fixedPlayerPositions = fixedPlayerPositions;
+    }
+    const saved = await storage.saveFixture(existing);
+    res.json(saved);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to update fixed positions', details: err.message });
   }
 });
 

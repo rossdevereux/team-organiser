@@ -18,6 +18,8 @@ import {
   Shield,
   Layers,
   Sliders,
+  Lock,
+  Unlock,
 } from 'lucide-react';
 
 interface EditFixtureModalProps {
@@ -58,6 +60,7 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
   const [pitchPlayerCount, setPitchPlayerCount] = useState<string>('');
   const [matchPeriodCount, setMatchPeriodCount] = useState<string>('');
   const [periodDurationMinutes, setPeriodDurationMinutes] = useState<string>('');
+  const [fixedPositions, setFixedPositions] = useState<Record<string, string>>({});
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   useEffect(() => {
@@ -75,6 +78,7 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
       setPitchPlayerCount(fixture.pitchPlayerCount ? String(fixture.pitchPlayerCount) : '');
       setMatchPeriodCount(fixture.matchPeriodCount ? String(fixture.matchPeriodCount) : '');
       setPeriodDurationMinutes(fixture.periodDurationMinutes ? String(fixture.periodDurationMinutes) : '');
+      setFixedPositions(fixture.fixedPlayerPositions || {});
       setIsDeleting(false);
     }
   }, [fixture, currentDefaultSeason]);
@@ -120,6 +124,7 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
       pitchPlayerCount: pitchPlayerCount.trim() ? parseInt(pitchPlayerCount, 10) : undefined,
       matchPeriodCount: matchPeriodCount.trim() ? parseInt(matchPeriodCount, 10) : undefined,
       periodDurationMinutes: periodDurationMinutes.trim() ? parseInt(periodDurationMinutes, 10) : undefined,
+      fixedPlayerPositions: Object.keys(fixedPositions).length > 0 ? fixedPositions : undefined,
     });
 
     onClose();
@@ -512,6 +517,149 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
                     Minutes per period for fair play stats.
                   </p>
                 </div>
+              </div>
+            </div>
+
+            {/* Matchday Position Locks Override */}
+            <div className="sm:col-span-2 pt-3 border-t border-slate-800 space-y-3">
+              <div className="flex items-center gap-2">
+                <Lock className="w-4 h-4 text-amber-400" />
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Matchday Fixed Positions (Stay on Pitch All Match)
+                </h4>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Lock a player (e.g. Goalkeeper) in position for this match only, or unlock a globally fixed player to let them rotate freely this week.
+              </p>
+
+              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                {players
+                  .filter((p) => {
+                    const isGk = p.preferredPositions.includes('Goalkeeper');
+                    const isGloballyFixed = Boolean(p.isFixedPosition);
+                    const hasOverride = Boolean(fixedPositions[p.id]);
+                    return isGk || isGloballyFixed || hasOverride;
+                  })
+                  .map((p) => {
+                    const isGk = p.preferredPositions.includes('Goalkeeper');
+                    const isGloballyFixed = Boolean(p.isFixedPosition);
+                    const currentOverride = fixedPositions[p.id];
+                    const isExplicitlyUnlocked = currentOverride?.toUpperCase() === 'UNLOCKED';
+                    const isExplicitlyLocked = Boolean(currentOverride && !isExplicitlyUnlocked);
+                    const effectiveLocked = isExplicitlyLocked || (isGloballyFixed && !isExplicitlyUnlocked);
+                    const effectivePos =
+                      currentOverride && !isExplicitlyUnlocked
+                        ? currentOverride
+                        : p.fixedPosition || (isGk ? 'GK' : 'DEF_C');
+
+                    return (
+                      <div
+                        key={p.id}
+                        className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3 text-xs"
+                      >
+                        <div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-semibold text-white">
+                              {p.squadNumber ? `#${p.squadNumber} ` : ''}{p.name}
+                            </span>
+                            {isGk && (
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
+                                GK
+                              </span>
+                            )}
+                            {isGloballyFixed && (
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                [Profile Default: Fixed {p.fixedPosition || 'GK'}]
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            {effectiveLocked ? (
+                              <span className="text-amber-300 font-medium">
+                                🔒 Locked as {effectivePos} all match for this fixture
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">
+                                🔓 Free rotation across periods this fixture
+                              </span>
+                            )}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {isGloballyFixed ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFixedPositions((prev) => {
+                                  const next = { ...prev };
+                                  if (isExplicitlyUnlocked) {
+                                    // Remove the unlocked override, reverting back to locked
+                                    delete next[p.id];
+                                  } else {
+                                    // Unlock for this fixture
+                                    next[p.id] = 'UNLOCKED';
+                                  }
+                                  return next;
+                                });
+                              }}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition cursor-pointer flex items-center gap-1 ${
+                                isExplicitlyUnlocked
+                                  ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 hover:bg-sky-500/30'
+                                  : 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                              }`}
+                              title={
+                                isExplicitlyUnlocked
+                                  ? 'Click to restore lock for this match'
+                                  : 'Click to unlock for this fixture and allow normal rotation'
+                              }
+                            >
+                              {isExplicitlyUnlocked ? (
+                                <>
+                                  <Unlock className="w-3.5 h-3.5 text-sky-400" />
+                                  <span>Unlocked (This Match)</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                                  <span>Locked All Match</span>
+                                </>
+                              )}
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFixedPositions((prev) => {
+                                  const next = { ...prev };
+                                  if (isExplicitlyLocked) {
+                                    delete next[p.id];
+                                  } else {
+                                    next[p.id] = isGk ? 'GK' : (p.preferredPositions[0] || 'DEF_C');
+                                  }
+                                  return next;
+                                });
+                              }}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition cursor-pointer flex items-center gap-1 ${
+                                isExplicitlyLocked
+                                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                              }`}
+                            >
+                              {isExplicitlyLocked ? (
+                                <>
+                                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                                  <span>Locked as {effectivePos}</span>
+                                </>
+                              ) : (
+                                <span>Lock for this Match</span>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
             </div>
           </div>

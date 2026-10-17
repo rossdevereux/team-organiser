@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
-import { Shirt, ArrowLeftRight, X, Clock, ShieldCheck, Info, UserX } from 'lucide-react';
+import { Shirt, ArrowLeftRight, X, Clock, ShieldCheck, Info, UserX, Lock, Unlock } from 'lucide-react';
 import { BroadPosition, Player } from '../types';
 import { PlayerCallOffModal } from './PlayerCallOffModal';
 import { getPlayerInitials, POSITION_CATEGORY_STYLES } from '../utils/playerUtils';
+import { useToast } from '../context/ToastContext';
 
 export const PitchView: React.FC = () => {
   const {
@@ -16,9 +17,13 @@ export const PitchView: React.FC = () => {
     selectedSwapSource,
     selectSwapSource,
     handleSwap,
+    isPlayerFixed,
+    toggleFixedPlayerPosition,
     enterDemoMode,
     setActiveTab,
   } = useMatchday();
+
+  const { showToast } = useToast();
 
   const [dragOverPosition, setDragOverPosition] = useState<string | null>(null);
   const [inspectedPlayer, setInspectedPlayer] = useState<{
@@ -79,7 +84,10 @@ export const PitchView: React.FC = () => {
 
   const onNodeClick = (playerId: string, position: string) => {
     if (!selectedSwapSource) {
-      selectSwapSource({ type: 'pitch', playerId, position });
+      if (inspectedPlayer?.player.id === playerId) {
+        setInspectedPlayer(null);
+        return;
+      }
       const p = playerMap.get(playerId);
       const st = statsMap.get(playerId);
       if (p) {
@@ -237,6 +245,7 @@ export const PitchView: React.FC = () => {
 
           const colors = POSITION_CATEGORY_STYLES[slotDef.category] || POSITION_CATEGORY_STYLES.Midfield;
           const isSelected = selectedSwapSource?.playerId === entry.playerId;
+          const isInspected = inspectedPlayer?.player.id === entry.playerId && !selectedSwapSource;
           const isEligibleTarget = Boolean(selectedSwapSource && !isSelected);
           const isDragOver = dragOverPosition === entry.position;
           const isCaptain = activeFixture.captainId === entry.playerId;
@@ -259,6 +268,8 @@ export const PitchView: React.FC = () => {
               className={`absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer transition-all duration-200 select-none ${
                 isSelected
                   ? 'scale-110 z-30'
+                  : isInspected
+                  ? 'scale-105 z-25'
                   : isEligibleTarget
                   ? 'z-20 hover:scale-105'
                   : 'hover:scale-105 z-10'
@@ -266,10 +277,12 @@ export const PitchView: React.FC = () => {
             >
               {/* Player Node Card with Touch Target */}
               <div
-                title={`${playerName} (${entry.position}) • Click to swap or inspect`}
+                title={`${playerName} (${entry.position}) • Click to inspect & lock/unlock position`}
                 className={`relative flex flex-col items-center justify-center p-2 rounded-2xl backdrop-blur-md border shadow-xl transition-all min-h-[58px] ${
                   isSelected
                     ? 'ring-4 ring-sky-400 border-white bg-slate-900 shadow-sky-500/50'
+                    : isInspected
+                    ? 'ring-4 ring-amber-400/80 border-amber-300 bg-slate-900 shadow-amber-500/40'
                     : isDragOver
                     ? 'ring-4 ring-emerald-300 border-white bg-slate-850 shadow-emerald-400/50 scale-105'
                     : isEligibleTarget
@@ -288,6 +301,11 @@ export const PitchView: React.FC = () => {
                   />
                   <span className="truncate max-w-[50px]">{entry.position.replace('_', ' ')}</span>
                   {isCaptain && <span className="text-amber-400 font-black ml-0.5" title="Matchday Captain">©</span>}
+                  {isPlayerFixed(entry.playerId) && (
+                    <span className="text-amber-400 font-black ml-0.5" title="Locked in position for all periods">
+                      <Lock className="w-2.5 h-2.5 inline" />
+                    </span>
+                  )}
                 </div>
 
                 {/* Player Avatar / Squad Number Badge with Fallback Initials */}
@@ -358,74 +376,177 @@ export const PitchView: React.FC = () => {
       </div>
 
       {/* Tap-to-Inspect Card Modal/Drawer for Touch Ergonomics */}
-      {inspectedPlayer && !selectedSwapSource && (
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-slate-800 text-white font-extrabold flex items-center justify-center text-sm border border-slate-700 shrink-0">
-              {inspectedPlayer.player.squadNumber
-                ? `#${inspectedPlayer.player.squadNumber}`
-                : getPlayerInitials(inspectedPlayer.player.name)}
-            </div>
-            <div className="min-w-0">
-              <h4 className="text-sm font-bold text-white truncate flex items-center gap-1.5">
-                <span>{inspectedPlayer.player.name}</span>
-                {activeFixture.captainId === inspectedPlayer.player.id && (
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-400 text-slate-950 font-black">
-                    CAPTAIN
-                  </span>
-                )}
-              </h4>
-              <p className="text-xs text-slate-400">
-                Playing <strong>{inspectedPlayer.position}</strong> • Preferred:{' '}
-                {inspectedPlayer.player.preferredPositions.join(', ')}
-              </p>
-            </div>
-          </div>
+      {inspectedPlayer && !selectedSwapSource && (() => {
+        const pStats = statsMap.get(inspectedPlayer.player.id);
+        const minutes = pStats?.minutesPlayed ?? inspectedPlayer.minutes ?? 0;
+        const percent = pStats?.gameTimePercent ?? inspectedPlayer.percent ?? 0;
+        const targetPercent = settings.targetGameTimePercent || 50;
+        const meetsTarget = percent >= targetPercent;
+        const slotDef = slotMap.get(inspectedPlayer.position);
+        const category = slotDef?.category || (inspectedPlayer.position === 'GK' ? 'Goalkeeper' : 'Midfield');
+        const catColors = POSITION_CATEGORY_STYLES[category] || POSITION_CATEGORY_STYLES.Midfield;
+        const isCaptain = activeFixture.captainId === inspectedPlayer.player.id;
+        const isFixed = isPlayerFixed(inspectedPlayer.player.id);
+        const fixtureFixedPos = activeFixture.fixedPlayerPositions?.[inspectedPlayer.player.id];
+        const isFixtureUnlocked = fixtureFixedPos?.toUpperCase() === 'UNLOCKED';
+        const isFixtureLocked = Boolean(fixtureFixedPos && !isFixtureUnlocked);
 
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="text-right font-mono text-xs text-slate-300 mr-2 hidden sm:block">
-              <div>{inspectedPlayer.minutes ?? 0}m total</div>
-              <div className="text-emerald-300 font-bold">{inspectedPlayer.percent ?? 0}% playing time</div>
+        return (
+          <div className="p-4 sm:p-5 rounded-3xl bg-slate-900/95 border border-slate-800 shadow-2xl backdrop-blur-md animate-fade-in space-y-3.5">
+            {/* Header: Player Info, Stats Pill, and Close Button */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center font-extrabold text-base shadow-lg border ${catColors.bg} ${catColors.border} ${catColors.text} shrink-0`}
+                >
+                  {inspectedPlayer.player.squadNumber
+                    ? `#${inspectedPlayer.player.squadNumber}`
+                    : getPlayerInitials(inspectedPlayer.player.name)}
+                </div>
+
+                <div className="min-w-0 space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="text-base font-extrabold text-white tracking-tight truncate">
+                      {inspectedPlayer.player.name}
+                    </h4>
+                    {isCaptain && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black shadow-sm">
+                        CAPTAIN
+                      </span>
+                    )}
+                    {isFixed ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                        <Lock className="w-3 h-3 text-amber-400" />
+                        <span>{isFixtureLocked ? 'Locked (This Match)' : 'Locked (Profile Default)'}</span>
+                      </span>
+                    ) : inspectedPlayer.player.isFixedPosition && isFixtureUnlocked ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/40">
+                        <Unlock className="w-3 h-3 text-sky-400" />
+                        <span>Unlocked for this Match</span>
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <p className="text-xs text-slate-300 flex items-center gap-1.5 flex-wrap">
+                    <span>
+                      Playing{' '}
+                      <strong className="text-white font-bold bg-slate-800 border border-slate-750 px-1.5 py-0.5 rounded text-[11px]">
+                        {inspectedPlayer.position.replace('_', ' ')}
+                      </strong>
+                    </span>
+                    <span className="text-slate-600">•</span>
+                    <span className="text-slate-400">
+                      Preferred: <span className="text-slate-200">{inspectedPlayer.player.preferredPositions.join(', ')}</span>
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Stats & Close X button */}
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700/80 text-xs font-mono text-slate-200 shadow-inner">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="font-semibold">{minutes}m</span>
+                  <span className="text-slate-500">/</span>
+                  <span
+                    className={`font-bold ${
+                      meetsTarget ? 'text-emerald-400' : 'text-amber-400'
+                    }`}
+                  >
+                    {percent}%
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setInspectedPlayer(null)}
+                  className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-400 hover:text-white transition flex items-center justify-center cursor-pointer border border-slate-700"
+                  title="Close inspection"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                selectSwapSource({
-                  type: 'pitch',
-                  playerId: inspectedPlayer.player.id,
-                  position: inspectedPlayer.position,
-                });
-              }}
-              className="min-h-[44px] px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition cursor-pointer flex items-center gap-1.5"
-            >
-              <ArrowLeftRight className="w-4 h-4" />
-              <span>Swap Player</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setCallOffPitchPlayer({
-                  player: inspectedPlayer.player,
-                  position: inspectedPlayer.position,
-                });
-                setInspectedPlayer(null);
-              }}
-              className="min-h-[44px] px-3 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
-              title="Player ill or called off? Remove or replace"
-            >
-              <UserX className="w-4 h-4" />
-              <span>Player Ill / Call-Off</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setInspectedPlayer(null)}
-              className="min-h-[44px] px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-semibold transition cursor-pointer"
-            >
-              Close
-            </button>
+
+            {/* Actions Toolbar */}
+            <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-start gap-2.5">
+              <button
+                type="button"
+                onClick={async () => {
+                  const res = await toggleFixedPlayerPosition(
+                    inspectedPlayer.player.id,
+                    inspectedPlayer.position
+                  );
+                  if (res.isFixed) {
+                    showToast(
+                      `🔒 ${inspectedPlayer.player.name} locked as ${res.position} for this match.`,
+                      'success'
+                    );
+                  } else {
+                    showToast(
+                      `Unlocked ${inspectedPlayer.player.name} for this match. Position can now rotate freely.`,
+                      'info'
+                    );
+                  }
+                }}
+                className={`min-h-[40px] px-3.5 py-2 rounded-xl font-semibold text-xs transition cursor-pointer flex items-center gap-2 shadow-sm ${
+                  isFixed
+                    ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40'
+                    : 'bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700'
+                }`}
+                title={
+                  isFixed
+                    ? 'Click to unlock for this match. Player will rotate freely (global profile setting preserved for other fixtures).'
+                    : 'Lock player in position for this match (keeps them on pitch all game without rotating out).'
+                }
+              >
+                {isFixed ? (
+                  <>
+                    <Unlock className="w-4 h-4 text-amber-400" />
+                    <span>Unlock for this Match</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-4 h-4 text-amber-400" />
+                    <span>Lock Position (This Match)</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  selectSwapSource({
+                    type: 'pitch',
+                    playerId: inspectedPlayer.player.id,
+                    position: inspectedPlayer.position,
+                  });
+                }}
+                className="min-h-[40px] px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 text-white font-semibold text-xs shadow-md shadow-sky-950/40 transition cursor-pointer flex items-center gap-2"
+              >
+                <ArrowLeftRight className="w-4 h-4" />
+                <span>Swap Player</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setCallOffPitchPlayer({
+                    player: inspectedPlayer.player,
+                    position: inspectedPlayer.position,
+                  });
+                  setInspectedPlayer(null);
+                }}
+                className="min-h-[40px] px-3 py-2 rounded-xl bg-rose-600/15 hover:bg-rose-600/25 text-rose-300 hover:text-white border border-rose-500/30 text-xs font-semibold transition cursor-pointer flex items-center gap-2"
+                title="Player ill or called off? Remove or replace"
+              >
+                <UserX className="w-4 h-4 text-rose-400" />
+                <span>Player Ill / Call-Off</span>
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Modal: Mark Pitch Player as Sick / Call-Off (Remove without replacement OR replace from rested roster) */}
       <PlayerCallOffModal

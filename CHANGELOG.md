@@ -10,12 +10,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Fixture-Specific Position Locks & Global Unlock Overrides**:
+  - Added ability for coaches to lock or unlock player positions on a per-fixture basis while preserving global locking defaults on player profiles (e.g. keep GK locked in goal all match one week, and unlock them to rotate freely the next week).
+  - Added matchday lock/unlock toggle and descriptive status badges in the pitch player inspection drawer in [`PitchView.tsx`](client/src/components/PitchView.tsx) indicating whether a player is `🔒 Locked (Profile Default)`, `🔒 Locked for this Match`, or `🔓 Unlocked for this Match (Overrides Profile)`.
+  - Added "Matchday Fixed Positions" configuration panel to [`EditFixtureModal.tsx`](client/src/components/EditFixtureModal.tsx) enabling coaches to lock or unlock specific players directly when scheduling or editing fixtures.
+  - Added unit test coverage in [`rotationService.test.ts`](server/src/tests/rotationService.test.ts) verifying multi-period goalkeeper rotation when a globally locked goalkeeper is unlocked on a fixture, fixture-level locking of otherwise rotating goalkeepers, and substitution suggestions for unlocked players.
+- **Fixed Player Position All Match**:
+  - Added support for fixing/locking a player in position for the full match duration (e.g. dedicated goalkeeper or anchor defender with no intention of swapping out) at both player profile level (`isFixedPosition`, `fixedPosition`) and per-fixture level (`fixedPlayerPositions`).
+  - Added interactive Lock/Unlock toggle button in the player inspection drawer and lock indicators on pitch player cards in [`PitchView.tsx`](client/src/components/PitchView.tsx).
+  - Added "Lock / Fix in Position All Match" toggle and position selector dropdown to [`PlayerFormModal.tsx`](client/src/components/squad/PlayerFormModal.tsx).
+  - Added visual lock indicators and fixed role badges in [`SquadManager.tsx`](client/src/components/SquadManager.tsx) and [`RotationMatrix.tsx`](client/src/components/RotationMatrix.tsx).
+  - Added fixed player protection banner and clipboard copy annotation to [`SuggestedSubsModal.tsx`](client/src/components/SuggestedSubsModal.tsx).
+  - Added dedicated endpoint `PUT /api/fixtures/:id/fixed-positions` in [`api.ts`](server/src/routes/api.ts) for live matchday position lock persistence.
+  - Added comprehensive test coverage in [`rotationService.test.ts`](server/src/tests/rotationService.test.ts) validating `getFixedPositionsMap`, multi-period goalkeeper locking, outfield position preservation, and sideline substitution exclusion.
 - Standalone offline demo dataset in [`demoData.ts`](client/src/utils/demoData.ts) providing instant sample rosters, formations, and fixtures for unauthenticated or offline demo sessions.
 
 ### Changed
+- **Fair Rotation Engine & Sideline Substitutions**:
+  - Enhanced `getFixedPositionsMap` in [`rotationService.ts`](server/src/services/rotationService.ts) to support fixture-level unlock overrides (`UNLOCKED`, `NONE`, `ROTATE`) that supersede global player profile locking defaults.
+  - Enhanced `generateFairRotation` in [`rotationService.ts`](server/src/services/rotationService.ts) to reserve pitch slots across all match periods for fixed players, exclude them from rotation off, and fairly recalculate playing time targets and Hungarian optimal assignments for remaining players.
+  - Enhanced `generateSuggestedSubstitutions` and `findBestOutgoingPitchPlayer` in [`rotationService.ts`](server/src/services/rotationService.ts) across all 3 strategies (*Equal Game Time & Unused Subs*, *Positional Match*, and *Rolling Single Sub*) to ensure fixed players are never substituted off while continuing to track their full match minutes.
+  - Enhanced `selectMatchdaySquad` in [`rotationService.ts`](server/src/services/rotationService.ts) to guarantee fixed players are prioritized in matchday squad selection.
+  - Enhanced [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx) with `isPlayerFixed`, `getFixedPlayerPosition`, `toggleFixedPlayerPosition`, and `setFixtureFixedPosition` to synchronize locked positions across all period lineups in real time and persist per-fixture overrides to the server.
 - Refactored demo mode entry and user sign-out lifecycle in [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx) to provide unified `enterDemoMode()` and `signOutUser()` actions across [`LandingPage.tsx`](client/src/pages/LandingPage.tsx) and [`AuthButton.tsx`](client/src/components/AuthButton.tsx).
 
 ### Fixed
+- Fixed pitch player inspection drawer layout and styling in [`PitchView.tsx`](client/src/components/PitchView.tsx): resolved severe horizontal text collision and overlapping badges by separating player profile info, playing time stats, and action buttons into a clean, responsive, multi-tier layout with dedicated actions toolbar.
+- Fixed pitch player node click in [`PitchView.tsx`](client/src/components/PitchView.tsx) prematurely activating swap mode, which previously suppressed the player inspection drawer from opening. Clicking any pitch node now smoothly opens the inspection drawer with matchday lock/unlock controls, stats, call-off options, and highlighted selection ring.
 - Fixed unauthenticated "Try Live Demo" button leading to a completely blank screen due to unhandled empty team responses from server/Firestore cold starts. Added resilient client-side and server-side fallback datasets in [`storage.ts`](server/src/db/storage.ts) and [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx), along with helpful empty-state recovery cards in [`PitchView.tsx`](client/src/components/PitchView.tsx) and [`BenchView.tsx`](client/src/components/BenchView.tsx).
 - Fixed private user team state persisting in memory after logging out and clicking the demo button. Implemented complete in-memory context purging, `localStorage` cache cleanup (`subshuffle_cached_*`), and URL query parameter sanitization upon sign-out and demo mode initialization.
 

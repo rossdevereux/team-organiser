@@ -282,13 +282,77 @@ export const calculateMatchStats = (
 };
 
 /**
+ * Resolves map of playerId -> position code for players who are locked/fixed in position for all periods of a fixture.
+ * Supports:
+ * 1. Fixture-level position locks (e.g. { "p1": "GK" })
+ * 2. Fixture-level unlock overrides (e.g. { "p1": "UNLOCKED" } or "NONE" to unlock globally fixed players on this specific fixture)
+ * 3. MatchSquad-level position locks & unlock overrides
+ * 4. Global player profile fallback (player.isFixedPosition) when not overridden on the fixture
+ */
+export const getFixedPositionsMap = (
+  fixture: Fixture,
+  players: Player[]
+): Map<string, string> => {
+  const map = new Map<string, string>();
+  const explicitlyUnlocked = new Set<string>();
+
+  const isUnlockedVal = (val: string): boolean => {
+    const u = val.toUpperCase().trim();
+    return u === 'UNLOCKED' || u === 'NONE' || u === 'ROTATE' || u === 'OFF' || u === 'FALSE';
+  };
+
+  // 1. Check fixture.fixedPlayerPositions
+  if (fixture.fixedPlayerPositions) {
+    Object.entries(fixture.fixedPlayerPositions).forEach(([playerId, pos]) => {
+      if (pos && typeof pos === 'string') {
+        const trimmed = pos.trim();
+        if (isUnlockedVal(trimmed)) {
+          explicitlyUnlocked.add(playerId);
+        } else {
+          map.set(playerId, trimmed);
+        }
+      }
+    });
+  }
+
+  // 2. Check fixture.matchSquad?.fixedPlayerPositions
+  if (fixture.matchSquad?.fixedPlayerPositions) {
+    Object.entries(fixture.matchSquad.fixedPlayerPositions).forEach(([playerId, pos]) => {
+      if (pos && typeof pos === 'string') {
+        const trimmed = pos.trim();
+        if (isUnlockedVal(trimmed)) {
+          explicitlyUnlocked.add(playerId);
+        } else if (!explicitlyUnlocked.has(playerId) && !map.has(playerId)) {
+          map.set(playerId, trimmed);
+        }
+      }
+    });
+  }
+
+  // 3. Check persistent player settings (player.isFixedPosition), unless explicitly unlocked on this fixture
+  players.forEach((p) => {
+    if (p.isFixedPosition && !map.has(p.id) && !explicitlyUnlocked.has(p.id)) {
+      const pos =
+        p.fixedPosition?.trim() ||
+        (p.preferredPositions.includes('Goalkeeper') ? 'GK' : undefined) ||
+        (p.preferredPositions[0] ? (p.preferredPositions[0] === 'Goalkeeper' ? 'GK' : p.preferredPositions[0]) : 'GK');
+      map.set(p.id, pos);
+    }
+  });
+
+  return map;
+};
+
+/**
  * Smart Squad Selection: selects matchday squad (e.g. 10 players) and rested players (e.g. 3)
- * prioritising lowest historical matches/minutes and respecting eligibility dates.
+ * prioritising lowest historical matches/minutes, guaranteeing fixed players are selected,
+ * and respecting eligibility dates.
  */
 export const selectMatchdaySquad = (
   players: Player[],
   fixtureDate: string,
-  squadCap: number = 10
+  squadCap: number = 10,
+  fixedPlayerIds: string[] = []
 ): { selectedIds: string[]; restedIds: string[]; unavailableIds: string[] } => {
   const available: Player[] = [];
   const unavailableIds: string[] = [];
@@ -310,12 +374,22 @@ export const selectMatchdaySquad = (
     return a.totalMinutesPlayed - b.totalMinutesPlayed;
   });
 
-  // Ensure at least one goalkeeper candidate is included if available
-  const gkCandidates = available.filter((p) => p.preferredPositions.includes('Goalkeeper'));
   const selected: Player[] = [];
 
-  if (gkCandidates.length > 0) {
-    selected.push(gkCandidates[0]);
+  // Guarantee all available fixed players are selected first
+  const fixedPlayers = available.filter((p) => fixedPlayerIds.includes(p.id));
+  for (const fp of fixedPlayers) {
+    if (selected.length < squadCap && !selected.some((s) => s.id === fp.id)) {
+      selected.push(fp);
+    }
+  }
+
+  // Ensure at least one goalkeeper candidate is included if available
+  const gkCandidates = available.filter((p) => p.preferredPositions.includes('Goalkeeper'));
+  if (gkCandidates.length > 0 && !selected.some((p) => p.preferredPositions.includes('Goalkeeper'))) {
+    if (selected.length < squadCap) {
+      selected.push(gkCandidates[0]);
+    }
   }
 
   // Fill remaining slots up to squadCap
@@ -335,6 +409,7 @@ export const selectMatchdaySquad = (
 /**
  * Youth Football Fair Rotation Generator
  * Supports 2 Halves or N periods, any team size (5s, 7s, 9s, 11s),
+ * guarantees fixed players stay in their assigned positions all match,
  * avoids consecutive benching, and matches preferred positions.
  */
 export const generateFairRotation = (
@@ -354,7 +429,9 @@ export const generateFairRotation = (
     settings.customFormations || []
   );
 
-  const slotCodes = formation.slots.map((s) => s.code);
+  // Identify players fixed in position all match
+  const fixedMap = getFixedPositionsMap(fixture, players);
+  const fixedPlayerIds = Array.from(fixedMap.keys());
 
   // 1. Determine selected matchday squad
   let selectedIds: string[];
@@ -367,9 +444,19 @@ export const generateFairRotation = (
       return pl && isPlayerEligibleForFixture(pl, fixture.date).eligible;
     });
 
+    // Ensure eligible fixed players are retained or included in matchday squad
+    fixedPlayerIds.forEach((id) => {
+      const pl = players.find((p) => p.id === id);
+      if (pl && isPlayerEligibleForFixture(pl, fixture.date).eligible && !validSelected.includes(id)) {
+        if (validSelected.length < squadCap) {
+          validSelected.push(id);
+        }
+      }
+    });
+
     // If removing ineligible players leaves fewer players than pitchCount, re-select
     if (validSelected.length < Math.min(pitchCount, players.length)) {
-      const selection = selectMatchdaySquad(players, fixture.date, squadCap);
+      const selection = selectMatchdaySquad(players, fixture.date, squadCap, fixedPlayerIds);
       selectedIds = selection.selectedIds;
       restedIds = selection.restedIds;
     } else {
@@ -377,7 +464,7 @@ export const generateFairRotation = (
       restedIds = players.filter((p) => !selectedIds.includes(p.id)).map((p) => p.id);
     }
   } else {
-    const selection = selectMatchdaySquad(players, fixture.date, squadCap);
+    const selection = selectMatchdaySquad(players, fixture.date, squadCap, fixedPlayerIds);
     selectedIds = selection.selectedIds;
     restedIds = selection.restedIds;
   }
@@ -386,52 +473,125 @@ export const generateFairRotation = (
     .map((id) => players.find((p) => p.id === id))
     .filter((p): p is Player => Boolean(p));
 
-  const totalSlots = pitchCount * periodCount; // e.g. 7 * 2 = 14 slots in 2 halves
-  const squadSize = selectedPlayers.length || squadCap;
-  const basePeriodsPerPlayer = Math.floor(totalSlots / squadSize);
-  const extraPeriodsCount = totalSlots % squadSize;
-
-  // Prioritize players with fewer historical minutes for extra periods
-  const playersByHistoricalNeed = [...selectedPlayers].sort(
-    (a, b) => a.totalMinutesPlayed - b.totalMinutesPlayed
-  );
-
-  const targetPeriodsMap = new Map<string, number>();
-  playersByHistoricalNeed.forEach((p, idx) => {
-    const target = idx < extraPeriodsCount ? basePeriodsPerPlayer + 1 : basePeriodsPerPlayer;
-    targetPeriodsMap.set(p.id, Math.max(1, target));
-  });
+  const fixedPlayersInSquad = selectedPlayers.filter((p) => fixedMap.has(p.id));
+  const nonFixedPlayers = selectedPlayers.filter((p) => !fixedMap.has(p.id));
 
   const periodsPlayedMap = new Map<string, number>();
   selectedPlayers.forEach((p) => periodsPlayedMap.set(p.id, 0));
 
+  // Compute fair target periods for non-fixed players
+  const fixedSlotsPerPeriod = fixedPlayersInSquad.length;
+  const remainingPitchSlotsPerPeriod = Math.max(0, pitchCount - fixedSlotsPerPeriod);
+  const totalRemainingSlots = remainingPitchSlotsPerPeriod * periodCount;
+  const targetPeriodsMap = new Map<string, number>();
+
+  if (nonFixedPlayers.length > 0) {
+    const basePeriodsPerPlayer = Math.floor(totalRemainingSlots / nonFixedPlayers.length);
+    const extraPeriodsCount = totalRemainingSlots % nonFixedPlayers.length;
+
+    // Prioritize players with fewer historical minutes for extra periods
+    const nonFixedByHistoricalNeed = [...nonFixedPlayers].sort(
+      (a, b) => a.totalMinutesPlayed - b.totalMinutesPlayed
+    );
+
+    nonFixedByHistoricalNeed.forEach((p, idx) => {
+      const target = idx < extraPeriodsCount ? basePeriodsPerPlayer + 1 : basePeriodsPerPlayer;
+      targetPeriodsMap.set(p.id, Math.max(1, target));
+    });
+  }
+
+  // Fixed players target is all periods
+  fixedPlayersInSquad.forEach((p) => {
+    targetPeriodsMap.set(p.id, periodCount);
+  });
+
   let previousBenchIds: string[] = [];
   const lineupsByPeriod: PeriodLineup[] = [];
 
-  const gkList = selectedPlayers.filter((p) => p.preferredPositions.includes('Goalkeeper'));
-
   for (let period = 1; period <= periodCount; period++) {
-    // Determine GK for this period
-    let periodGk: Player;
-    if (gkList.length === 0) {
-      periodGk = selectedPlayers[0];
-    } else if (gkList.length === 1) {
-      periodGk = gkList[0];
-    } else {
-      // Rotate between goalkeepers
-      periodGk = gkList[(period - 1) % gkList.length];
+    const onPitchAssignments: { playerId: string; position: string }[] = [];
+    const assignedSlotCodes = new Set<string>();
+
+    // A. Place fixed players in their assigned positions
+    fixedPlayersInSquad.forEach((fixedPlayer) => {
+      const wantedPos = fixedMap.get(fixedPlayer.id)!;
+      // Find matching formation slot
+      let matchedSlot = formation.slots.find(
+        (s) => !assignedSlotCodes.has(s.code) && s.code.toUpperCase() === wantedPos.toUpperCase()
+      );
+      if (!matchedSlot) {
+        matchedSlot = formation.slots.find(
+          (s) => !assignedSlotCodes.has(s.code) && s.category === positionToBroad(wantedPos)
+        );
+      }
+      if (!matchedSlot) {
+        matchedSlot = formation.slots.find((s) => !assignedSlotCodes.has(s.code));
+      }
+
+      if (matchedSlot) {
+        assignedSlotCodes.add(matchedSlot.code);
+        onPitchAssignments.push({
+          playerId: fixedPlayer.id,
+          position: matchedSlot.code,
+        });
+        periodsPlayedMap.set(fixedPlayer.id, (periodsPlayedMap.get(fixedPlayer.id) || 0) + 1);
+      }
+    });
+
+    // B. Check if Goalkeeper position is already occupied by a fixed player
+    const hasFixedGk = onPitchAssignments.some(
+      (item) => positionToBroad(item.position) === 'Goalkeeper'
+    );
+
+    if (!hasFixedGk) {
+      // Determine GK for this period from non-fixed players
+      const nonFixedGkList = nonFixedPlayers.filter((p) =>
+        p.preferredPositions.includes('Goalkeeper')
+      );
+
+      let periodGk: Player | undefined;
+      if (nonFixedGkList.length === 1) {
+        periodGk = nonFixedGkList[0];
+      } else if (nonFixedGkList.length > 1) {
+        // Rotate between multiple non-fixed goalkeepers
+        periodGk = nonFixedGkList[(period - 1) % nonFixedGkList.length];
+      } else if (nonFixedPlayers.length > 0 && formation.slots.some((s) => s.category === 'Goalkeeper')) {
+        // Fallback to first non-fixed player if no specialist GK
+        periodGk = nonFixedPlayers[0];
+      }
+
+      if (periodGk && !onPitchAssignments.some((a) => a.playerId === periodGk!.id)) {
+        const gkSlot =
+          formation.slots.find(
+            (s) => !assignedSlotCodes.has(s.code) && s.category === 'Goalkeeper'
+          ) || formation.slots.find((s) => !assignedSlotCodes.has(s.code));
+
+        if (gkSlot) {
+          assignedSlotCodes.add(gkSlot.code);
+          onPitchAssignments.push({
+            playerId: periodGk.id,
+            position: gkSlot.code,
+          });
+          periodsPlayedMap.set(periodGk.id, (periodsPlayedMap.get(periodGk.id) || 0) + 1);
+        }
+      }
     }
 
-    const currentPitchPlayers: Player[] = [periodGk];
-    periodsPlayedMap.set(periodGk.id, (periodsPlayedMap.get(periodGk.id) || 0) + 1);
+    // C. Non-fixed outfield rotation
+    const unassignedFormationSlots = formation.slots.filter(
+      (s) => !assignedSlotCodes.has(s.code)
+    );
+    const slotsNeeded = unassignedFormationSlots.length;
 
-    const candidates = selectedPlayers.filter((p) => p.id !== periodGk.id);
+    const availableCandidates = nonFixedPlayers.filter(
+      (p) => !onPitchAssignments.some((a) => a.playerId === p.id)
+    );
 
     // Sort candidates:
     // 1. Players benched in previous period (avoid consecutive benching)
     // 2. Players furthest behind their target periods for the match
     // 3. Lowest historical minutes played
-    candidates.sort((a, b) => {
+    availableCandidates.sort((a, b) => {
       const aWasBenched = previousBenchIds.includes(a.id) ? 1 : 0;
       const bWasBenched = previousBenchIds.includes(b.id) ? 1 : 0;
       if (aWasBenched !== bWasBenched) {
@@ -447,59 +607,49 @@ export const generateFairRotation = (
       return a.totalMinutesPlayed - b.totalMinutesPlayed;
     });
 
-    // Pick top (pitchCount - 1) outfield players
-    const outfieldSlotsNeeded = pitchCount - 1;
-    const selectedOutfield = candidates.slice(0, outfieldSlotsNeeded);
+    const selectedOutfield = availableCandidates.slice(0, slotsNeeded);
+    const benchPlayers = availableCandidates.slice(slotsNeeded);
+    previousBenchIds = benchPlayers.map((p) => p.id);
 
     selectedOutfield.forEach((p) => {
-      currentPitchPlayers.push(p);
       periodsPlayedMap.set(p.id, (periodsPlayedMap.get(p.id) || 0) + 1);
     });
 
-    const benchPlayers = candidates.slice(outfieldSlotsNeeded);
-    previousBenchIds = benchPlayers.map((p) => p.id);
-
-    // Assign positions on pitch matching preferred categories and preference order
-    const outfieldSlots = formation.slots.filter((s) => s.category !== 'Goalkeeper');
-    const availableOutfieldPlayers = [...selectedOutfield];
-
-    const onPitchAssignments: { playerId: string; position: string }[] = [
-      { playerId: periodGk.id, position: 'GK' },
-    ];
-
-    // Build weight matrix for optimal position preference satisfaction
-    const weights: number[][] = availableOutfieldPlayers.map((player) =>
-      outfieldSlots.map((slot) => getPositionPreferenceScore(player, slot.category, slot.code))
+    // Solve Maximum Weight Bipartite Matching for selectedOutfield against unassignedFormationSlots
+    const weights: number[][] = selectedOutfield.map((player) =>
+      unassignedFormationSlots.map((slot) =>
+        getPositionPreferenceScore(player, slot.category, slot.code)
+      )
     );
 
     const slotAssignments = maxWeightBipartiteMatching(weights);
-    const assignedSlots = new Set<number>();
+    const assignedIndices = new Set<number>();
     const unassignedPlayers: Player[] = [];
 
-    availableOutfieldPlayers.forEach((player, pIdx) => {
+    selectedOutfield.forEach((player, pIdx) => {
       const slotIdx = slotAssignments[pIdx];
       if (
         slotIdx !== undefined &&
         slotIdx >= 0 &&
-        slotIdx < outfieldSlots.length &&
-        !assignedSlots.has(slotIdx)
+        slotIdx < unassignedFormationSlots.length &&
+        !assignedIndices.has(slotIdx)
       ) {
-        assignedSlots.add(slotIdx);
+        assignedIndices.add(slotIdx);
         onPitchAssignments.push({
           playerId: player.id,
-          position: outfieldSlots[slotIdx].code,
+          position: unassignedFormationSlots[slotIdx].code,
         });
       } else {
         unassignedPlayers.push(player);
       }
     });
 
-    // Fill any unassigned slots (edge case safeguard)
-    outfieldSlots.forEach((slot, sIdx) => {
-      if (!assignedSlots.has(sIdx) && unassignedPlayers.length > 0) {
-        const fallbackPlayer = unassignedPlayers.shift()!;
+    // Fill any remaining unassigned slots
+    unassignedFormationSlots.forEach((slot, sIdx) => {
+      if (!assignedIndices.has(sIdx) && unassignedPlayers.length > 0) {
+        const fallback = unassignedPlayers.shift()!;
         onPitchAssignments.push({
-          playerId: fallbackPlayer.id,
+          playerId: fallback.id,
           position: slot.code,
         });
       }
@@ -512,12 +662,24 @@ export const generateFairRotation = (
     });
   }
 
+  const fixedPositionsRecord: Record<string, string> = {};
+  if (fixture.fixedPlayerPositions) {
+    Object.entries(fixture.fixedPlayerPositions).forEach(([id, val]) => {
+      fixedPositionsRecord[id] = val;
+    });
+  }
+  fixedMap.forEach((pos, id) => {
+    fixedPositionsRecord[id] = pos;
+  });
+
   return {
     fixtureId: fixture.id,
     selectedPlayerIds: selectedIds,
     restedPlayerIds: restedIds,
     lineupsByPeriod,
     manualOverrides: false,
+    fixedPlayerPositions:
+      Object.keys(fixedPositionsRecord).length > 0 ? fixedPositionsRecord : undefined,
   };
 };
 
@@ -545,13 +707,16 @@ export interface OutgoingPitchMatch {
 
 /**
  * Finds the best on-pitch outfield player to rotate off for an incoming bench player,
- * strictly evaluating the incoming player's positional preferences in priority order.
+ * strictly evaluating the incoming player's positional preferences in priority order,
+ * while never rotating off players who are locked/fixed in position all match.
  */
 export const findBestOutgoingPitchPlayer = (
   incomingPlayer: Player,
-  onPitchOutfield: InMatchTracker[]
+  onPitchOutfield: InMatchTracker[],
+  fixedPlayerIds: Set<string> = new Set()
 ): OutgoingPitchMatch | null => {
-  if (onPitchOutfield.length === 0) return null;
+  const availableOutfield = onPitchOutfield.filter((t) => !fixedPlayerIds.has(t.playerId));
+  if (availableOutfield.length === 0) return null;
 
   // 1. Check each preferred position in strict preference order:
   // Index 0 (Primary), Index 1 (Secondary), etc.
@@ -560,7 +725,7 @@ export const findBestOutgoingPitchPlayer = (
     if (preferredBroad === 'Goalkeeper') continue; // Outfield subs do not sub into GK
 
     // Find on-pitch players whose current position matches this preference
-    const candidates = onPitchOutfield.filter((t) =>
+    const candidates = availableOutfield.filter((t) =>
       positionToBroad(t.currentPosition || '') === preferredBroad
     );
 
@@ -594,7 +759,7 @@ export const findBestOutgoingPitchPlayer = (
       const specBroad = positionToBroad(spec);
       if (specBroad === 'Goalkeeper') continue;
 
-      const candidates = onPitchOutfield.filter((t) =>
+      const candidates = availableOutfield.filter((t) =>
         positionToBroad(t.currentPosition || '') === specBroad
       );
       if (candidates.length > 0) {
@@ -619,7 +784,7 @@ export const findBestOutgoingPitchPlayer = (
   }
 
   // 4. Fallback: only if incoming player can play outfield positions
-  const sorted = [...onPitchOutfield].sort((a, b) => b.minutesThisMatch - a.minutesThisMatch);
+  const sorted = [...availableOutfield].sort((a, b) => b.minutesThisMatch - a.minutesThisMatch);
   const chosen = sorted[0];
   const targetPos = chosen.currentPosition || 'MID';
   return {
@@ -653,6 +818,10 @@ export const generateSuggestedSubstitutions = (
   if (!squad || !squad.lineupsByPeriod || squad.lineupsByPeriod.length === 0) {
     return [];
   }
+
+  // Identify players fixed in position all match who should not be subbed off
+  const fixedMap = getFixedPositionsMap(fixture, players);
+  const fixedPlayerIds = new Set(fixedMap.keys());
 
   const safeInterval = Math.max(5, Math.min(25, intervalMinutes));
 
@@ -743,14 +912,16 @@ export const generateSuggestedSubstitutions = (
         }
       });
 
-      // Find current bench and outfield pitch players
+      // Find current bench and outfield pitch players (excluding fixed players from rotation off)
       const benchCandidates: InMatchTracker[] = [];
       const onPitchOutfield: InMatchTracker[] = [];
 
       tracker1.forEach((t) => {
         if (!t.isOnPitch) {
-          benchCandidates.push(t);
-        } else if (t.currentPosition !== 'GK') {
+          if (!fixedPlayerIds.has(t.playerId)) {
+            benchCandidates.push(t);
+          }
+        } else if (t.currentPosition !== 'GK' && !fixedPlayerIds.has(t.playerId)) {
           onPitchOutfield.push(t);
         }
       });
@@ -791,7 +962,7 @@ export const generateSuggestedSubstitutions = (
         }
 
         // Find best outgoing player among onPitchOutfield matching incoming's preference order
-        const matchResult = findBestOutgoingPitchPlayer(incoming.player, onPitchOutfield);
+        const matchResult = findBestOutgoingPitchPlayer(incoming.player, onPitchOutfield, fixedPlayerIds);
         if (!matchResult) continue;
 
         const { outgoing, targetPos, targetCategory, preferenceRank } = matchResult;
@@ -899,9 +1070,11 @@ export const generateSuggestedSubstitutions = (
       const matchClockMinute = periodStartMinute + minuteOffset;
       const subChanges: SingleSubChange[] = [];
 
-      const bench = Array.from(tracker2.values()).filter((t) => !t.isOnPitch);
+      const bench = Array.from(tracker2.values()).filter(
+        (t) => !t.isOnPitch && !fixedPlayerIds.has(t.playerId)
+      );
       const onPitch = Array.from(tracker2.values()).filter(
-        (t) => t.isOnPitch && t.currentPosition !== 'GK'
+        (t) => t.isOnPitch && t.currentPosition !== 'GK' && !fixedPlayerIds.has(t.playerId)
       );
 
       // Prioritise bench players by lowest minutes / unplayed
@@ -995,9 +1168,11 @@ export const generateSuggestedSubstitutions = (
     for (let m = safeInterval; m < duration; m += safeInterval) {
       const matchClockMinute = periodStartMinute + m;
 
-      const bench = Array.from(tracker3.values()).filter((t) => !t.isOnPitch);
+      const bench = Array.from(tracker3.values()).filter(
+        (t) => !t.isOnPitch && !fixedPlayerIds.has(t.playerId)
+      );
       const onPitch = Array.from(tracker3.values()).filter(
-        (t) => t.isOnPitch && t.currentPosition !== 'GK'
+        (t) => t.isOnPitch && t.currentPosition !== 'GK' && !fixedPlayerIds.has(t.playerId)
       );
 
       if (bench.length === 0 || onPitch.length === 0) break;
@@ -1018,7 +1193,7 @@ export const generateSuggestedSubstitutions = (
 
       for (const inc of bench) {
         if (inc.player.preferredPositions.length === 1 && inc.player.preferredPositions[0] === 'Goalkeeper') continue;
-        const match = findBestOutgoingPitchPlayer(inc.player, onPitch);
+        const match = findBestOutgoingPitchPlayer(inc.player, onPitch, fixedPlayerIds);
         if (!match) continue;
 
         // Prioritize unplayed bench players, preference rank (0 = primary highest), minutes difference
@@ -1108,6 +1283,7 @@ export const generateWhatsAppAnnouncement = (
 ): string => {
   const squad = fixture.matchSquad;
   const playerMap = new Map(players.map((p) => [p.id, p]));
+  const fixedMap = getFixedPositionsMap(fixture, players);
 
   const dateObj = new Date(fixture.date);
   const formattedDate = dateObj.toLocaleDateString('en-GB', {
@@ -1140,7 +1316,8 @@ export const generateWhatsAppAnnouncement = (
     .map((p) => {
       const numStr = p.squadNumber ? `#${p.squadNumber} ` : '';
       const posStr = p.preferredPositions.length > 0 ? ` (${p.preferredPositions[0]})` : '';
-      return `• ${numStr}${p.name}${posStr}`;
+      const fixedStr = fixedMap.has(p.id) ? ` 🔒 [Fixed ${fixedMap.get(p.id)}]` : '';
+      return `• ${numStr}${p.name}${posStr}${fixedStr}`;
     })
     .join('\n');
 

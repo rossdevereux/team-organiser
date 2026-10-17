@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Player, BroadPosition, SPECIFIC_POSITIONS_MAP } from '../../types';
-import { Sparkles, X, Star, ArrowUp, ArrowDown, Check } from 'lucide-react';
+import { Sparkles, X, Star, ArrowUp, ArrowDown, Check, Lock } from 'lucide-react';
 
 const ALL_POSITIONS: BroadPosition[] = ['Goalkeeper', 'Defence', 'Midfield', 'Attack'];
 
@@ -13,6 +13,8 @@ interface PlayerFormModalProps {
     squadNumber?: number;
     preferredPositions: BroadPosition[];
     specificPositions?: string[];
+    isFixedPosition?: boolean;
+    fixedPosition?: string;
     signOnDate?: string;
     leaveDate?: string;
   }) => Promise<void>;
@@ -30,6 +32,8 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
   const [squadNumber, setSquadNumber] = useState<string>('');
   const [preferredPositions, setPreferredPositions] = useState<BroadPosition[]>(['Midfield']);
   const [specificPositions, setSpecificPositions] = useState<string[]>([]);
+  const [isFixedPosition, setIsFixedPosition] = useState<boolean>(false);
+  const [fixedPosition, setFixedPosition] = useState<string>('GK');
   const [signOnDate, setSignOnDate] = useState<string>('');
   const [leaveDate, setLeaveDate] = useState<string>('');
 
@@ -39,6 +43,8 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
       setSquadNumber(initialPlayer.squadNumber ? String(initialPlayer.squadNumber) : '');
       setPreferredPositions(initialPlayer.preferredPositions.length > 0 ? initialPlayer.preferredPositions : ['Midfield']);
       setSpecificPositions(initialPlayer.specificPositions || []);
+      setIsFixedPosition(Boolean(initialPlayer.isFixedPosition));
+      setFixedPosition(initialPlayer.fixedPosition || (initialPlayer.preferredPositions.includes('Goalkeeper') ? 'GK' : 'GK'));
       setSignOnDate(initialPlayer.signOnDate || '');
       setLeaveDate(initialPlayer.leaveDate || '');
     } else {
@@ -46,6 +52,8 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
       setSquadNumber('');
       setPreferredPositions(['Midfield']);
       setSpecificPositions([]);
+      setIsFixedPosition(false);
+      setFixedPosition('GK');
       setSignOnDate('');
       setLeaveDate('');
     }
@@ -63,6 +71,8 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
       squadNumber: num,
       preferredPositions,
       specificPositions,
+      isFixedPosition,
+      fixedPosition: isFixedPosition ? fixedPosition : undefined,
       signOnDate: signOnDate || undefined,
       leaveDate: leaveDate || undefined,
     });
@@ -367,6 +377,50 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
             );
           })}
         </div>
+      </div>
+
+      {/* Fixed Position Toggle */}
+      <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2.5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+              <Lock className="w-3.5 h-3.5 text-amber-400" />
+              <span>Lock / Fix in Position All Match</span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Keep this player in position for the entire match without rotating them out (e.g. dedicated Goalkeeper).
+            </p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+            <input
+              type="checkbox"
+              checked={isFixedPosition}
+              onChange={(e) => setIsFixedPosition(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+          </label>
+        </div>
+
+        {isFixedPosition && (
+          <div className="flex items-center gap-2 pt-1.5 border-t border-slate-800/80">
+            <label className="text-[11px] font-semibold text-slate-300 shrink-0">
+              Fixed Position:
+            </label>
+            <select
+              value={fixedPosition}
+              onChange={(e) => setFixedPosition(e.target.value)}
+              className="bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-2.5 py-1 focus:ring-1 focus:ring-amber-500"
+            >
+              <option value="GK">Goalkeeper (GK)</option>
+              <option value="DEF_C">Centre Back (CB)</option>
+              <option value="DEF_L">Left Back (LB)</option>
+              <option value="DEF_R">Right Back (RB)</option>
+              <option value="MID_C">Central Midfield (CM)</option>
+              <option value="ATT">Striker / Attacker (ATT)</option>
+            </select>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">

@@ -14,6 +14,7 @@ import {
   Timer,
   CheckCircle2,
   Calendar,
+  Lock,
 } from 'lucide-react';
 
 interface SuggestedSubsModalProps {
@@ -27,13 +28,21 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { getSuggestedSubs, settings } = useMatchday();
+  const { getSuggestedSubs, settings, players } = useMatchday();
 
   const [interval, setInterval] = useState<number>(settings.defaultSubIntervalMinutes || 10);
   const [plans, setPlans] = useState<SuggestedSubPlan[]>([]);
   const [activePlanIndex, setActivePlanIndex] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
+
+  const fixedPositionsMap: Record<string, string> = fixture?.fixedPlayerPositions || {};
+  const fixedPlayerDetails = Object.entries(fixedPositionsMap)
+    .map(([pId, pos]) => {
+      const pl = players.find((p) => p.id === pId);
+      return { id: pId, name: pl?.name || 'Player', position: String(pos) };
+    })
+    .filter(Boolean);
 
   const totalMatchMinutes =
     (fixture?.matchPeriodCount || settings.matchPeriodCount || 2) *
@@ -72,7 +81,11 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
     if (!currentPlan) return;
     let text = `⏱ *SUBSHUFFLE SIDELINE SUB PLAN* vs ${fixture.opponent}\n`;
     text += `⏱ Strategy: ${currentPlan.strategyName}\n`;
-    text += `⏱ Interval: Every ${interval} mins (${totalMatchMinutes}m match)\n\n`;
+    text += `⏱ Interval: Every ${interval} mins (${totalMatchMinutes}m match)\n`;
+    if (fixedPlayerDetails.length > 0) {
+      text += `🔒 Fixed All Match: ${fixedPlayerDetails.map((f) => `${f.name} (${f.position})`).join(', ')}\n`;
+    }
+    text += '\n';
 
     currentPlan.windows.forEach((w) => {
       text += `*Minute ${w.minute}' (Period ${w.period}):*\n`;
@@ -177,6 +190,31 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
 
         {/* Content Body: Timeline */}
         <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
+          {fixedPlayerDetails.length > 0 && (
+            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 flex items-start gap-2.5">
+              <Lock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <div className="text-xs font-semibold text-amber-300">
+                  Fixed Positions Active (Protected from Substitutions)
+                </div>
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {fixedPlayerDetails.map((f) => (
+                    <span
+                      key={f.id}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-medium"
+                    >
+                      <span>{f.name}</span>
+                      <span className="font-mono font-bold text-white">({f.position})</span>
+                    </span>
+                  ))}
+                </div>
+                <p className="text-[10px] text-amber-400/80">
+                  These players remain in their designated position for the full match and are omitted from all sideline substitutions.
+                </p>
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <div className="p-12 text-center text-slate-400">
               Calculating position-matched substitutions...

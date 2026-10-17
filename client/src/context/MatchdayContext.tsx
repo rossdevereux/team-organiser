@@ -94,6 +94,10 @@ interface MatchdayContextType {
   // Post-Match & Subs
   savePostMatchRecording: (fixtureId: string, recording: PostMatchRecording) => Promise<void>;
   getSuggestedSubs: (fixtureId: string, interval?: number) => Promise<SuggestedSubPlan[]>;
+  isPlayerFixed: (playerId: string, fixture?: Fixture) => boolean;
+  getFixedPlayerPosition: (playerId: string, fixture?: Fixture) => string | undefined;
+  toggleFixedPlayerPosition: (playerId: string, position?: string, fixtureId?: string) => Promise<{ isFixed: boolean; position: string }>;
+  setFixtureFixedPosition: (fixtureId: string, playerId: string, positionOrStatus: string) => Promise<void>;
   refreshData: () => Promise<void>;
   enterDemoMode: () => void;
   signOutUser: () => Promise<void>;
@@ -1343,6 +1347,253 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const isPlayerFixed = useCallback(
+    (playerId: string, targetFixture?: Fixture): boolean => {
+      const fix = targetFixture || activeFixture;
+      const fixPos =
+        fix?.fixedPlayerPositions?.[playerId] ||
+        fix?.matchSquad?.fixedPlayerPositions?.[playerId];
+
+      if (fixPos) {
+        const u = fixPos.toUpperCase().trim();
+        if (u === 'UNLOCKED' || u === 'NONE' || u === 'ROTATE' || u === 'OFF' || u === 'FALSE') {
+          return false;
+        }
+        return true;
+      }
+
+      const pl = players.find((p) => p.id === playerId);
+      return Boolean(pl?.isFixedPosition);
+    },
+    [activeFixture, players]
+  );
+
+  const getFixedPlayerPosition = useCallback(
+    (playerId: string, targetFixture?: Fixture): string | undefined => {
+      const fix = targetFixture || activeFixture;
+      const fixPos =
+        fix?.fixedPlayerPositions?.[playerId] ||
+        fix?.matchSquad?.fixedPlayerPositions?.[playerId];
+
+      if (fixPos) {
+        const u = fixPos.toUpperCase().trim();
+        if (u === 'UNLOCKED' || u === 'NONE' || u === 'ROTATE' || u === 'OFF' || u === 'FALSE') {
+          return undefined;
+        }
+        return fixPos;
+      }
+
+      const pl = players.find((p) => p.id === playerId);
+      if (pl?.isFixedPosition) {
+        return (
+          pl.fixedPosition ||
+          (pl.preferredPositions.includes('Goalkeeper') ? 'GK' : pl.preferredPositions[0] || 'GK')
+        );
+      }
+      return undefined;
+    },
+    [activeFixture, players]
+  );
+
+  const toggleFixedPlayerPosition = useCallback(
+    async (
+      playerId: string,
+      targetPosition?: string,
+      targetFixtureId?: string
+    ): Promise<{ isFixed: boolean; position: string }> => {
+      const fixId = targetFixtureId || activeFixture?.id;
+      const fix = fixtures.find((f) => f.id === fixId) || activeFixture;
+      if (!fix || !fix.matchSquad) {
+        return { isFixed: false, position: '' };
+      }
+
+      const player = players.find((p) => p.id === playerId);
+      const currentlyFixed = isPlayerFixed(playerId, fix);
+      const isGloballyFixed = Boolean(player?.isFixedPosition);
+
+      const newFixed: Record<string, string> = {
+        ...(fix.fixedPlayerPositions || {}),
+        ...(fix.matchSquad.fixedPlayerPositions || {}),
+      };
+
+      if (currentlyFixed) {
+        if (isGloballyFixed) {
+          newFixed[playerId] = 'UNLOCKED';
+        } else {
+          delete newFixed[playerId];
+        }
+        const updatedFixed = Object.keys(newFixed).length > 0 ? newFixed : undefined;
+
+        const updatedSquad: MatchSquad = {
+          ...fix.matchSquad,
+          fixedPlayerPositions: updatedFixed,
+        };
+
+        const updatedFixture: Fixture = {
+          ...fix,
+          fixedPlayerPositions: updatedFixed,
+          matchSquad: updatedSquad,
+        };
+
+        setFixtures((prev) =>
+          prev.map((f) => (f.id === fix.id ? updatedFixture : f))
+        );
+
+        await updateMatchSquad(updatedSquad, true);
+
+        try {
+          const headers = await getAuthHeaders();
+          await fetch(`/api/fixtures/${fix.id}/fixed-positions`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({ fixedPlayerPositions: updatedFixed }),
+          });
+        } catch (err) {
+          console.error('Failed to update fixed positions:', err);
+        }
+
+        return { isFixed: false, position: '' };
+      } else {
+        const currentPeriodLineup = fix.matchSquad.lineupsByPeriod.find(
+          (l) => l.period === activePeriod
+        );
+        const onPitchEntry = currentPeriodLineup?.onPitch.find((e) => e.playerId === playerId);
+
+        const positionToLock =
+          targetPosition ||
+          onPitchEntry?.position ||
+          player?.fixedPosition ||
+          (player?.preferredPositions.includes('Goalkeeper') ? 'GK' : 'GK');
+
+        newFixed[playerId] = positionToLock;
+
+        // Synchronize all periods so the player is placed on pitch in positionToLock
+        const updatedLineups = fix.matchSquad.lineupsByPeriod.map((lineup) => {
+          const pitch = [...lineup.onPitch];
+          const subs = [...lineup.subs];
+
+          const existingPitchIdx = pitch.findIndex((e) => e.playerId === playerId);
+          const occupyingSlotIdx = pitch.findIndex((e) => e.position === positionToLock);
+
+          if (existingPitchIdx !== -1) {
+            if (occupyingSlotIdx !== -1 && occupyingSlotIdx !== existingPitchIdx) {
+              const displaced = pitch[occupyingSlotIdx];
+              pitch[occupyingSlotIdx] = { playerId, position: positionToLock };
+              pitch[existingPitchIdx] = {
+                playerId: displaced.playerId,
+                position: pitch[existingPitchIdx].position,
+              };
+            } else {
+              pitch[existingPitchIdx] = { playerId, position: positionToLock };
+            }
+          } else {
+            const subIdx = subs.indexOf(playerId);
+            if (subIdx !== -1) {
+              subs.splice(subIdx, 1);
+            }
+            if (occupyingSlotIdx !== -1) {
+              const displaced = pitch[occupyingSlotIdx];
+              pitch[occupyingSlotIdx] = { playerId, position: positionToLock };
+              if (!subs.includes(displaced.playerId)) {
+                subs.push(displaced.playerId);
+              }
+            } else {
+              pitch.push({ playerId, position: positionToLock });
+            }
+          }
+
+          return {
+            ...lineup,
+            onPitch: pitch,
+            subs,
+          };
+        });
+
+        const updatedSquad: MatchSquad = {
+          ...fix.matchSquad,
+          lineupsByPeriod: updatedLineups,
+          fixedPlayerPositions: newFixed,
+        };
+
+        const updatedFixture: Fixture = {
+          ...fix,
+          fixedPlayerPositions: newFixed,
+          matchSquad: updatedSquad,
+        };
+
+        setFixtures((prev) =>
+          prev.map((f) => (f.id === fix.id ? updatedFixture : f))
+        );
+
+        await updateMatchSquad(updatedSquad, true);
+
+        try {
+          const headers = await getAuthHeaders();
+          await fetch(`/api/fixtures/${fix.id}/fixed-positions`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({ fixedPlayerPositions: newFixed }),
+          });
+        } catch (err) {
+          console.error('Failed to update fixed positions:', err);
+        }
+
+        return { isFixed: true, position: positionToLock };
+      }
+    },
+    [activeFixture, fixtures, activePeriod, isPlayerFixed, players, updateMatchSquad, getAuthHeaders]
+  );
+
+  const setFixtureFixedPosition = useCallback(
+    async (fixtureId: string, playerId: string, positionOrStatus: string): Promise<void> => {
+      const fix = fixtures.find((f) => f.id === fixtureId) || (activeFixture?.id === fixtureId ? activeFixture : null);
+      if (!fix) return;
+
+      const newFixed: Record<string, string> = {
+        ...(fix.fixedPlayerPositions || {}),
+        ...(fix.matchSquad?.fixedPlayerPositions || {}),
+      };
+
+      const u = positionOrStatus.trim().toUpperCase();
+      if (u === 'DEFAULT') {
+        delete newFixed[playerId];
+      } else {
+        newFixed[playerId] = positionOrStatus.trim();
+      }
+
+      const updatedFixed = Object.keys(newFixed).length > 0 ? newFixed : undefined;
+
+      const updatedSquad: MatchSquad | undefined = fix.matchSquad
+        ? {
+            ...fix.matchSquad,
+            fixedPlayerPositions: updatedFixed,
+          }
+        : undefined;
+
+      const updatedFixture: Fixture = {
+        ...fix,
+        fixedPlayerPositions: updatedFixed,
+        matchSquad: updatedSquad,
+      };
+
+      setFixtures((prev) =>
+        prev.map((f) => (f.id === fix.id ? updatedFixture : f))
+      );
+
+      try {
+        const headers = await getAuthHeaders();
+        await fetch(`/api/fixtures/${fix.id}/fixed-positions`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ fixedPlayerPositions: updatedFixed }),
+        });
+      } catch (err) {
+        console.error('Failed to update fixture fixed positions:', err);
+      }
+    },
+    [fixtures, activeFixture, getAuthHeaders]
+  );
+
   return (
     <MatchdayContext.Provider
       value={{
@@ -1402,6 +1653,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         createSeason,
         savePostMatchRecording,
         getSuggestedSubs,
+        isPlayerFixed,
+        getFixedPlayerPosition,
+        toggleFixedPlayerPosition,
+        setFixtureFixedPosition,
         refreshData,
         enterDemoMode,
         signOutUser,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useMatchday } from '../context/MatchdayContext';
-import { CheckCircle2, AlertTriangle, Wand2, Shield, Eye } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Wand2, Shield, Eye, Lock } from 'lucide-react';
 
 export const RotationMatrix: React.FC = () => {
   const {
@@ -11,6 +11,8 @@ export const RotationMatrix: React.FC = () => {
     setActivePeriod,
     setActiveTab,
     autoRotateCurrentFixture,
+    isPlayerFixed,
+    getFixedPlayerPosition,
   } = useMatchday();
 
   if (!activeFixture || !activeFixture.matchSquad) {
@@ -123,6 +125,8 @@ export const RotationMatrix: React.FC = () => {
                 .map((playerId) => {
                 const player = playerMap.get(playerId);
                 const pStats = statsMap.get(playerId);
+                const isFixed = isPlayerFixed(playerId);
+                const fixedPos = getFixedPlayerPosition(playerId);
 
                 return (
                   <tr
@@ -136,9 +140,20 @@ export const RotationMatrix: React.FC = () => {
                           {player?.squadNumber ? `#${player.squadNumber}` : '—'}
                         </span>
                         <div>
-                          <span className="text-white font-semibold block text-xs">
-                            {player?.name || 'Unknown'}
-                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-white font-semibold block text-xs">
+                              {player?.name || 'Unknown'}
+                            </span>
+                            {isFixed && (
+                              <span
+                                className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-0.5"
+                                title={`Fixed in ${fixedPos} for all periods`}
+                              >
+                                <Lock className="w-2.5 h-2.5" />
+                                <span>Fixed {fixedPos}</span>
+                              </span>
+                            )}
+                          </div>
                           {pStats?.playedAsGoalkeeper && (
                             <span className="text-[10px] text-amber-400 font-normal flex items-center gap-1">
                               <Shield className="w-2.5 h-2.5" /> Played GK
@@ -165,8 +180,10 @@ export const RotationMatrix: React.FC = () => {
                                 setActivePeriod(p);
                                 setActiveTab('lineup');
                               }}
-                              className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-tight cursor-pointer transition shadow-sm ${
-                                status.isGk
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-tight cursor-pointer transition shadow-sm ${
+                                isFixed
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30 ring-1 ring-amber-500/30'
+                                  : status.isGk
                                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
                                   : status.position?.startsWith('DEF')
                                   ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30'
@@ -174,9 +191,14 @@ export const RotationMatrix: React.FC = () => {
                                   ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-500/30'
                                   : 'bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30'
                               }`}
-                              title={`Pitch position in Quarter ${p}. Click to view on pitch.`}
+                              title={
+                                isFixed
+                                  ? `Fixed in position (${status.label}) all match. Click to view on pitch.`
+                                  : `Pitch position in ${periodCount === 2 ? (p === 1 ? '1st Half' : '2nd Half') : `Period ${p}`}. Click to view on pitch.`
+                              }
                             >
-                              {status.label}
+                              {isFixed && <Lock className="w-2.5 h-2.5 shrink-0 text-amber-400" />}
+                              <span>{status.label}</span>
                             </span>
                           ) : (
                             <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-800/80 text-slate-400 border border-slate-700/60 font-mono">
@@ -197,7 +219,9 @@ export const RotationMatrix: React.FC = () => {
                       <div className="flex flex-col items-center gap-1">
                         <span
                           className={`font-mono text-xs font-bold ${
-                            pStats && pStats.meetsTarget
+                            isFixed
+                              ? 'text-amber-300'
+                              : pStats && pStats.meetsTarget
                               ? 'text-emerald-400'
                               : 'text-amber-400'
                           }`}
@@ -207,7 +231,9 @@ export const RotationMatrix: React.FC = () => {
                         <div className="w-16 h-1.5 rounded-full bg-slate-800 overflow-hidden">
                           <div
                             className={`h-full rounded-full ${
-                              pStats && pStats.meetsTarget
+                              isFixed
+                                ? 'bg-amber-400'
+                                : pStats && pStats.meetsTarget
                                 ? 'bg-emerald-500'
                                 : 'bg-amber-500'
                             }`}
@@ -221,7 +247,12 @@ export const RotationMatrix: React.FC = () => {
 
                     {/* Fairness Checkmark */}
                     <td className="py-3 px-4 text-center">
-                      {pStats && pStats.meetsTarget ? (
+                      {isFixed ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-amber-300 font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30">
+                          <Lock className="w-3 h-3" />
+                          <span>Fixed All Match</span>
+                        </span>
+                      ) : pStats && pStats.meetsTarget ? (
                         <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>Target Met</span>

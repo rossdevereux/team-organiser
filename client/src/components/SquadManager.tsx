@@ -11,6 +11,7 @@ import {
   Palmtree,
   Download,
   Upload,
+  Lock,
 } from 'lucide-react';
 import { getPlayerInitials } from '../utils/playerUtils';
 import { getTodayDateString } from '../utils/dateUtils';
@@ -86,6 +87,8 @@ export const SquadManager: React.FC = () => {
     squadNumber?: number;
     preferredPositions: Player['preferredPositions'];
     specificPositions?: string[];
+    isFixedPosition?: boolean;
+    fixedPosition?: string;
     signOnDate?: string;
     leaveDate?: string;
   }) => {
@@ -235,6 +238,12 @@ export const SquadManager: React.FC = () => {
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <h3 className="text-sm font-bold text-white leading-tight">{player.name}</h3>
+                        {player.isFixedPosition && (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold flex items-center gap-1">
+                            <Lock className="w-2.5 h-2.5" />
+                            <span>Fixed: {player.fixedPosition || 'GK'}</span>
+                          </span>
+                        )}
                         {isNotSignedOnYet && (
                           <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
                             Not Signed On Yet

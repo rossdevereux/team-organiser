@@ -10,6 +10,7 @@ import {
   generateSuggestedSubstitutions,
   selectMatchdaySquad,
   calculateMatchStats,
+  getFixedPositionsMap,
   InMatchTracker,
 } from '../services/rotationService.js';
 import { Player, Fixture, TeamSettings } from '../types.js';
@@ -410,6 +411,226 @@ describe('rotationService: Position Preference & Substitutions Suite', () => {
       assert.ok(p2Gk);
       assert.notEqual(p1Gk.playerId, p2Gk.playerId, 'GK should rotate between Period 1 and Period 2');
     });
+
+    it('keeps fixed goalkeeper in goal across all periods when multiple goalkeepers exist', () => {
+      const players: Player[] = [
+        createMockPlayer('gk1', 'Fixed Goalie', ['Goalkeeper']),
+        createMockPlayer('gk2', 'Backup Goalie', ['Goalkeeper']),
+        createMockPlayer('p3', 'Def One', ['Defence']),
+        createMockPlayer('p4', 'Def Two', ['Defence']),
+        createMockPlayer('p5', 'Mid One', ['Midfield']),
+        createMockPlayer('p6', 'Mid Two', ['Midfield']),
+        createMockPlayer('p7', 'Att One', ['Attack']),
+        createMockPlayer('p8', 'Sub Player', ['Midfield']),
+      ];
+
+      const fixture = createMockFixture({
+        fixedPlayerPositions: { gk1: 'GK' },
+      });
+      const settings = createMockSettings();
+
+      const matchSquad = generateFairRotation(fixture, players, settings);
+
+      matchSquad.lineupsByPeriod.forEach((lineup) => {
+        const gkEntry = lineup.onPitch.find((e) => e.position === 'GK');
+        assert.ok(gkEntry, `GK slot should be filled in period ${lineup.period}`);
+        assert.equal(
+          gkEntry.playerId,
+          'gk1',
+          `gk1 must remain in goal in period ${lineup.period}`
+        );
+        assert.ok(
+          !lineup.subs.includes('gk1'),
+          `Fixed goalkeeper gk1 must not be benched in period ${lineup.period}`
+        );
+      });
+    });
+
+    it('keeps fixed outfield player in designated position across all periods without benching', () => {
+      const players: Player[] = [
+        createMockPlayer('gk1', 'Goalie', ['Goalkeeper']),
+        createMockPlayer('lock_def', 'Fixed LeftBack', ['Defence'], {
+          isFixedPosition: true,
+          fixedPosition: 'DEF_L',
+        }),
+        createMockPlayer('p3', 'Def Two', ['Defence']),
+        createMockPlayer('p4', 'Def Three', ['Defence']),
+        createMockPlayer('p5', 'Mid One', ['Midfield']),
+        createMockPlayer('p6', 'Mid Two', ['Midfield']),
+        createMockPlayer('p7', 'Att One', ['Attack']),
+        createMockPlayer('p8', 'Bench Sub', ['Attack']),
+      ];
+
+      const fixture = createMockFixture();
+      const settings = createMockSettings();
+
+      const matchSquad = generateFairRotation(fixture, players, settings);
+
+      matchSquad.lineupsByPeriod.forEach((lineup) => {
+        const pitchEntry = lineup.onPitch.find((e) => e.playerId === 'lock_def');
+        assert.ok(
+          pitchEntry,
+          `lock_def must be on pitch in period ${lineup.period}`
+        );
+        assert.equal(
+          pitchEntry.position,
+          'DEF_L',
+          `lock_def must stay in DEF_L in period ${lineup.period}`
+        );
+        assert.ok(
+          !lineup.subs.includes('lock_def'),
+          `lock_def must not be benched in period ${lineup.period}`
+        );
+      });
+    });
+
+    it('rotates a globally locked goalkeeper across periods when fixture explicitly unlocks them', () => {
+      // gk1 has isFixedPosition: true globally on player profile
+      // gk2 is a second goalkeeper
+      // Fixture overrides gk1 with UNLOCKED
+      const players: Player[] = [
+        createMockPlayer('gk1', 'Globally Locked Goalie', ['Goalkeeper'], {
+          isFixedPosition: true,
+          fixedPosition: 'GK',
+        }),
+        createMockPlayer('gk2', 'Backup Goalie', ['Goalkeeper']),
+        createMockPlayer('p3', 'Def One', ['Defence']),
+        createMockPlayer('p4', 'Def Two', ['Defence']),
+        createMockPlayer('p5', 'Mid One', ['Midfield']),
+        createMockPlayer('p6', 'Mid Two', ['Midfield']),
+        createMockPlayer('p7', 'Att One', ['Attack']),
+      ];
+
+      const fixture = createMockFixture({
+        fixedPlayerPositions: { gk1: 'UNLOCKED' },
+      });
+      const settings = createMockSettings();
+
+      const matchSquad = generateFairRotation(fixture, players, settings);
+
+      const p1Gk = matchSquad.lineupsByPeriod[0].onPitch.find((e) => e.position === 'GK');
+      const p2Gk = matchSquad.lineupsByPeriod[1].onPitch.find((e) => e.position === 'GK');
+
+      assert.ok(p1Gk);
+      assert.ok(p2Gk);
+      // Because gk1 was unlocked for this specific fixture, the engine rotates between gk1 and gk2
+      assert.notEqual(
+        p1Gk.playerId,
+        p2Gk.playerId,
+        'Goalkeepers must rotate between Period 1 and Period 2 when globally fixed GK is unlocked on fixture'
+      );
+      // Fixture override should be preserved in returned matchSquad
+      assert.equal(matchSquad.fixedPlayerPositions?.['gk1'], 'UNLOCKED');
+    });
+
+    it('locks an otherwise rotating goalkeeper for a specific fixture', () => {
+      // Both gk1 and gk2 are normal rotating goalkeepers (neither isFixedPosition globally)
+      // Fixture specifies { gk2: 'GK' }
+      const players: Player[] = [
+        createMockPlayer('gk1', 'Goalie One', ['Goalkeeper']),
+        createMockPlayer('gk2', 'Goalie Two', ['Goalkeeper']),
+        createMockPlayer('p3', 'Def One', ['Defence']),
+        createMockPlayer('p4', 'Def Two', ['Defence']),
+        createMockPlayer('p5', 'Mid One', ['Midfield']),
+        createMockPlayer('p6', 'Mid Two', ['Midfield']),
+        createMockPlayer('p7', 'Att One', ['Attack']),
+        createMockPlayer('p8', 'Bench Sub', ['Midfield']),
+      ];
+
+      const fixture = createMockFixture({
+        fixedPlayerPositions: { gk2: 'GK' },
+      });
+      const settings = createMockSettings();
+
+      const matchSquad = generateFairRotation(fixture, players, settings);
+
+      matchSquad.lineupsByPeriod.forEach((lineup) => {
+        const gkEntry = lineup.onPitch.find((e) => e.position === 'GK');
+        assert.ok(gkEntry, `GK slot should be filled in period ${lineup.period}`);
+        assert.equal(
+          gkEntry.playerId,
+          'gk2',
+          `gk2 must remain in goal in period ${lineup.period} due to fixture-level lock`
+        );
+        assert.ok(
+          !lineup.subs.includes('gk2'),
+          `Fixed goalkeeper gk2 must not be benched in period ${lineup.period}`
+        );
+      });
+    });
+  });
+
+  describe('getFixedPositionsMap', () => {
+    it('resolves fixed positions from fixture, matchSquad, and player settings in priority order', () => {
+      const p1 = createMockPlayer('p1', 'Player 1', ['Goalkeeper']);
+      const p2 = createMockPlayer('p2', 'Player 2', ['Defence'], {
+        isFixedPosition: true,
+        fixedPosition: 'DEF_C',
+      });
+      const p3 = createMockPlayer('p3', 'Player 3', ['Goalkeeper'], {
+        isFixedPosition: true,
+      });
+      const p4 = createMockPlayer('p4', 'Player 4', ['Midfield'], {
+        isFixedPosition: true,
+        fixedPosition: 'MID_C',
+      });
+
+      // Fixture overrides p4 to DEF_R
+      const fixture = createMockFixture({
+        fixedPlayerPositions: { p4: 'DEF_R' },
+        matchSquad: {
+          fixtureId: 'fix-1',
+          manualOverrides: false,
+          selectedPlayerIds: ['p1', 'p2', 'p3', 'p4'],
+          restedPlayerIds: [],
+          lineupsByPeriod: [],
+          fixedPlayerPositions: { p1: 'GK' },
+        },
+      });
+
+      const map = getFixedPositionsMap(fixture, [p1, p2, p3, p4]);
+      assert.equal(map.get('p4'), 'DEF_R', 'Fixture level takes highest priority');
+      assert.equal(map.get('p1'), 'GK', 'matchSquad level takes second priority');
+      assert.equal(map.get('p2'), 'DEF_C', 'Player level is honoured');
+      assert.equal(map.get('p3'), 'GK', 'Player level defaults to GK for goalkeeper');
+    });
+
+    it('respects UNLOCKED, NONE, and ROTATE overrides to unlock globally fixed players on specific fixtures', () => {
+      const p1 = createMockPlayer('p1', 'Player 1', ['Goalkeeper'], {
+        isFixedPosition: true,
+        fixedPosition: 'GK',
+      });
+      const p2 = createMockPlayer('p2', 'Player 2', ['Defence'], {
+        isFixedPosition: true,
+        fixedPosition: 'DEF_C',
+      });
+      const p3 = createMockPlayer('p3', 'Player 3', ['Midfield'], {
+        isFixedPosition: true,
+        fixedPosition: 'MID_C',
+      });
+
+      const fixture = createMockFixture({
+        fixedPlayerPositions: {
+          p1: 'UNLOCKED',
+          p2: 'NONE',
+        },
+        matchSquad: {
+          fixtureId: 'fix-1',
+          manualOverrides: false,
+          selectedPlayerIds: ['p1', 'p2', 'p3'],
+          restedPlayerIds: [],
+          lineupsByPeriod: [],
+          fixedPlayerPositions: {
+            p3: 'ROTATE',
+          },
+        },
+      });
+
+      const map = getFixedPositionsMap(fixture, [p1, p2, p3]);
+      assert.equal(map.has('p1'), false, 'p1 should be unlocked via fixture UNLOCKED');
+      assert.equal(map.has('p2'), false, 'p2 should be unlocked via fixture NONE');
+      assert.equal(map.has('p3'), false, 'p3 should be unlocked via matchSquad ROTATE');
+    });
   });
 
   describe('generateSuggestedSubstitutions', () => {
@@ -554,6 +775,131 @@ describe('rotationService: Position Preference & Substitutions Suite', () => {
       assert.equal(firstSub.positionCategory, 'Defence');
       // Sub should match 1st preference (Primary preference)
       assert.match(firstSub.reason || '', /Primary preference/);
+    });
+
+    it('never substitutes off a fixed player in any substitution window across all strategies', () => {
+      const players: Player[] = [
+        createMockPlayer('gk_fixed', 'Sam GK', ['Goalkeeper']),
+        createMockPlayer('cb_fixed', 'Dan Fixed CB', ['Defence'], {
+          isFixedPosition: true,
+          fixedPosition: 'DEF_C',
+        }),
+        createMockPlayer('d2', 'Dean LB', ['Defence']),
+        createMockPlayer('m1', 'Mike CM', ['Midfield']),
+        createMockPlayer('m2', 'Milo LM', ['Midfield']),
+        createMockPlayer('m3', 'Mason RM', ['Midfield']),
+        createMockPlayer('a1', 'Adam ST', ['Attack']),
+        // Bench players
+        createMockPlayer('sub1', 'Charlie Utility', ['Defence', 'Midfield']),
+        createMockPlayer('sub2', 'Archie Striker', ['Attack']),
+      ];
+
+      const fixture = createMockFixture({
+        fixedPlayerPositions: { gk_fixed: 'GK' },
+        matchSquad: {
+          fixtureId: 'fix-1',
+          manualOverrides: false,
+          selectedPlayerIds: players.map((p) => p.id),
+          restedPlayerIds: [],
+          lineupsByPeriod: [
+            {
+              period: 1,
+              onPitch: [
+                { playerId: 'gk_fixed', position: 'GK' },
+                { playerId: 'cb_fixed', position: 'CB' },
+                { playerId: 'd2', position: 'LB' },
+                { playerId: 'm1', position: 'CM' },
+                { playerId: 'm2', position: 'LM' },
+                { playerId: 'm3', position: 'RM' },
+                { playerId: 'a1', position: 'ST' },
+              ],
+              subs: ['sub1', 'sub2'],
+            },
+            {
+              period: 2,
+              onPitch: [
+                { playerId: 'gk_fixed', position: 'GK' },
+                { playerId: 'cb_fixed', position: 'CB' },
+                { playerId: 'sub1', position: 'LB' },
+                { playerId: 'm1', position: 'CM' },
+                { playerId: 'sub2', position: 'ST' },
+                { playerId: 'm3', position: 'RM' },
+                { playerId: 'a1', position: 'LM' },
+              ],
+              subs: ['d2', 'm2'],
+            },
+          ],
+        },
+      });
+
+      const settings = createMockSettings();
+      const plans = generateSuggestedSubstitutions(fixture, players, settings, 10);
+
+      assert.ok(plans.length >= 3);
+      plans.forEach((plan) => {
+        plan.windows.forEach((win) => {
+          win.subChanges.forEach((ch) => {
+            assert.notEqual(
+              ch.offPlayerId,
+              'gk_fixed',
+              `Fixed goalkeeper gk_fixed must never be substituted off in plan: ${plan.strategyName}`
+            );
+            assert.notEqual(
+              ch.offPlayerId,
+              'cb_fixed',
+              `Fixed player cb_fixed must never be substituted off in plan: ${plan.strategyName}`
+            );
+          });
+        });
+      });
+    });
+
+    it('allows substitution of a globally fixed player when fixture explicitly overrides with UNLOCKED', () => {
+      const players: Player[] = [
+        createMockPlayer('gk_unlocked', 'Sam GK', ['Goalkeeper'], {
+          isFixedPosition: true,
+          fixedPosition: 'GK',
+        }),
+        createMockPlayer('gk_sub', 'Paul Backup GK', ['Goalkeeper']),
+        createMockPlayer('d1', 'Dan CB', ['Defence']),
+        createMockPlayer('d2', 'Dean LB', ['Defence']),
+        createMockPlayer('m1', 'Mike CM', ['Midfield']),
+        createMockPlayer('m2', 'Milo LM', ['Midfield']),
+        createMockPlayer('m3', 'Mason RM', ['Midfield']),
+        createMockPlayer('a1', 'Adam ST', ['Attack']),
+        createMockPlayer('sub1', 'Liam Utility', ['Defence', 'Attack']),
+      ];
+
+      const fixture = createMockFixture({
+        fixedPlayerPositions: { gk_unlocked: 'UNLOCKED' },
+        matchSquad: {
+          fixtureId: 'fix-1',
+          manualOverrides: false,
+          selectedPlayerIds: players.map((p) => p.id),
+          restedPlayerIds: [],
+          lineupsByPeriod: [
+            {
+              period: 1,
+              onPitch: [
+                { playerId: 'gk_unlocked', position: 'GK' },
+                { playerId: 'd1', position: 'CB' },
+                { playerId: 'd2', position: 'LB' },
+                { playerId: 'm1', position: 'CM' },
+                { playerId: 'm2', position: 'LM' },
+                { playerId: 'm3', position: 'RM' },
+                { playerId: 'a1', position: 'ST' },
+              ],
+              subs: ['gk_sub', 'sub1'],
+            },
+          ],
+        },
+      });
+
+      const settings = createMockSettings();
+      const plans = generateSuggestedSubstitutions(fixture, players, settings, 10);
+      assert.ok(plans.length >= 3);
+      const fixedMap = getFixedPositionsMap(fixture, players);
+      assert.equal(fixedMap.has('gk_unlocked'), false, 'gk_unlocked must not be present in fixed map');
     });
   });
 
