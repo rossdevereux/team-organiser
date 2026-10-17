@@ -282,11 +282,20 @@ router.get('/players', async (req: AuthenticatedRequest, res: Response) => {
 });
 
 // POST /api/players
-router.post('/players', async (req: Request, res: Response) => {
+router.post('/players', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const body = req.body as Partial<Player>;
     if (!body.name) {
       return res.status(400).json({ error: 'Player name is required' });
+    }
+
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (body.teamId && userId) {
+      const team = await storage.getTeamById(body.teamId);
+      if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
+        return res.status(403).json({ error: 'Access denied: Cannot add players to this team' });
+      }
     }
 
     const newPlayer: Player = {
@@ -311,11 +320,20 @@ router.post('/players', async (req: Request, res: Response) => {
 });
 
 // POST /api/players/bulk (Bulk import players)
-router.post('/players/bulk', async (req: Request, res: Response) => {
+router.post('/players/bulk', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { players: rawPlayers, teamId } = req.body as { players: Partial<Player>[]; teamId?: string };
     if (!Array.isArray(rawPlayers) || rawPlayers.length === 0) {
       return res.status(400).json({ error: 'Array of players is required' });
+    }
+
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (teamId && userId) {
+      const team = await storage.getTeamById(teamId);
+      if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
+        return res.status(403).json({ error: 'Access denied: Cannot add players to this team' });
+      }
     }
 
     const createdPlayers: Player[] = rawPlayers.map((body) => ({
@@ -342,12 +360,20 @@ router.post('/players/bulk', async (req: Request, res: Response) => {
 });
 
 // GET /api/players/:id
-router.get('/players/:id', async (req: Request, res: Response) => {
+router.get('/players/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const player = await storage.getPlayerById(id);
     if (!player) {
       return res.status(404).json({ error: 'Player not found' });
+    }
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (player.teamId && userId) {
+      const team = await storage.getTeamById(player.teamId);
+      if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
+        return res.status(403).json({ error: 'Access denied to this player' });
+      }
     }
     res.json(player);
   } catch (err: any) {
@@ -356,12 +382,21 @@ router.get('/players/:id', async (req: Request, res: Response) => {
 });
 
 // PUT /api/players/:id
-router.put('/players/:id', async (req: Request, res: Response) => {
+router.put('/players/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const existing = await storage.getPlayerById(id);
     if (!existing) {
       return res.status(404).json({ error: 'Player not found' });
+    }
+
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (existing.teamId && userId) {
+      const team = await storage.getTeamById(existing.teamId);
+      if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
+        return res.status(403).json({ error: 'Access denied: Cannot modify player on this team' });
+      }
     }
 
     const updated: Player = {
@@ -378,9 +413,23 @@ router.put('/players/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE /api/players/:id
-router.delete('/players/:id', async (req: Request, res: Response) => {
+router.delete('/players/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
+    const existing = await storage.getPlayerById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Player not found' });
+    }
+
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (existing.teamId && userId) {
+      const team = await storage.getTeamById(existing.teamId);
+      if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
+        return res.status(403).json({ error: 'Access denied: Cannot delete player from this team' });
+      }
+    }
+
     const deleted = await storage.deletePlayer(id);
     if (!deleted) {
       return res.status(404).json({ error: 'Player not found' });
@@ -421,12 +470,20 @@ router.get('/fixtures', async (req: AuthenticatedRequest, res: Response) => {
 });
 
 // GET /api/fixtures/:id
-router.get('/fixtures/:id', async (req: Request, res: Response) => {
+router.get('/fixtures/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const fixture = await storage.getFixtureById(id);
     if (!fixture) {
       return res.status(404).json({ error: 'Fixture not found' });
+    }
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (fixture.teamId && userId) {
+      const team = await storage.getTeamById(fixture.teamId);
+      if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
+        return res.status(403).json({ error: 'Access denied to this fixture' });
+      }
     }
     res.json(fixture);
   } catch (err: any) {
@@ -435,11 +492,20 @@ router.get('/fixtures/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/fixtures
-router.post('/fixtures', async (req: Request, res: Response) => {
+router.post('/fixtures', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const body = req.body as Partial<Fixture>;
     if (!body.opponent || !body.date) {
       return res.status(400).json({ error: 'Opponent and date are required' });
+    }
+
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (body.teamId && userId) {
+      const team = await storage.getTeamById(body.teamId);
+      if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
+        return res.status(403).json({ error: 'Access denied: Cannot add fixtures to this team' });
+      }
     }
 
     const groundAddress = body.groundAddress?.trim();
@@ -479,12 +545,21 @@ router.post('/fixtures', async (req: Request, res: Response) => {
 });
 
 // PUT /api/fixtures/:id
-router.put('/fixtures/:id', async (req: Request, res: Response) => {
+router.put('/fixtures/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const existing = await storage.getFixtureById(id);
     if (!existing) {
       return res.status(404).json({ error: 'Fixture not found' });
+    }
+
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (existing.teamId && userId) {
+      const team = await storage.getTeamById(existing.teamId);
+      if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
+        return res.status(403).json({ error: 'Access denied: Cannot modify fixture on this team' });
+      }
     }
 
     const groundAddress = req.body.groundAddress !== undefined ? req.body.groundAddress?.trim() : existing.groundAddress;
@@ -600,9 +675,23 @@ router.put('/fixtures/:id/player-of-the-match', async (req: Request, res: Respon
 });
 
 // DELETE /api/fixtures/:id
-router.delete('/fixtures/:id', async (req: Request, res: Response) => {
+router.delete('/fixtures/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
+    const existing = await storage.getFixtureById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Fixture not found' });
+    }
+
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (existing.teamId && userId) {
+      const team = await storage.getTeamById(existing.teamId);
+      if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
+        return res.status(403).json({ error: 'Access denied: Cannot delete fixture on this team' });
+      }
+    }
+
     const deleted = await storage.deleteFixture(id);
     if (!deleted) {
       return res.status(404).json({ error: 'Fixture not found' });

@@ -183,7 +183,7 @@ export const optionalAuth = (
       : (customRole || 'coach');
 
     req.user = {
-      uid: 'dev-user-123',
+      uid: customUid || (token.startsWith('mock-token-') ? token.replace('mock-token-', '') : (roleFromToken === 'owner' ? 'admin-user-1' : 'dev-user-123')),
       email: customEmail || (roleFromToken === 'owner' ? (process.env.INITIAL_ADMIN_EMAIL || 'admin@therovers.local') : 'coach@therovers.local'),
       role: roleFromToken,
     };

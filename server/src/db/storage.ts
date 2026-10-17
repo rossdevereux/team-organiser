@@ -605,8 +605,8 @@ export class StorageManager {
           const allTeams: Team[] = snap.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
           const filtered = this.filterTeamsForUser(allTeams, userId, userEmail);
           if (filtered.length > 0) return filtered;
-          // If no user teams found and unauthenticated or demo user, always fall back to demo seed teams
-          if (!userId || userId === 'dev-user-123') {
+          // If no user teams found and unauthenticated, fall back to demo seed teams
+          if (!userId) {
             return this.memoryStore.teams;
           }
           return [];
@@ -616,19 +616,22 @@ export class StorageManager {
       }
     }
     const filtered = this.filterTeamsForUser(this.memoryStore.teams, userId, userEmail);
-    if (filtered.length === 0 && (!userId || userId === 'dev-user-123')) {
+    if (filtered.length === 0 && !userId) {
       return this.memoryStore.teams;
     }
     return filtered;
   }
 
   hasTeamAccess(team: Team, userId?: string, userEmail?: string): boolean {
-    if (!userId) return true; // dev or unauthenticated fallback
-    if (team.ownerId === userId) return true;
-    if (userId === 'dev-user-123' && team.ownerId === 'dev-user-123') return true;
-    if (userEmail && team.ownerEmail && team.ownerEmail.toLowerCase() === userEmail.toLowerCase()) return true;
-    if (team.sharedWith && team.sharedWith.includes(userId)) return true;
-    if (userEmail && team.sharedWith && team.sharedWith.some((e) => e.toLowerCase() === userEmail.toLowerCase())) return true;
+    if (!userId) return true; // unauthenticated fallback for demo mode
+    if (team.ownerId && team.ownerId === userId) return true;
+    if (userEmail && team.ownerEmail && team.ownerEmail.trim().toLowerCase() === userEmail.trim().toLowerCase()) return true;
+    if (team.sharedWith && Array.isArray(team.sharedWith)) {
+      if (team.sharedWith.includes(userId)) return true;
+      if (userEmail && team.sharedWith.some((e) => typeof e === 'string' && e.trim().toLowerCase() === userEmail.trim().toLowerCase())) {
+        return true;
+      }
+    }
     return false;
   }
 
@@ -700,7 +703,10 @@ export class StorageManager {
     if (!team) return null;
 
     const email = emailOrUserId.trim().toLowerCase();
-    if (!team.sharedWith.includes(email)) {
+    if (!team.sharedWith || !Array.isArray(team.sharedWith)) {
+      team.sharedWith = [];
+    }
+    if (!team.sharedWith.some((e) => typeof e === 'string' && e.trim().toLowerCase() === email)) {
       team.sharedWith.push(email);
       await this.saveTeam(team);
     }

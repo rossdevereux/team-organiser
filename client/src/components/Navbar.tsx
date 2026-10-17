@@ -61,6 +61,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     setActiveTab,
     autoRotateCurrentFixture,
     isOffline,
+    currentUser,
   } = useMatchday();
 
   const { t } = useTranslation();
@@ -101,7 +102,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </Link>
 
             {/* Team Switcher Pill */}
-            {activeTeam && (
+            {activeTeam ? (
               <div className="relative shrink-0">
                 <button
                   onClick={() => {
@@ -184,7 +185,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 )}
               </div>
-            )}
+            ) : currentUser ? (
+              <button
+                onClick={() => setActiveTab('teams')}
+                className="h-9 whitespace-nowrap shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-xs font-semibold text-indigo-300 transition cursor-pointer shadow-sm"
+                title="Create your first team"
+              >
+                <Plus className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span>Create Team</span>
+              </button>
+            ) : null}
 
             {/* Fixture Selector Pill (Desktop - lg breakpoint and above) */}
             {activeFixture && (

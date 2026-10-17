@@ -342,11 +342,15 @@ export const TeamManager: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {teams.map((team) => {
           const isActive = team.id === activeTeamId;
-          const isOwner = currentUser ? team.ownerId === currentUser.uid : true;
+          const isOwner = currentUser
+            ? team.ownerId === currentUser.uid ||
+              Boolean(currentUser.email && team.ownerEmail?.toLowerCase() === currentUser.email.toLowerCase())
+            : true;
 
           return (
             <div
               key={team.id}
+              data-testid={`team-card-${team.id}`}
               onClick={() => {
                 setActiveTeamId(team.id);
                 setActiveTab('lineup');
@@ -359,13 +363,24 @@ export const TeamManager: React.FC = () => {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
                       {team.ageGroup || 'Youth'}
                     </span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
                       {team.settings.pitchPlayerCount}-a-side
                     </span>
+                    {currentUser && (
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                          isOwner
+                            ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30'
+                            : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                        }`}
+                      >
+                        {isOwner ? 'Your Team' : 'Shared with You'}
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-base font-bold text-white mt-2">{team.name}</h3>
                 </div>
@@ -411,9 +426,11 @@ export const TeamManager: React.FC = () => {
                 <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
                   <UserCheck className="w-3.5 h-3.5 text-indigo-400" />
                   <span>
-                    {team.sharedWith && team.sharedWith.length > 0
-                      ? `Shared with ${team.sharedWith.length} coaches`
-                      : 'Private to you'}
+                    {isOwner
+                      ? team.sharedWith && team.sharedWith.length > 0
+                        ? `Shared with ${team.sharedWith.length} coaches`
+                        : 'Created by you'
+                      : `Shared with you by ${team.ownerEmail || 'coach'}`}
                   </span>
                 </div>
 
