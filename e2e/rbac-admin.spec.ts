@@ -2,19 +2,19 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Role-Based Access Control (RBAC) & Admin Portal Suite', () => {
   test('navigates to Admin Portal from Navbar and renders club administration dashboard for owner', async ({ page }) => {
-    await page.goto('/?role=owner');
+    await page.goto('/lineup?role=owner');
     await expect(page.locator('header')).toBeVisible();
 
     // Click Admin Portal tab in Navbar
-    const adminBtn = page.getByRole('button', { name: /Admin Portal/i });
+    const adminBtn = page.getByRole('button', { name: /Club Admin|Admin/i }).first();
     await expect(adminBtn).toBeVisible();
     await adminBtn.click();
 
     // Verify URL update
-    await expect(page).toHaveURL(/tab=admin/);
+    await expect(page).toHaveURL(/(tab=admin|\/admin)/);
 
     // Verify Admin Portal title and sections
-    await expect(page.getByRole('heading', { name: /Club Administration Portal/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Club Governance & Admin Console|Club Administration Portal/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Users & Custom Claims/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Club Settings & Kits/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Backups & Disaster Recovery/i })).toBeVisible();
@@ -22,7 +22,7 @@ test.describe('Role-Based Access Control (RBAC) & Admin Portal Suite', () => {
 
   test('AdminRoute guard blocks viewer from accessing Admin Portal with 403 Forbidden UI', async ({ page }) => {
     // Navigate with viewer role
-    await page.goto('/?tab=admin&role=viewer');
+    await page.goto('/admin?role=viewer');
 
     // AdminRoute guard should display Access Denied screen
     await expect(page.getByRole('heading', { name: /Elevated Permissions Required/i })).toBeVisible();
@@ -33,8 +33,8 @@ test.describe('Role-Based Access Control (RBAC) & Admin Portal Suite', () => {
   });
 
   test('user management tab lists registered users with custom claims and invite modal works', async ({ page }) => {
-    await page.goto('/?tab=admin&role=owner');
-    await expect(page.getByRole('heading', { name: /Club Administration Portal/i })).toBeVisible();
+    await page.goto('/admin?role=owner');
+    await expect(page.getByRole('heading', { name: /Club Governance & Admin Console|Club Administration Portal/i })).toBeVisible();
 
     // Verify users table headers
     await expect(page.getByText('User Access & Token Claims')).toBeVisible();
@@ -49,10 +49,10 @@ test.describe('Role-Based Access Control (RBAC) & Admin Portal Suite', () => {
     const testEmail = `newcoach_${Date.now()}@therovers.local`;
     await expect(page.getByRole('heading', { name: /Invite \/ Provision User/i })).toBeVisible();
     await page.getByPlaceholder('coach.name@therovers.local').fill(testEmail);
-    await page.getByPlaceholder(/e\.g\. Dave Miller/i).fill('New Assistant Coach');
+    await page.getByPlaceholder(/e\.g\. (Coach David|Dave)/i).fill('New Assistant Coach');
 
     // Submit form
-    await page.getByRole('button', { name: /Provision Claims/i }).click();
+    await page.getByRole('button', { name: /Provision (User|Claims)/i }).click();
 
     // Modal closes and user appears in table
     await expect(page.getByRole('heading', { name: /Invite \/ Provision User/i })).not.toBeVisible();
@@ -60,8 +60,8 @@ test.describe('Role-Based Access Control (RBAC) & Admin Portal Suite', () => {
   });
 
   test('club settings tab allows editing club name and kit colors with live preview', async ({ page }) => {
-    await page.goto('/?tab=admin&role=owner');
-    await expect(page.getByRole('heading', { name: /Club Administration Portal/i })).toBeVisible();
+    await page.goto('/admin?role=owner');
+    await expect(page.getByRole('heading', { name: /Club Governance & Admin Console|Club Administration Portal/i })).toBeVisible();
 
     // Switch to Club Settings & Kits tab
     await page.getByRole('button', { name: /Club Settings & Kits/i }).click();
@@ -78,8 +78,8 @@ test.describe('Role-Based Access Control (RBAC) & Admin Portal Suite', () => {
   });
 
   test('backups and disaster recovery tab displays database statistics and download trigger', async ({ page }) => {
-    await page.goto('/?tab=admin&role=owner');
-    await expect(page.getByRole('heading', { name: /Club Administration Portal/i })).toBeVisible();
+    await page.goto('/admin?role=owner');
+    await expect(page.getByRole('heading', { name: /Club Governance & Admin Console|Club Administration Portal/i })).toBeVisible();
 
     // Switch to Backups tab
     await page.getByRole('button', { name: /Backups & Disaster Recovery/i }).click();

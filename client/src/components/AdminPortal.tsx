@@ -78,7 +78,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigateHome }) => {
   // Tab 1: User Handlers
   const handleInviteUser = async (email: string, displayName: string, role: UserRole) => {
     try {
-      await inviteAdminUser({ email, displayName, role });
+      const newUser = await inviteAdminUser({ email, displayName, role });
+      if (newUser) {
+        setUsers((prev) => [newUser, ...prev.filter((u) => u.uid !== newUser.uid)]);
+      }
       showToast(`Provisioned role '${role}' for ${email}`, 'success');
       await loadAdminData();
     } catch (err: any) {

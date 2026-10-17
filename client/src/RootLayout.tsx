@@ -75,8 +75,15 @@ function DashboardShell() {
     const handleBeforePrint = () => {
       setPrintOpen(true);
     };
+    const handleOpenSquad = () => {
+      setSquadSelectorOpen(true);
+    };
     window.addEventListener('beforeprint', handleBeforePrint);
-    return () => window.removeEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('subshuffle:open-squad-selector', handleOpenSquad);
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('subshuffle:open-squad-selector', handleOpenSquad);
+    };
   }, []);
 
   // Backward compatibility: handle legacy /?tab= redirects for bookmarks and tests
@@ -273,7 +280,7 @@ function DashboardShell() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={() => navigate({ to: '/', search: (prev: any) => ({ ...prev, tour: 'true' }) })}
+                onClick={() => navigate({ to: '/', search: { tour: 'true' } })}
                 className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-755 text-slate-200 hover:text-white text-xs font-semibold border border-slate-700 transition cursor-pointer"
                 title="View SubShuffle product tour and features"
               >
@@ -509,7 +516,7 @@ function DashboardShell() {
 
           <div className="flex items-center gap-4 text-slate-400">
             <button
-              onClick={() => navigate({ to: '/', search: (prev: any) => ({ ...prev, tour: 'true' }) })}
+              onClick={() => navigate({ to: '/', search: { tour: 'true' } })}
               className="hover:text-emerald-400 transition cursor-pointer"
             >
               Product Tour

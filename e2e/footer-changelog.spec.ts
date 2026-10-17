@@ -101,8 +101,8 @@ test.describe('Footer Version & Changelog Modal Suite', () => {
     // Verify operational items are available in the top navbar / header
     const header = page.locator('header');
     await expect(header).toBeVisible();
-    await expect(header.locator('button[title*="WhatsApp"]')).toBeVisible();
-    await expect(header.locator('button[title*="Team Settings & League Rules"]')).toBeVisible();
+    await expect(header.locator('button[data-testid="share-export-button"]')).toBeVisible();
+    await expect(header.locator('button[data-testid="user-menu-button"]')).toBeVisible();
     await expect(header.getByRole('button', { name: /Teams/i })).toBeVisible();
   });
 });

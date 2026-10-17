@@ -87,4 +87,45 @@ test.describe('Navbar & Navigation Suite', () => {
       }
     }
   });
+
+  test('consolidates user and utility controls into right-aligned Avatar menu', async ({ page }) => {
+    const userMenuBtn = page.locator('button[data-testid="user-menu-button"]');
+    await expect(userMenuBtn).toBeVisible();
+    await userMenuBtn.click();
+
+    // Verify avatar popover content scoped to menu
+    const popover = page.locator('div:has(> button[data-testid="settings-menu-item"])');
+    await expect(popover.getByText(/Guest Coach/i).first()).toBeVisible();
+    await expect(popover.locator('button[data-testid="settings-menu-item"]')).toBeVisible();
+    await expect(popover.getByText(/Language \/ Idioma/i)).toBeVisible();
+    await expect(popover.getByText(/English/i)).toBeVisible();
+    await expect(
+      popover.locator('button[data-testid="sign-in-button"], button[data-testid="sign-out-button"]')
+    ).toBeVisible();
+  });
+
+  test('consolidates export actions into Share / Export dropdown', async ({ page }) => {
+    const shareBtn = page.locator('button[data-testid="share-export-button"]');
+    await expect(shareBtn).toBeVisible();
+    await shareBtn.click();
+
+    // Dropdown contains both WhatsApp and Print options
+    const whatsappItem = page.locator('button[data-testid="whatsapp-export-item"]');
+    const printItem = page.locator('button[data-testid="print-export-item"]');
+
+    await expect(whatsappItem).toBeVisible();
+    await expect(printItem).toBeVisible();
+    await expect(whatsappItem).toContainText('WhatsApp Squad Card');
+    await expect(printItem).toContainText('Print Team Sheet');
+  });
+
+  test('navigation tabs satisfy minimum 44px touch targets', async ({ page }) => {
+    const lineupTab = page.getByRole('button', { name: /Lineup/i }).first();
+    await expect(lineupTab).toBeVisible();
+    const box = await lineupTab.boundingBox();
+    expect(box).not.toBeNull();
+    if (box) {
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+  });
 });

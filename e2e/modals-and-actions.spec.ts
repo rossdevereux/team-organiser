@@ -7,9 +7,17 @@ test.describe('Modals & Action Tools Suite', () => {
   });
 
   test('opens WhatsApp export modal with formatted announcement and closes', async ({ page }) => {
-    const whatsAppBtn = page.locator('header button[title*="WhatsApp"]').first();
-    await expect(whatsAppBtn).toBeVisible();
-    await whatsAppBtn.click();
+    const shareBtn = page.locator('header button[data-testid="share-export-button"]');
+    if (await shareBtn.isVisible()) {
+      await shareBtn.click();
+      const whatsAppBtn = page.locator('button[data-testid="whatsapp-export-item"]');
+      await expect(whatsAppBtn).toBeVisible();
+      await whatsAppBtn.click();
+    } else {
+      const whatsAppBtn = page.locator('header button[title*="WhatsApp"]').first();
+      await expect(whatsAppBtn).toBeVisible();
+      await whatsAppBtn.click();
+    }
 
     // Verify modal is open
     await expect(page.getByRole('heading', { name: /WhatsApp Team Announcement/i })).toBeVisible();
@@ -21,9 +29,12 @@ test.describe('Modals & Action Tools Suite', () => {
   });
 
   test('opens Print / PDF modal with official emblem and closes via Close button', async ({ page }) => {
-    // Only test on viewports where Print button is visible (desktop)
-    const printBtn = page.locator('header button[title*="Print official matchday pitch sheet"]').first();
-    if (await printBtn.isVisible()) {
+    // Only test on viewports where Print button or Share / Export is visible
+    const shareBtn = page.locator('header button[data-testid="share-export-button"]');
+    if (await shareBtn.isVisible()) {
+      await shareBtn.click();
+      const printBtn = page.locator('button[data-testid="print-export-item"]');
+      await expect(printBtn).toBeVisible();
       await printBtn.click();
 
       // Verify Print modal header
@@ -58,13 +69,21 @@ test.describe('Modals & Action Tools Suite', () => {
   });
 
   test('opens Team Settings modal and inspects league configurations', async ({ page }) => {
-    const settingsBtn = page.locator('header button[title*="Team Settings & League Rules"]').first();
-    await expect(settingsBtn).toBeVisible();
-    await settingsBtn.click();
+    const userMenuBtn = page.locator('header button[data-testid="user-menu-button"]');
+    if (await userMenuBtn.isVisible()) {
+      await userMenuBtn.click();
+      const settingsBtn = page.locator('button[data-testid="settings-menu-item"]');
+      await expect(settingsBtn).toBeVisible();
+      await settingsBtn.click();
+    } else {
+      const settingsBtn = page.locator('header button[title*="Team Settings & League Rules"]').first();
+      await expect(settingsBtn).toBeVisible();
+      await settingsBtn.click();
+    }
 
     // Verify settings modal
     await expect(page.getByRole('heading', { name: /Team & League Settings/i })).toBeVisible();
-    await expect(page.getByText(/Pitch Format/i)).toBeVisible();
+    await expect(page.getByText(/Pitch Players|Pitch Format/i)).toBeVisible();
 
     // Close with Escape
     await page.keyboard.press('Escape');

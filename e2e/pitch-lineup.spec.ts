@@ -17,20 +17,20 @@ test.describe('Pitch & Lineup Management Suite', () => {
   });
 
   test('switches match periods/halves and updates pitch state', async ({ page }) => {
-    // Locate period buttons in the sub-navbar or hero bar
-    const firstHalfBtn = page.getByRole('button', { name: '1st Half' }).first();
-    const secondHalfBtn = page.getByRole('button', { name: '2nd Half' }).first();
+    // Locate period buttons in pitch controls toolbar or hero bar
+    const firstPeriodBtn = page.getByRole('button', { name: /1st Half|Period 1/i }).first();
+    const secondPeriodBtn = page.getByRole('button', { name: /2nd Half|Period 2/i }).first();
 
-    await expect(firstHalfBtn).toBeVisible();
-    await expect(secondHalfBtn).toBeVisible();
+    await expect(firstPeriodBtn).toBeVisible();
+    await expect(secondPeriodBtn).toBeVisible();
 
-    // Switch to 2nd Half
-    await secondHalfBtn.click();
-    await expect(secondHalfBtn).toHaveClass(/bg-emerald-500/);
+    // Switch to 2nd Period
+    await secondPeriodBtn.click();
+    await expect(secondPeriodBtn).toHaveClass(/bg-emerald-500/);
 
-    // Switch back to 1st Half
-    await firstHalfBtn.click();
-    await expect(firstHalfBtn).toHaveClass(/bg-emerald-500/);
+    // Switch back to 1st Period
+    await firstPeriodBtn.click();
+    await expect(firstPeriodBtn).toHaveClass(/bg-emerald-500/);
   });
 
   test('changes team formation via formation selector dropdown', async ({ page }) => {

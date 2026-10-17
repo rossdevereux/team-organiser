@@ -74,7 +74,7 @@ export const en = {
       'Use instantly in your browser. Sign in whenever you want cloud backup and assistant coach sharing.',
     demoCardTitle: 'Demo Guest Mode',
     demoCardSubtitle: "Explore full features with sample team 'The Rovers U11'.",
-    launchDemoPlanner: 'Launch Demo Planner',
+    launchDemoPlanner: 'Launch Interactive Demo',
     cloudCardTitle: 'Coach Account',
     cloudCardSubtitle: 'Private isolated cloud workspace for your own club squads.',
     openCloudWorkspace: 'Open Cloud Workspace',
@@ -106,7 +106,7 @@ export const en = {
     Forward: 'Forward',
   },
   settings: {
-    title: 'Matchday & League Settings',
+    title: 'Team & League Settings',
     languageLabel: 'Application Language',
     pitchPlayers: 'Pitch Players',
     squadCap: 'Matchday Squad Cap',

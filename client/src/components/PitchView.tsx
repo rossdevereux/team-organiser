@@ -1,17 +1,38 @@
 import React, { useState, useMemo } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
-import { Shirt, ArrowLeftRight, X, Clock, ShieldCheck, Info, UserX, Lock, Unlock } from 'lucide-react';
+import {
+  Shirt,
+  ArrowLeftRight,
+  X,
+  Clock,
+  ShieldCheck,
+  Info,
+  UserX,
+  Lock,
+  Unlock,
+  Wand2,
+} from 'lucide-react';
 import { BroadPosition, Player } from '../types';
 import { PlayerCallOffModal } from './PlayerCallOffModal';
 import { getPlayerInitials, POSITION_CATEGORY_STYLES } from '../utils/playerUtils';
 import { useToast } from '../context/ToastContext';
 
-export const PitchView: React.FC = () => {
+interface PitchViewProps {
+  onOpenSquadSelector?: () => void;
+  onAutoRotate?: () => void;
+}
+
+export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAutoRotate }) => {
   const {
     activeFixture,
     activePeriod,
+    setActivePeriod,
     settings,
     activeFormation,
+    availableFormations,
+    changeFormation,
+    autoRotateCurrentFixture,
+    undoAutoRotate,
     players,
     stats,
     selectedSwapSource,
@@ -139,6 +160,30 @@ export const PitchView: React.FC = () => {
 
   const effectivePeriodCount = activeFixture?.matchPeriodCount || settings.matchPeriodCount || 2;
   const effectivePitchPlayerCount = activeFixture?.pitchPlayerCount || settings.pitchPlayerCount || 7;
+  const periods = Array.from({ length: effectivePeriodCount }, (_, i) => i + 1);
+
+  const handleAutoBalance = async () => {
+    if (onAutoRotate) {
+      onAutoRotate();
+      return;
+    }
+    await autoRotateCurrentFixture();
+    showToast('Squad rotations re-balanced across all periods.', 'success', {
+      label: 'Undo',
+      onClick: async () => {
+        await undoAutoRotate();
+        showToast('Restored previous lineup rotations.', 'info');
+      },
+    });
+  };
+
+  const handleOpenSquad = () => {
+    if (onOpenSquadSelector) {
+      onOpenSquadSelector();
+    } else {
+      window.dispatchEvent(new CustomEvent('subshuffle:open-squad-selector'));
+    }
+  };
 
   const periodDisplayName =
     effectivePeriodCount === 2
@@ -181,6 +226,68 @@ export const PitchView: React.FC = () => {
           </button>
         </div>
       )}
+
+      {/* Relocated Pitch Controls Header Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5 p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl backdrop-blur-md">
+        {/* Halves / Period Selector Tabs */}
+        <div className="flex items-center gap-1 bg-slate-950/90 p-1 rounded-xl border border-slate-800/80 shrink-0">
+          <span className="text-[10px] uppercase font-bold text-slate-400 px-2 hidden sm:inline whitespace-nowrap">
+            {effectivePeriodCount === 2 ? 'Halves:' : 'Periods:'}
+          </span>
+          {periods.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setActivePeriod(p)}
+              className={`min-h-[36px] sm:min-h-[32px] px-3 sm:px-3.5 flex items-center rounded-lg font-semibold text-xs transition cursor-pointer whitespace-nowrap ${
+                activePeriod === p
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+              }`}
+            >
+              {effectivePeriodCount === 2 ? (p === 1 ? '1st Half' : '2nd Half') : `Period ${p}`}
+            </button>
+          ))}
+        </div>
+
+        {/* Formation, Squad Cap & Auto-Balance Controls */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap shrink-0">
+          {/* Dynamic Formation Dropdown based on pitch player count */}
+          <select
+            value={settings.defaultFormation}
+            onChange={(e) => changeFormation(e.target.value)}
+            className="min-h-[40px] sm:min-h-[36px] h-9 px-3 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono font-semibold focus:outline-none focus:border-sky-500 cursor-pointer shrink-0 max-w-[140px] truncate shadow-sm"
+            title={`Formations for ${settings.pitchPlayerCount}-a-side`}
+          >
+            {availableFormations.map((f) => (
+              <option key={f.id} value={f.name}>
+                {f.name} {f.isCustom ? '★' : ''}
+              </option>
+            ))}
+          </select>
+
+          {/* Matchday Squad Selector */}
+          <button
+            type="button"
+            onClick={handleOpenSquad}
+            className="min-h-[40px] sm:min-h-[36px] h-9 px-3 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold transition cursor-pointer whitespace-nowrap flex items-center shrink-0 shadow-sm"
+            title={`Select matchday ${settings.matchdaySquadCap} players`}
+          >
+            Squad ({settings.matchdaySquadCap})
+          </button>
+
+          {/* Auto-Balance Button */}
+          <button
+            type="button"
+            onClick={handleAutoBalance}
+            className="min-h-[40px] sm:min-h-[36px] h-9 px-3 sm:px-3.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-md transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 shrink-0"
+            title="Re-balance playing time automatically"
+          >
+            <Wand2 className="w-3.5 h-3.5 shrink-0" />
+            <span>Auto-Balance</span>
+          </button>
+        </div>
+      </div>
 
       {/* 2D Football Pitch */}
       <div className="relative w-full aspect-[4/5] sm:aspect-[4/4.8] max-w-2xl mx-auto rounded-3xl overflow-hidden shadow-2xl border-4 border-[var(--pitch-border)] bg-gradient-to-b from-[var(--pitch-turf-1)] via-[var(--pitch-turf-2)] to-[var(--pitch-turf-3)] select-none transition-colors duration-200">

@@ -44,7 +44,7 @@ test.describe('Rotation Matrix Suite', () => {
     await eyeBtn.click();
 
     // Navigates to lineup tab
-    await expect(page).toHaveURL(/tab=lineup/);
+    await expect(page).toHaveURL(/(tab=lineup|\/lineup)/);
   });
 
   test('provides Auto-Balance Periods action within matrix', async ({ page }) => {

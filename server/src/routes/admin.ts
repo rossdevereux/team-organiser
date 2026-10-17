@@ -63,8 +63,8 @@ router.put('/users/:uid/role', requireRole(['owner']), async (req: Authenticated
   }
 });
 
-// POST /api/admin/users - Invite/Create user with custom role (Owner only)
-router.post('/users', requireRole(['owner']), async (req: AuthenticatedRequest, res: Response) => {
+// POST /api/admin/users and /api/admin/users/invite - Invite/Create user with custom role (Owner only)
+router.post(['/users', '/users/invite'], requireRole(['owner']), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { email, displayName, role } = req.body as {
       email: string;

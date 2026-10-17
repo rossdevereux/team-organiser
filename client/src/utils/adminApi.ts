@@ -17,9 +17,9 @@ export async function fetchAdminUsers(): Promise<AdminUser[]> {
   return data.users || [];
 }
 
-export async function inviteAdminUser(payload: { email: string; displayName?: string; role: UserRole }): Promise<void> {
+export async function inviteAdminUser(payload: { email: string; displayName?: string; role: UserRole }): Promise<AdminUser> {
   const headers = await getAdminHeaders();
-  const res = await fetch('/api/admin/users/invite', {
+  const res = await fetch('/api/admin/users', {
     method: 'POST',
     headers,
     body: JSON.stringify(payload),
@@ -28,6 +28,8 @@ export async function inviteAdminUser(payload: { email: string; displayName?: st
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.error || 'Failed to send invite');
   }
+  const data = await res.json();
+  return data.user;
 }
 
 export async function updateAdminUserRole(uid: string, role: UserRole): Promise<void> {

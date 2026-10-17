@@ -9,7 +9,7 @@ test.describe('Unauthenticated Visitor & Landing Journey Suite', () => {
     await expect(page.getByText(/FA Youth Charter & Equal Playing Time Compliance/i)).toBeVisible();
 
     // Verify Dual Call to Actions
-    const demoBtn = page.getByRole('button', { name: /Launch Interactive Demo/i });
+    const demoBtn = page.getByRole('button', { name: /Launch Interactive Demo/i }).first();
     await expect(demoBtn).toBeVisible();
 
     const signInBtn = page.getByTitle(/Sign in with Google/i).first();
@@ -25,14 +25,14 @@ test.describe('Unauthenticated Visitor & Landing Journey Suite', () => {
   test('clicking Launch Interactive Demo transitions into live sandbox planner', async ({ page }) => {
     await page.goto('/?landing=true');
 
-    const demoBtn = page.getByRole('button', { name: /Launch Interactive Demo/i });
+    const demoBtn = page.getByRole('button', { name: /Launch Interactive Demo/i }).first();
     await expect(demoBtn).toBeVisible();
     await demoBtn.click();
 
     // Verify transition into planner
     await expect(page.locator('header')).toBeVisible();
     await expect(page.getByText(/Demo Sandbox Active/i)).toBeVisible();
-    await expect(page.getByText('The Rovers U11').first()).toBeVisible();
+    await expect(page.getByText(/The Rovers/i).first()).toBeVisible();
 
     // Verify pitch is visible
     const pitch = page.locator('.relative.w-full.aspect-\\[4\\/5\\], .relative.w-full.aspect-\\[4\\/3\\], [class*="aspect-"]').first();
