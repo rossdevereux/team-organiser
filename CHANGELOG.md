@@ -9,7 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Coach-Friendly Visual Release Notes (`CHANGELOG.user.md`)**:
+  - Introduced standalone user-facing release notes document [`CHANGELOG.user.md`](CHANGELOG.user.md) crafted specifically for grassroots coaches, team managers, and parents with zero code jargon and outcome-oriented summaries ([#10](https://github.com/rossdevereux/team-organiser/issues/10)).
+  - Implemented typed release notes utility [`userChangelog.ts`](client/src/utils/userChangelog.ts) with structured TypeScript export `CHANGELOG_DATA` and Vite raw markdown import (`?raw`).
+  - Added repository policy rule in [`.agents/rules/changelog.md`](.agents/rules/changelog.md) enforcing synchronous updates between developer `CHANGELOG.md` and user `CHANGELOG.user.md`.
+
 ### Changed
+- **Markdown-Powered Release Notes Modal ([`ReleaseNotesModal.tsx`](client/src/components/ReleaseNotesModal.tsx))**:
+  - Refactored the in-app release notes viewer to render raw Markdown via `react-markdown` and `remark-gfm` with custom Tailwind component styling for `h2` version titles, calendar date pills, coloured category badges (`Added` emerald, `Improved` sky, `Fixed` amber), clean bullet lists, and bright typography ([#10](https://github.com/rossdevereux/team-organiser/issues/10)).
+  - Maintained accessibility and real-time search/category filtering without requiring authentication.
 - **Menu Bar & Navigation Layout Consolidation**:
   - Replaced sprawling navigation bar header controls with a consolidated Avatar profile menu ([`UserMenu.tsx`](client/src/components/UserMenu.tsx)) encapsulating user details, role badge (`Club Admin`, `Team Coach`, `Member`, `Guest Coach`), language selector with flags (`GB EN`, `ES`, `DE`, `FR`), Team & League Settings, and Sign In / Sign Out actions ([#9](https://github.com/rossdevereux/team-organiser/issues/9)).
   - Combined export and sharing actions into a single `Share / Export ▾` dropdown menu in [`Navbar.tsx`](client/src/components/Navbar.tsx) providing quick access to "WhatsApp Squad Card" and "Print Team Sheet".

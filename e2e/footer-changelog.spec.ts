@@ -105,4 +105,32 @@ test.describe('Footer Version & Changelog Modal Suite', () => {
     await expect(header.locator('button[data-testid="user-menu-button"]')).toBeVisible();
     await expect(header.getByRole('button', { name: /Teams/i })).toBeVisible();
   });
+
+  test('renders clean markdown without raw syntax characters and saves screenshot (#10)', async ({ page }) => {
+    await page.goto('/lineup');
+
+    const versionBtn = page.locator('footer button[aria-label*="View changelog"]').first();
+    await versionBtn.scrollIntoViewIfNeeded();
+    await versionBtn.click();
+
+    const modal = page.getByRole('dialog', { name: /Release Notes & Changelog/i });
+    await expect(modal).toBeVisible();
+
+    // Verify clean markdown parsing: headlines are in strong tags, not raw asterisks
+    const headline = modal.locator('strong').first();
+    await expect(headline).toBeVisible();
+
+    // Verify modal inner text contains no raw Markdown characters
+    const modalText = await modal.innerText();
+    expect(modalText).not.toContain('### Added');
+    expect(modalText).not.toContain('### Improved');
+    expect(modalText).not.toContain('### Fixed');
+    expect(modalText).not.toContain('**');
+
+    // Take verification screenshot of the rendered modal
+    await modal.screenshot({
+      path: 'C:/Users/rossd/.gemini/antigravity-ide/brain/05aa4822-6cb7-419c-b654-9a881aaa4818/release_notes_modal.png',
+    });
+  });
 });
+

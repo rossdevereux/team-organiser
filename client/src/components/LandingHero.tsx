@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { AuthButton } from './AuthButton';
 import { LanguageSelector } from './LanguageSelector';
 import { AppVersion } from './AppVersion';
-import { ChangelogModal } from './ChangelogModal';
+import { ReleaseNotesModal } from './ReleaseNotesModal';
 
 interface LandingHeroProps {
   onStartDemo: () => void;
@@ -452,7 +452,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
       </footer>
 
       {/* Changelog & Release Notes Modal */}
-      <ChangelogModal
+      <ReleaseNotesModal
         isOpen={changelogOpen}
         onClose={() => setChangelogOpen(false)}
       />

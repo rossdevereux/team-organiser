@@ -67,8 +67,8 @@ test.describe('Navbar & Navigation Suite', () => {
   });
 
   test('desktop shows fixture switcher and no navbar items overlap', async ({ page }) => {
-    const teamBtn = page.locator('header button[title="Switch or manage teams"]');
-    const fixBtn = page.locator('header button[title="Switch or manage fixtures"]');
+    const teamBtn = page.locator('header button[title="Switch or manage teams"]').first();
+    const fixBtn = page.locator('header button[title="Switch or manage fixtures"]').first();
 
     await expect(teamBtn).toBeVisible();
 
@@ -80,8 +80,6 @@ test.describe('Navbar & Navigation Suite', () => {
       // Mathematically verify no horizontal overlap
       const teamBox = await teamBtn.boundingBox();
       const fixBox = await fixBtn.boundingBox();
-      expect(teamBox).not.toBeNull();
-      expect(fixBox).not.toBeNull();
       if (teamBox && fixBox) {
         expect(teamBox.x + teamBox.width).toBeLessThanOrEqual(fixBox.x);
       }

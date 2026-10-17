@@ -28,7 +28,7 @@ import {
 
 import { GlobalModals } from './components/GlobalModals';
 import { AppVersion } from './components/AppVersion';
-import { ChangelogModal } from './components/ChangelogModal';
+import { ReleaseNotesModal } from './components/ReleaseNotesModal';
 
 function DashboardShell() {
   const {
@@ -572,7 +572,7 @@ function DashboardShell() {
       />
 
       {/* Changelog & Release Notes Modal */}
-      <ChangelogModal
+      <ReleaseNotesModal
         isOpen={changelogOpen}
         onClose={() => setChangelogOpen(false)}
       />
