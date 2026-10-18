@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Live Match State Machine & Synchronised Stopwatch Persistence** ([#14](https://github.com/rossdevereux/team-organiser/issues/14)):
+  - Added `LiveMatchState`, `LiveMatchPeriodTimer`, and `LiveMatchSubLogEntry` data models on `Fixture` in [`client/src/types.ts`](client/src/types.ts) and [`server/src/types.ts`](server/src/types.ts).
+  - Implemented `updateLiveMatchState(fixtureId, liveMatchState)` in [`server/src/db/storage.ts`](server/src/db/storage.ts) and registered API endpoint `PUT /api/fixtures/:id/live-state` in [`server/src/routes/api.ts`](server/src/routes/api.ts), persisting current period, startedAt timestamp, accumulated elapsed seconds, and in-match substitution logs to Firestore and local storage.
+  - Re-architected [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx) and [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx) to deterministically derive live elapsed time from `startedAt` timestamps across all devices, ensuring resilience against page reloads, browser app switching, or device shutdowns pitchside.
+  - Added `executeLiveSubstitution(offPlayerId, onPlayerId, targetPosition)` in [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx) to immediately execute and persist sideline substitutions and update the live substitution log timeline without requiring post-match commits.
+  - Implemented multi-device background polling in [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx) for active live matches, keeping remote assistant coaches and viewers in lockstep sync.
+  - Added unit test suite in [`server/src/tests/liveMatchState.test.ts`](server/src/tests/liveMatchState.test.ts) and Playwright E2E suite in [`e2e/live-match-persistence.spec.ts`](e2e/live-match-persistence.spec.ts) covering reload resilience, stopwatch continuity, and sideline substitution persistence.
+
 ## [1.1.5] - 2026-10-18
 
 ### Added

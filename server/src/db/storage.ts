@@ -13,6 +13,7 @@ import {
   AdminUser,
   BackupData,
   GoalScorer,
+  LiveMatchState,
 } from '../types.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -1154,6 +1155,30 @@ export class StorageManager {
     if (scoreData.isLive !== undefined) {
       fixture.isLive = scoreData.isLive;
     }
+    await this.saveFixture(fixture);
+    return fixture;
+  }
+
+  async updateLiveMatchState(
+    fixtureId: string,
+    liveMatchState: LiveMatchState
+  ): Promise<Fixture | null> {
+    await this.ensureInitialized();
+    const fixture = await this.getFixtureById(fixtureId);
+    if (!fixture) return null;
+
+    fixture.liveMatchState = {
+      ...liveMatchState,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (liveMatchState.isRunning) {
+      fixture.isLive = true;
+      if (fixture.status === 'Upcoming' || fixture.status === 'Draft') {
+        fixture.status = 'In Progress';
+      }
+    }
+
     await this.saveFixture(fixture);
     return fixture;
   }

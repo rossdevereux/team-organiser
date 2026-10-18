@@ -22,6 +22,8 @@ import {
   PostMatchRecording,
   SuggestedSubPlan,
   GoalScorer,
+  LiveMatchState,
+  LiveMatchSubLogEntry,
 } from '../types';
 import { getFormationsForTeamSize, findFormation, DEFAULT_FORMATIONS } from '../utils/formations';
 import { DEMO_TEAMS, DEMO_PLAYERS, DEMO_FIXTURES, isDemoTeamId } from '../utils/demoData';
@@ -104,6 +106,17 @@ interface MatchdayContextType {
       status?: Fixture['status'];
       isLive?: boolean;
     }
+  ) => Promise<void>;
+  updateLiveMatchState: (
+    fixtureId: string,
+    liveMatchState: LiveMatchState,
+    matchSquad?: MatchSquad,
+    immediate?: boolean
+  ) => Promise<void>;
+  executeLiveSubstitution: (
+    offPlayerId: string,
+    onPlayerId: string,
+    targetPosition?: string
   ) => Promise<void>;
   getSuggestedSubs: (fixtureId: string, interval?: number) => Promise<SuggestedSubPlan[]>;
   isPlayerFixed: (playerId: string, fixture?: Fixture) => boolean;
@@ -684,6 +697,14 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const setActivePeriod = useCallback((p: number) => {
     setActivePeriodState(p);
   }, []);
+
+  // Sync activePeriod to persisted live match state when fixture loads or updates
+  const fixtureLivePeriod = activeFixture?.liveMatchState?.currentPeriod;
+  useEffect(() => {
+    if (fixtureLivePeriod && fixtureLivePeriod >= 1 && fixtureLivePeriod <= currentPeriodCount) {
+      setActivePeriodState(fixtureLivePeriod);
+    }
+  }, [activeFixture?.id, fixtureLivePeriod, currentPeriodCount]);
 
   // Compute fair play match statistics
   const stats = useMemo(() => {
@@ -1459,6 +1480,216 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const updateLiveMatchState = useCallback(
+    async (
+      fixtureId: string,
+      liveMatchState: LiveMatchState,
+      matchSquad?: MatchSquad,
+      immediate = true
+    ) => {
+      try {
+        const enrichedState: LiveMatchState = {
+          ...liveMatchState,
+          updatedAt: new Date().toISOString(),
+        };
+
+        // 1. Optimistic React state update (0ms UI latency)
+        setFixtures((prev) =>
+          prev.map((f) => {
+            if (f.id === fixtureId) {
+              return {
+                ...f,
+                liveMatchState: enrichedState,
+                ...(matchSquad ? { matchSquad } : {}),
+                ...(enrichedState.isRunning
+                  ? {
+                      isLive: true,
+                      status: f.status === 'Upcoming' || f.status === 'Draft' ? 'In Progress' : f.status,
+                    }
+                  : {}),
+              };
+            }
+            return f;
+          })
+        );
+
+        // 2. Immediate offline cache update
+        try {
+          const cached = localStorage.getItem(`subshuffle_cached_fixtures_${activeTeamId}`);
+          if (cached) {
+            const list = JSON.parse(cached);
+            const updated = list.map((f: Fixture) => {
+              if (f.id === fixtureId) {
+                return {
+                  ...f,
+                  liveMatchState: enrichedState,
+                  ...(matchSquad ? { matchSquad } : {}),
+                  ...(enrichedState.isRunning
+                    ? {
+                        isLive: true,
+                        status: f.status === 'Upcoming' || f.status === 'Draft' ? 'In Progress' : f.status,
+                      }
+                    : {}),
+                };
+              }
+              return f;
+            });
+            localStorage.setItem(`subshuffle_cached_fixtures_${activeTeamId}`, JSON.stringify(updated));
+          }
+        } catch (_) {}
+
+        // 3. Persist to server API
+        const headers = await getAuthHeaders();
+        const res = await fetch(`/api/fixtures/${fixtureId}/live-state`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            liveMatchState: enrichedState,
+            matchSquad,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.fixture) {
+            setFixtures((prev) => prev.map((f) => (f.id === fixtureId ? data.fixture : f)));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to update live match state:', err);
+      }
+    },
+    [activeTeamId, getAuthHeaders]
+  );
+
+  const executeLiveSubstitution = useCallback(
+    async (offPlayerId: string, onPlayerId: string, targetPosition?: string) => {
+      if (!activeFixture || !activeFixture.matchSquad) return;
+      const currentSquad = activeFixture.matchSquad;
+      const periodIdx = currentSquad.lineupsByPeriod.findIndex((l) => l.period === activePeriod);
+      if (periodIdx === -1) return;
+
+      const currentLineup = currentSquad.lineupsByPeriod[periodIdx];
+      const pitchIdx = currentLineup.onPitch.findIndex((p) => p.playerId === offPlayerId);
+      const subIdx = currentLineup.subs.findIndex((id) => id === onPlayerId);
+
+      if (pitchIdx === -1 || subIdx === -1) {
+        console.warn('executeLiveSubstitution: offPlayer or onPlayer not found in active period');
+        return;
+      }
+
+      const assignedPos = targetPosition || currentLineup.onPitch[pitchIdx].position;
+      const newOnPitch = [...currentLineup.onPitch];
+      newOnPitch[pitchIdx] = { playerId: onPlayerId, position: assignedPos };
+
+      const newSubs = [...currentLineup.subs];
+      newSubs[subIdx] = offPlayerId;
+
+      const updatedLineups = [...currentSquad.lineupsByPeriod];
+      updatedLineups[periodIdx] = {
+        period: activePeriod,
+        onPitch: newOnPitch,
+        subs: newSubs,
+      };
+
+      const updatedSquad: MatchSquad = {
+        ...currentSquad,
+        manualOverrides: true,
+        lineupsByPeriod: updatedLineups,
+      };
+
+      const offPlayer = players.find((p) => p.id === offPlayerId);
+      const onPlayer = players.find((p) => p.id === onPlayerId);
+      const offName = offPlayer?.name || 'Player';
+      const onName = onPlayer?.name || 'Player';
+
+      const currentLive = activeFixture.liveMatchState;
+      let currentElapsed = currentLive?.elapsedSeconds || 0;
+      if (currentLive?.isRunning && currentLive.startedAt) {
+        currentElapsed += Math.max(0, Math.floor((Date.now() - new Date(currentLive.startedAt).getTime()) / 1000));
+      }
+
+      const min = Math.floor(currentElapsed / 60);
+      const sec = currentElapsed % 60;
+      const formattedTime = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+
+      const newLogEntry: LiveMatchSubLogEntry = {
+        id: `sub_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        minute: min + 1,
+        time: formattedTime,
+        period: activePeriod,
+        offPlayerId,
+        offPlayerName: offName,
+        onPlayerId,
+        onPlayerName: onName,
+        position: assignedPos,
+        text: `OFF: ${offName} ➡️ ON: ${onName}${assignedPos ? ` (${assignedPos})` : ''}`,
+        timestamp: new Date().toISOString(),
+      };
+
+      const updatedLiveState: LiveMatchState = {
+        isRunning: currentLive?.isRunning ?? false,
+        currentPeriod: activePeriod,
+        startedAt: currentLive?.startedAt,
+        elapsedSeconds: currentLive?.elapsedSeconds || 0,
+        periodTimers: currentLive?.periodTimers || {},
+        subLog: [newLogEntry, ...(currentLive?.subLog || [])],
+      };
+
+      await updateLiveMatchState(activeFixture.id, updatedLiveState, updatedSquad, true);
+    },
+    [activeFixture, activePeriod, players, updateLiveMatchState]
+  );
+
+  // Synchronise live match status across coaches & devices
+  useEffect(() => {
+    if (!activeFixture || (!activeFixture.isLive && !activeFixture.liveMatchState?.isRunning)) {
+      return;
+    }
+    const fixtureId = activeFixture.id;
+    let isCancelled = false;
+
+    const pollInterval = setInterval(async () => {
+      if (document.hidden || !navigator.onLine) return;
+      try {
+        const headers = await getAuthHeaders();
+        const res = await fetch(`/api/fixtures/${fixtureId}`, { headers });
+        if (res.ok && !isCancelled) {
+          const remoteFixture: Fixture = await res.json();
+          setFixtures((prev) =>
+            prev.map((f) => {
+              if (f.id !== fixtureId) return f;
+              const remoteUpdated = remoteFixture.liveMatchState?.updatedAt;
+              const localUpdated = f.liveMatchState?.updatedAt;
+              if (!localUpdated || (remoteUpdated && remoteUpdated > localUpdated)) {
+                return remoteFixture;
+              }
+              if (
+                remoteFixture.homeScore !== f.homeScore ||
+                remoteFixture.awayScore !== f.awayScore ||
+                remoteFixture.status !== f.status
+              ) {
+                return {
+                  ...f,
+                  homeScore: remoteFixture.homeScore,
+                  awayScore: remoteFixture.awayScore,
+                  status: remoteFixture.status,
+                  isLive: remoteFixture.isLive,
+                };
+              }
+              return f;
+            })
+          );
+        }
+      } catch (_) {}
+    }, 4000);
+
+    return () => {
+      isCancelled = true;
+      clearInterval(pollInterval);
+    };
+  }, [activeFixture?.id, activeFixture?.isLive, activeFixture?.liveMatchState?.isRunning, getAuthHeaders]);
+
   const getSuggestedSubs = async (
     fixtureId: string,
     interval: number = 10
@@ -1817,6 +2048,8 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         createSeason,
         savePostMatchRecording,
         updateFixtureScore,
+        updateLiveMatchState,
+        executeLiveSubstitution,
         getSuggestedSubs,
         isPlayerFixed,
         getFixedPlayerPosition,

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+- **Real-Time Pitchside Stopwatch & Substitution Sync**:
+  - The live match stopwatch and period timer now automatically sync with the cloud. If your phone loses battery, you refresh your browser, or you switch apps on the touchline, the match timer and active half resume seamlessly at the exact second without losing any progress.
+  - Substitutions made during a match now log and save immediately to the cloud with exact timestamps, keeping co-coaches viewing from other devices completely in sync.
+
 ## [1.1.5] - 2026-10-18
 
 ### Added
