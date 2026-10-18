@@ -35,6 +35,7 @@ export interface DesignSystemShowcaseProps {
 const SAMPLE_PLAYERS: Player[] = [
   {
     id: 'demo-1',
+    teamId: 'demo-team',
     name: 'Leo Messi',
     squadNumber: 10,
     preferredPositions: ['Attack'],
@@ -46,6 +47,7 @@ const SAMPLE_PLAYERS: Player[] = [
   },
   {
     id: 'demo-2',
+    teamId: 'demo-team',
     name: 'Alisson Becker',
     squadNumber: 1,
     preferredPositions: ['Goalkeeper'],
@@ -55,6 +57,7 @@ const SAMPLE_PLAYERS: Player[] = [
   },
   {
     id: 'demo-3',
+    teamId: 'demo-team',
     name: 'Virgil Van Dijk',
     squadNumber: 4,
     preferredPositions: ['Defence'],
@@ -64,6 +67,7 @@ const SAMPLE_PLAYERS: Player[] = [
   },
   {
     id: 'demo-4',
+    teamId: 'demo-team',
     name: 'Kevin De Bruyne',
     squadNumber: 17,
     preferredPositions: ['Midfield'],

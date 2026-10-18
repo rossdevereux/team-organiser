@@ -267,14 +267,14 @@ router.get('/players', async (req: AuthenticatedRequest, res: Response) => {
         return res.status(403).json({ error: 'Access denied to team players' });
       }
       const players = await storage.getPlayers(teamId);
-      return res.json(players);
+      return res.json(players.filter((p) => p.teamId === teamId));
     }
 
     // If no teamId, return only players belonging to user-accessible teams
     const accessibleTeams = await storage.getTeams(userId, userEmail);
     const accessibleTeamIds = new Set(accessibleTeams.map((t) => t.id));
     const allPlayers = await storage.getPlayers();
-    const filteredPlayers = allPlayers.filter((p) => !p.teamId || accessibleTeamIds.has(p.teamId));
+    const filteredPlayers = allPlayers.filter((p) => p.teamId && accessibleTeamIds.has(p.teamId));
     res.json(filteredPlayers);
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to fetch players', details: err.message });
@@ -285,13 +285,16 @@ router.get('/players', async (req: AuthenticatedRequest, res: Response) => {
 router.post('/players', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const body = req.body as Partial<Player>;
-    if (!body.name) {
+    if (!body.name || !body.name.trim()) {
       return res.status(400).json({ error: 'Player name is required' });
+    }
+    if (!body.teamId || !body.teamId.trim()) {
+      return res.status(400).json({ error: 'teamId is required' });
     }
 
     const userId = req.user?.uid;
     const userEmail = req.user?.email;
-    if (body.teamId && userId) {
+    if (userId) {
       const team = await storage.getTeamById(body.teamId);
       if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
         return res.status(403).json({ error: 'Access denied: Cannot add players to this team' });
@@ -300,7 +303,7 @@ router.post('/players', async (req: AuthenticatedRequest, res: Response) => {
 
     const newPlayer: Player = {
       id: body.id || `p_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      teamId: body.teamId,
+      teamId: body.teamId.trim(),
       name: body.name.trim(),
       squadNumber: body.squadNumber,
       preferredPositions: body.preferredPositions || ['Midfield'],
@@ -327,10 +330,15 @@ router.post('/players/bulk', async (req: AuthenticatedRequest, res: Response) =>
       return res.status(400).json({ error: 'Array of players is required' });
     }
 
+    const resolvedTeamId = teamId || rawPlayers[0]?.teamId;
+    if (!resolvedTeamId) {
+      return res.status(400).json({ error: 'teamId is required for all players' });
+    }
+
     const userId = req.user?.uid;
     const userEmail = req.user?.email;
-    if (teamId && userId) {
-      const team = await storage.getTeamById(teamId);
+    if (userId) {
+      const team = await storage.getTeamById(resolvedTeamId);
       if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
         return res.status(403).json({ error: 'Access denied: Cannot add players to this team' });
       }
@@ -338,7 +346,7 @@ router.post('/players/bulk', async (req: AuthenticatedRequest, res: Response) =>
 
     const createdPlayers: Player[] = rawPlayers.map((body) => ({
       id: body.id || `p_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      teamId: body.teamId || teamId,
+      teamId: (body.teamId || resolvedTeamId).trim(),
       name: (body.name || 'Unnamed Player').trim(),
       squadNumber: body.squadNumber,
       preferredPositions: body.preferredPositions && body.preferredPositions.length > 0 ? body.preferredPositions : ['Midfield'],
@@ -455,14 +463,14 @@ router.get('/fixtures', async (req: AuthenticatedRequest, res: Response) => {
         return res.status(403).json({ error: 'Access denied to team fixtures' });
       }
       const fixtures = await storage.getFixtures(teamId);
-      return res.json(fixtures);
+      return res.json(fixtures.filter((f) => f.teamId === teamId));
     }
 
     // If no teamId, return only fixtures belonging to user-accessible teams
     const accessibleTeams = await storage.getTeams(userId, userEmail);
     const accessibleTeamIds = new Set(accessibleTeams.map((t) => t.id));
     const allFixtures = await storage.getFixtures();
-    const filteredFixtures = allFixtures.filter((f) => !f.teamId || accessibleTeamIds.has(f.teamId));
+    const filteredFixtures = allFixtures.filter((f) => f.teamId && accessibleTeamIds.has(f.teamId));
     res.json(filteredFixtures);
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to fetch fixtures', details: err.message });
@@ -495,13 +503,16 @@ router.get('/fixtures/:id', async (req: AuthenticatedRequest, res: Response) => 
 router.post('/fixtures', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const body = req.body as Partial<Fixture>;
-    if (!body.opponent || !body.date) {
+    if (!body.opponent || !body.opponent.trim() || !body.date) {
       return res.status(400).json({ error: 'Opponent and date are required' });
+    }
+    if (!body.teamId || !body.teamId.trim()) {
+      return res.status(400).json({ error: 'teamId is required' });
     }
 
     const userId = req.user?.uid;
     const userEmail = req.user?.email;
-    if (body.teamId && userId) {
+    if (userId) {
       const team = await storage.getTeamById(body.teamId);
       if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
         return res.status(403).json({ error: 'Access denied: Cannot add fixtures to this team' });
@@ -517,7 +528,7 @@ router.post('/fixtures', async (req: AuthenticatedRequest, res: Response) => {
 
     const newFixture: Fixture = {
       id: body.id || `fix_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      teamId: body.teamId,
+      teamId: body.teamId.trim(),
       season: body.season || '2026/2027',
       date: body.date,
       kickOffTime: body.kickOffTime || '10:00',

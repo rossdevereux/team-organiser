@@ -72,7 +72,7 @@ export interface Team {
 
 export interface Player {
   id: string;
-  teamId?: string;
+  teamId: string;
   name: string;
   squadNumber?: number;
   preferredPositions: BroadPosition[];
@@ -121,7 +121,7 @@ export interface GoalScorer {
 
 export interface Fixture {
   id: string;
-  teamId?: string;
+  teamId: string;
   season?: string; // e.g. '2026/2027'
   date: string; // 'YYYY-MM-DD'
   kickOffTime?: string;

@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for auth verification
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function userEmail() {
+      return request.auth.token.email != null ? request.auth.token.email.lower() : '';
+    }
+
+    // Check whether the authenticated user is the owner or in sharedWith for the given team data
+    function hasTeamAccess(teamData) {
+      return isAuthenticated() && (
+        teamData.ownerId == request.auth.uid ||
+        (teamData.ownerEmail != null && teamData.ownerEmail.lower() == userEmail()) ||
+        (teamData.sharedWith != null && (
+          request.auth.uid in teamData.sharedWith ||
+          userEmail() in teamData.sharedWith
+        ))
+      );
+    }
+
+    // Check whether the caller has access to the specified team document
+    function canAccessTeam(teamId) {
+      return teamId != null && hasTeamAccess(get(/databases/$(database)/documents/teams/$(teamId)).data);
+    }
+
+    // Teams collection
+    match /teams/{teamId} {
+      allow read: if hasTeamAccess(resource.data);
+      allow create: if isAuthenticated() && (
+        request.resource.data.ownerId == request.auth.uid ||
+        (request.resource.data.ownerEmail != null && request.resource.data.ownerEmail.lower() == userEmail())
+      );
+      allow update: if hasTeamAccess(resource.data);
+      allow delete: if isAuthenticated() && (
+        resource.data.ownerId == request.auth.uid ||
+        (resource.data.ownerEmail != null && resource.data.ownerEmail.lower() == userEmail())
+      );
+    }
+
+    // Players collection: strictly restricted to caller's authorized teamId
+    match /players/{playerId} {
+      allow read: if canAccessTeam(resource.data.teamId);
+      allow create: if isAuthenticated() &&
+                    request.resource.data.teamId != null &&
+                    canAccessTeam(request.resource.data.teamId);
+      allow update: if canAccessTeam(resource.data.teamId) &&
+                    (request.resource.data.teamId == resource.data.teamId || canAccessTeam(request.resource.data.teamId));
+      allow delete: if canAccessTeam(resource.data.teamId);
+    }
+
+    // Fixtures collection: strictly restricted to caller's authorized teamId
+    match /fixtures/{fixtureId} {
+      allow read: if canAccessTeam(resource.data.teamId);
+      allow create: if isAuthenticated() &&
+                    request.resource.data.teamId != null &&
+                    canAccessTeam(request.resource.data.teamId);
+      allow update: if canAccessTeam(resource.data.teamId) &&
+                    (request.resource.data.teamId == resource.data.teamId || canAccessTeam(request.resource.data.teamId));
+      allow delete: if canAccessTeam(resource.data.teamId);
+    }
+
+    // Settings (e.g. settings/club)
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Admin users
+    match /adminUsers/{adminId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+  }
+}
