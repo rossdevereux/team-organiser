@@ -58,6 +58,18 @@ export default defineConfig({
           if (id.includes('node_modules/lucide-react/')) {
             return 'lucide-icons';
           }
+          if (
+            id.includes('node_modules/react-markdown/') ||
+            id.includes('node_modules/remark-gfm/') ||
+            id.includes('node_modules/micromark') ||
+            id.includes('node_modules/unist') ||
+            id.includes('node_modules/mdast')
+          ) {
+            return 'markdown-vendor';
+          }
+          if (id.includes('node_modules/i18next')) {
+            return 'i18n-vendor';
+          }
         },
       },
     },

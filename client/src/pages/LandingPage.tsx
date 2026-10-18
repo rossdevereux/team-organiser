@@ -14,6 +14,13 @@ export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [privacyOpen, setPrivacyOpen] = useState(false);
 
+  // Authenticated users automatically navigate to the tactical dashboard
+  React.useEffect(() => {
+    if (currentUser) {
+      navigate({ to: '/lineup', search: (prev) => prev });
+    }
+  }, [currentUser, navigate]);
+
   const handleStartDemo = () => {
     enterDemoMode();
     showToast('Entered Demo Mode with sample squad: The Rovers FC', 'info');

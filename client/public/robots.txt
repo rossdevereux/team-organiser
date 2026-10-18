@@ -1,0 +1,26 @@
+# robots.txt for SubShuffle (https://subshuffle.app)
+# Technical SEO rules & crawl optimization
+
+User-agent: *
+Allow: /$
+Allow: /calculator
+Allow: /features
+Allow: /rules
+
+# Disallow authenticated, internal, and dynamic match management routes
+Disallow: /lineup
+Disallow: /matrix
+Disallow: /squad
+Disallow: /fixtures
+Disallow: /stats
+Disallow: /teams
+Disallow: /admin
+Disallow: /match/
+Disallow: /match/*
+Disallow: /roster/
+Disallow: /roster/*
+Disallow: /api/
+Disallow: /api/*
+
+# Link directly to sitemap index
+Sitemap: https://subshuffle.app/sitemap.xml

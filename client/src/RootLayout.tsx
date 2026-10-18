@@ -69,7 +69,7 @@ function DashboardShell() {
   const [changelogOpen, setChangelogOpen] = useState(false);
 
   const location = useLocation();
-  const isLandingRoute = location.pathname === '/';
+  const isPublicRoute = ['/', '/calculator', '/features', '/rules'].includes(location.pathname);
 
   useEffect(() => {
     const handleBeforePrint = () => {
@@ -122,7 +122,7 @@ function DashboardShell() {
     showToast('Match sheet period lineups cleared.', 'info');
   };
 
-  if (isLandingRoute) {
+  if (isPublicRoute) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
         <Outlet />

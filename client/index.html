@@ -8,16 +8,114 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="SubShuffle - Youth Football Equal Playing Time & Matchday Squad Rotation Manager" />
+    <title>SubShuffle — Fair Playing Time &amp; Sub Rotations</title>
+    <meta name="description" content="Balanced pitch time, rotation matrices, and tactical lineups for youth football coaches." />
+    <meta name="author" content="SubShuffle" />
+    <link rel="canonical" href="https://subshuffle.app/" />
+
+    <!-- Open Graph (WhatsApp, Facebook, iMessage) -->
+    <meta property="og:site_name" content="SubShuffle" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://subshuffle.app/" />
+    <meta property="og:title" content="SubShuffle — Fair Playing Time &amp; Sub Rotations" />
+    <meta property="og:description" content="Balanced pitch time, rotation matrices, and tactical lineups for youth football coaches." />
+    <meta property="og:image" content="https://subshuffle.app/og-preview.png" />
+    <meta property="og:image:secure_url" content="https://subshuffle.app/og-preview.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="SubShuffle — Youth Football Fair Playing Time and Sub Rotations Tactical Interface" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://subshuffle.app/" />
+    <meta name="twitter:title" content="SubShuffle — Fair Playing Time &amp; Sub Rotations" />
+    <meta name="twitter:description" content="Balanced pitch time, rotation matrices, and tactical lineups for youth football coaches." />
+    <meta name="twitter:image" content="https://subshuffle.app/og-preview.png" />
+    <meta name="twitter:image:alt" content="SubShuffle — Youth Football Fair Playing Time and Sub Rotations Tactical Interface" />
+
     <meta name="theme-color" content="#0f172a" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="/manifest.json" />
-    <title>SubShuffle</title>
+
+    <!-- Preconnect & Preload hints for Core Web Vitals -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="image" href="/logo-icon.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Schema.org JSON-LD Structured Data (SoftwareApplication & FAQPage) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "SubShuffle",
+          "applicationCategory": "SportsApplication",
+          "operatingSystem": "All (Web Browser, iOS, Android, PWA)",
+          "url": "https://subshuffle.app",
+          "description": "Balanced pitch time, rotation matrices, and tactical lineups for youth football coaches.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "GBP",
+            "availability": "https://schema.org/InStock",
+            "category": "Free"
+          },
+          "screenshot": "https://subshuffle.app/og-preview.png",
+          "featureList": [
+            "Automated equal game time squad rotation",
+            "Interactive 2D football pitch lineup manager",
+            "Multi-half and quarter period scheduling",
+            "Instant WhatsApp squad card export",
+            "Printable matchday team sheets",
+            "Player absence and holiday tracking",
+            "Offline-capable Progressive Web Application (PWA)"
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What are the FA youth football playing time rules for equal minutes?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The English FA and grassroots governing bodies recommend that all players in mini-soccer and youth football (U7 to U14) receive equal playing time, with a minimum of 50% game time per match across the season to ensure player development."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does SubShuffle calculate fair substitution rotations?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "SubShuffle balances minutes played across match halves or quarters based on squad attendance, match duration, and pitch format (5v5, 7v7, 9v9, 11v11), alerting coaches if any player falls below fair play thresholds."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I use SubShuffle offline at the pitch side?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. SubShuffle is an offline-capable Progressive Web App (PWA). You can save lineups, record substitutions, and track match minutes without an active mobile data connection."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is SubShuffle free for youth football coaches?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, SubShuffle is 100% free for grassroots coaches and team managers, offering an instant sandbox demo mode and cloud synchronization."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-sky-500 selection:text-white">
     <div id="root"></div>

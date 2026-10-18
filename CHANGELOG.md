@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Technical SEO, Robots & Sitemap**:
+  - Added crawl-optimized [`robots.txt`](client/public/robots.txt) allowing public indexable routes (`/`, `/calculator`, `/features`, `/rules`) and disallowing internal authenticated matchday routes ([#11](https://github.com/rossdevereux/team-organiser/issues/11)).
+  - Generated XML sitemap [`sitemap.xml`](client/public/sitemap.xml) with public page priorities, change frequencies, and publication timestamps ([#11](https://github.com/rossdevereux/team-organiser/issues/11)).
+  - Added Schema.org structured data (JSON-LD) for `SoftwareApplication` (SportsApplication with free tier definitions) and `FAQPage` in [`index.html`](client/index.html).
+- **Open Graph & Twitter Social Sharing Cards**:
+  - Integrated Open Graph (`og:*`) and Twitter Card (`summary_large_image`) metadata in [`index.html`](client/index.html) optimized for WhatsApp, iMessage, Facebook, and Twitter link unfurling ([#11](https://github.com/rossdevereux/team-organiser/issues/11)).
+  - Created 1200×630px social card preview image asset [`og-preview.png`](client/public/og-preview.png) and compressed mobile companion [`og-preview.jpg`](client/public/og-preview.jpg).
+- **Public Equal Playing Time & Sub Rotation Calculator (`/calculator`)**:
+  - Implemented client-side interactive rotation calculator [`CalculatorPage.tsx`](client/src/pages/CalculatorPage.tsx) supporting 5v5, 7v7, 9v9, and 11v11 formats, custom match durations, and quarter splits without requiring user sign-in ([#11](https://github.com/rossdevereux/team-organiser/issues/11)).
+  - Added period-by-period rotation matrix simulation and one-click WhatsApp rotation summary export.
+- **Indexable Grassroots Public Landing Pages**:
+  - Added dedicated public features showcase [`FeaturesPage.tsx`](client/src/pages/FeaturesPage.tsx) at `/features`.
+  - Added FA youth formats, ball sizes, match timings, and equal playing time reference guide [`RulesPage.tsx`](client/src/pages/RulesPage.tsx) at `/rules`.
+  - Added shared responsive header [`PublicNav.tsx`](client/src/components/PublicNav.tsx).
+
+### Changed
+- **Route Code Splitting & Core Web Vitals**:
+  - Configured `React.lazy()` route-level code splitting for authenticated dashboard pages in [`router.tsx`](client/src/router.tsx) with custom suspense loader ([#11](https://github.com/rossdevereux/team-organiser/issues/11)).
+  - Refactored manual chunk splitting in [`vite.config.ts`](client/vite.config.ts) for `markdown-vendor` and `i18n-vendor`, reducing core client index bundle from 656 KB to 389 KB.
+  - Decoupled public routes in [`RootLayout.tsx`](client/src/RootLayout.tsx) from dashboard data loading so public landing pages achieve sub-1.5s mobile LCP.
+  - Added preconnect and preload hints for Google Fonts and brand icon in [`index.html`](client/index.html).
+
 ## [1.1.2] - 2026-10-18
 
 ### Changed

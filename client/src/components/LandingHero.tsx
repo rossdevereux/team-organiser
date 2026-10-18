@@ -15,7 +15,10 @@ import {
   Play,
   Heart,
   RotateCcw,
+  Calculator,
+  FileText,
 } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 import type { User } from 'firebase/auth';
 import { useTranslation } from 'react-i18next';
 import { AuthButton } from './AuthButton';
@@ -66,6 +69,31 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
               </p>
             </div>
           </div>
+
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1">
+            <Link
+              to="/calculator"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition"
+            >
+              <Calculator className="w-3.5 h-3.5 text-slate-400" />
+              <span>Calculator</span>
+            </Link>
+            <Link
+              to="/features"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-slate-400" />
+              <span>Features</span>
+            </Link>
+            <Link
+              to="/rules"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 transition"
+            >
+              <FileText className="w-3.5 h-3.5 text-slate-400" />
+              <span>FA Rules</span>
+            </Link>
+          </nav>
 
           {/* Action CTAs */}
           <div className="flex items-center gap-2 sm:gap-3">
@@ -144,20 +172,31 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             </div>
           </div>
 
-          {/* Quick Assurance Strip */}
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-slate-400 font-medium">
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>{t('landing.freeForCoaches')}</span>
+          {/* Quick Assurance Strip & Free Tool CTA */}
+          <div className="pt-4 flex flex-col items-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-slate-400 font-medium">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{t('landing.freeForCoaches')}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{t('landing.worksOffline')}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{t('landing.noDownload')}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>{t('landing.worksOffline')}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>{t('landing.noDownload')}</span>
-            </div>
+
+            <Link
+              to="/calculator"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 hover:border-emerald-500/50 text-slate-300 hover:text-emerald-300 text-xs font-semibold transition group shadow-sm"
+            >
+              <Calculator className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Free Tool: Calculate Fair Youth Substitutions &amp; Quarter Splits</span>
+              <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5 text-emerald-400" />
+            </Link>
           </div>
 
           {/* Interactive Preview Mockup Card */}
@@ -431,7 +470,16 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             <AppVersion onClick={() => setChangelogOpen(true)} />
           </div>
 
-          <div className="flex items-center gap-4 text-slate-400">
+          <div className="flex items-center gap-4 text-slate-400 flex-wrap">
+            <Link to="/calculator" className="hover:text-emerald-400 transition cursor-pointer">
+              Calculator
+            </Link>
+            <Link to="/features" className="hover:text-emerald-400 transition cursor-pointer">
+              Features
+            </Link>
+            <Link to="/rules" className="hover:text-emerald-400 transition cursor-pointer">
+              FA Rules
+            </Link>
             <button
               onClick={currentUser && onGoToApp ? onGoToApp : onStartDemo}
               className="hover:text-emerald-400 transition cursor-pointer"

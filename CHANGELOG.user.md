@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+- **Equal Playing Time Calculator**: A free public calculator to plan halves and quarter splits for 5v5, 7v7, 9v9, and 11v11 youth matches without needing to log in.
+- **WhatsApp Match Previews**: Clean social preview cards displaying the pitch lineup and app title when sharing SubShuffle links in WhatsApp or text messages.
+- **FA Youth Rules Guide**: Dedicated reference guide covering FA pitch formats, match lengths, ball sizes, and equal game time rules by age group.
+- **Features Showcase**: Explore all SubShuffle tools, offline matchday features, and lineup capabilities in one place.
+
+### Improved
+- **Faster Public Page Loading**: Enhanced page loading speeds and streamlined navigation so coaches on mobile devices can access match resources instantly.
+
 ## [1.1.2] - 2026-10-18
 
 ### Improved
