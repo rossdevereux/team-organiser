@@ -229,5 +229,78 @@ describe('Team Data Isolation Suite (Issue #13)', () => {
       const data = await res.json();
       assert.deepStrictEqual(data, []);
     });
+
+    it('handles sequential alternating team queries without cross-team cache leakage', async () => {
+      const pAlpha1: Player = {
+        id: 'p_seq_alpha_1',
+        teamId: teamAlphaId,
+        name: 'Alpha Sequential 1',
+        preferredPositions: ['Midfield'],
+        unavailableDates: [],
+        matchesPlayed: 0,
+        totalMinutesPlayed: 0,
+      };
+      const pBeta1: Player = {
+        id: 'p_seq_beta_1',
+        teamId: teamBetaId,
+        name: 'Beta Sequential 1',
+        preferredPositions: ['Defence'],
+        unavailableDates: [],
+        matchesPlayed: 0,
+        totalMinutesPlayed: 0,
+      };
+
+      await storage.savePlayer(pAlpha1);
+      await storage.savePlayer(pBeta1);
+
+      // Query Alpha -> only Alpha player
+      const resA1 = await fetch(`${baseUrl}/players?teamId=${teamAlphaId}`);
+      const dataA1 = (await resA1.json()) as Player[];
+      assert.equal(dataA1.some((p) => p.id === 'p_seq_alpha_1'), true);
+      assert.equal(dataA1.some((p) => p.id === 'p_seq_beta_1'), false);
+
+      // Query Beta -> only Beta player
+      const resB1 = await fetch(`${baseUrl}/players?teamId=${teamBetaId}`);
+      const dataB1 = (await resB1.json()) as Player[];
+      assert.equal(dataB1.some((p) => p.id === 'p_seq_beta_1'), true);
+      assert.equal(dataB1.some((p) => p.id === 'p_seq_alpha_1'), false);
+
+      // Query Alpha again -> Beta player has not leaked into Alpha cache
+      const resA2 = await fetch(`${baseUrl}/players?teamId=${teamAlphaId}`);
+      const dataA2 = (await resA2.json()) as Player[];
+      assert.equal(dataA2.some((p) => p.id === 'p_seq_alpha_1'), true);
+      assert.equal(dataA2.some((p) => p.id === 'p_seq_beta_1'), false);
+
+      // Clean up
+      await storage.deletePlayer('p_seq_alpha_1');
+      await storage.deletePlayer('p_seq_beta_1');
+    });
+
+    it('creating player via API on Team Alpha is invisible to Team Beta queries', async () => {
+      const createRes = await fetch(`${baseUrl}/players`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Isolating Striker',
+          teamId: teamAlphaId,
+          preferredPositions: ['Attack'],
+        }),
+      });
+      assert.equal(createRes.status, 201);
+      const created = (await createRes.json()) as Player;
+
+      // Query Beta
+      const betaRes = await fetch(`${baseUrl}/players?teamId=${teamBetaId}`);
+      const betaPlayers = (await betaRes.json()) as Player[];
+      assert.equal(betaPlayers.some((p) => p.id === created.id), false);
+
+      // Query Alpha
+      const alphaRes = await fetch(`${baseUrl}/players?teamId=${teamAlphaId}`);
+      const alphaPlayers = (await alphaRes.json()) as Player[];
+      assert.equal(alphaPlayers.some((p) => p.id === created.id), true);
+
+      // Clean up
+      await storage.deletePlayer(created.id);
+    });
   });
 });
