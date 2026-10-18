@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.6] - 2026-10-18
+
 ### Added
 - **Live Match State Machine & Synchronised Stopwatch Persistence** ([#14](https://github.com/rossdevereux/team-organiser/issues/14)):
   - Added `LiveMatchState`, `LiveMatchPeriodTimer`, and `LiveMatchSubLogEntry` data models on `Fixture` in [`client/src/types.ts`](client/src/types.ts) and [`server/src/types.ts`](server/src/types.ts).
