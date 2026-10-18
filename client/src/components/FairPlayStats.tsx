@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { SeasonFairPlayView, SeasonPlayerStat } from './fairplay/SeasonFairPlayView';
 import { MatchdayFairPlayView } from './fairplay/MatchdayFairPlayView';
+import { Fixture } from '../types';
 
 export const FairPlayStats: React.FC = () => {
   const { t } = useTranslation();
@@ -38,7 +39,19 @@ export const FairPlayStats: React.FC = () => {
       return (f.season || currentDefaultSeason) === seasonFilter;
     });
 
-    const completedFixtures = relevantFixtures.filter((f) => f.status === 'Completed' || Boolean(f.matchSquad));
+    const isCountableFixture = (f: Fixture) =>
+      f.status === 'Completed' ||
+      f.status === 'Played' ||
+      Boolean(f.postMatchRecording) ||
+      Boolean(f.creditedMinutes);
+
+    const completedFixtures = relevantFixtures.filter(isCountableFixture);
+
+    const totalAvailableMatchMinutes = completedFixtures.reduce((sum, f) => {
+      const pCount = f.matchPeriodCount || settings.matchPeriodCount || 2;
+      const pDur = f.periodDurationMinutes || settings.periodDurationMinutes || 25;
+      return sum + pCount * pDur;
+    }, 0);
 
     interface PlayerFixtureAgg {
       fixtureMatches: number;
@@ -72,52 +85,89 @@ export const FairPlayStats: React.FC = () => {
           }
         });
       }
-      if (!f.matchSquad) return;
 
-      const duration = f.periodDurationMinutes || settings.periodDurationMinutes || 25;
-      const matchParticipantIds = new Set<string>();
-
-      f.matchSquad.lineupsByPeriod.forEach((lineup) => {
-        lineup.onPitch.forEach((entry) => {
-          matchParticipantIds.add(entry.playerId);
-          const agg = getAgg(entry.playerId);
-          agg.fixtureMinutes += duration;
-          const pos = entry.position.toUpperCase();
-          if (pos === 'GK') {
-            agg.gkCount++;
-          } else if (
-            pos.startsWith('DEF') ||
-            pos === 'CB' ||
-            pos === 'LB' ||
-            pos === 'RB' ||
-            pos === 'LWB' ||
-            pos === 'RWB'
-          ) {
-            agg.defPeriods++;
-          } else if (
-            pos.startsWith('MID') ||
-            pos === 'CM' ||
-            pos === 'LM' ||
-            pos === 'RM' ||
-            pos === 'CDM' ||
-            pos === 'CAM'
-          ) {
-            agg.midPeriods++;
-          } else if (
-            pos.startsWith('ATT') ||
-            pos === 'FW' ||
-            pos === 'ST' ||
-            pos === 'CF' ||
-            pos === 'LW' ||
-            pos === 'RW'
-          ) {
-            agg.attPeriods++;
-          }
+      // Position coverage & awards breakdown from match squads
+      if (f.matchSquad) {
+        f.matchSquad.lineupsByPeriod.forEach((lineup) => {
+          lineup.onPitch.forEach((entry) => {
+            const agg = getAgg(entry.playerId);
+            const pos = entry.position.toUpperCase();
+            if (pos === 'GK') {
+              agg.gkCount++;
+            } else if (
+              pos.startsWith('DEF') ||
+              pos === 'CB' ||
+              pos === 'LB' ||
+              pos === 'RB' ||
+              pos === 'LWB' ||
+              pos === 'RWB'
+            ) {
+              agg.defPeriods++;
+            } else if (
+              pos.startsWith('MID') ||
+              pos === 'CM' ||
+              pos === 'LM' ||
+              pos === 'RM' ||
+              pos === 'CDM' ||
+              pos === 'CAM'
+            ) {
+              agg.midPeriods++;
+            } else if (
+              pos.startsWith('ATT') ||
+              pos === 'FW' ||
+              pos === 'ST' ||
+              pos === 'CF' ||
+              pos === 'LW' ||
+              pos === 'RW'
+            ) {
+              agg.attPeriods++;
+            }
+          });
         });
-      });
+      }
 
-      matchParticipantIds.forEach((pId) => {
-        getAgg(pId).fixtureMatches++;
+      // Minutes & match appearance aggregation:
+      // Only aggregate playing minutes for completed, played, or explicitly recorded fixtures
+      if (!isCountableFixture(f)) return;
+
+      const pCount = f.matchPeriodCount || settings.matchPeriodCount || 2;
+      const duration = f.periodDurationMinutes || settings.periodDurationMinutes || 25;
+      const totalMatchMinutes = pCount * duration;
+
+      const fixturePlayerMinutes = new Map<string, number>();
+
+      if (f.postMatchRecording) {
+        if (f.postMatchRecording.trackingMode === 'full_credit') {
+          const participantIds =
+            f.matchSquad?.selectedPlayerIds || Object.keys(f.postMatchRecording.playerMinutes || {});
+          participantIds.forEach((pId) => {
+            fixturePlayerMinutes.set(pId, totalMatchMinutes);
+          });
+        } else if (f.postMatchRecording.trackingMode === 'exact') {
+          const pMins = f.postMatchRecording.playerMinutes || {};
+          for (const [pId, mins] of Object.entries(pMins)) {
+            fixturePlayerMinutes.set(pId, Math.max(0, mins));
+          }
+        }
+      } else if (f.creditedMinutes) {
+        for (const [pId, mins] of Object.entries(f.creditedMinutes)) {
+          fixturePlayerMinutes.set(pId, Math.max(0, mins));
+        }
+      } else if (f.matchSquad) {
+        f.matchSquad.lineupsByPeriod.forEach((lineup) => {
+          lineup.onPitch.forEach((entry) => {
+            const cur = fixturePlayerMinutes.get(entry.playerId) || 0;
+            fixturePlayerMinutes.set(entry.playerId, cur + duration);
+          });
+        });
+      }
+
+      fixturePlayerMinutes.forEach((mins, pId) => {
+        const agg = getAgg(pId);
+        agg.fixtureMinutes += mins;
+        if (mins > 0) {
+          agg.fixtureMatches++;
+        }
       });
     });
 
@@ -134,8 +184,12 @@ export const FairPlayStats: React.FC = () => {
         goalsCount: 0,
       };
 
-      const totalMatches = completedFixtures.length > 0 ? agg.fixtureMatches : p.matchesPlayed || 0;
-      const totalMinutes = completedFixtures.length > 0 ? agg.fixtureMinutes : p.totalMinutesPlayed || 0;
+      const totalMatches = completedFixtures.length > 0
+        ? Math.max(p.matchesPlayed || 0, agg.fixtureMatches)
+        : p.matchesPlayed || 0;
+      const totalMinutes = completedFixtures.length > 0
+        ? Math.max(p.totalMinutesPlayed || 0, agg.fixtureMinutes)
+        : p.totalMinutesPlayed || 0;
 
       let thirdsCount = 0;
       if (agg.defPeriods > 0) thirdsCount++;
@@ -162,19 +216,27 @@ export const FairPlayStats: React.FC = () => {
     const totalSquadMinutes = playerMetrics.reduce((acc, p) => acc + p.totalMinutes, 0);
     const avgMinutes = playerMetrics.length > 0 ? Math.round(totalSquadMinutes / playerMetrics.length) : 0;
     const tolerance = avgMinutes * 0.15;
+    const targetThreshold = settings.targetGameTimePercent || 50;
 
     return playerMetrics.map((p) => {
       const diffFromAvg = p.totalMinutes - avgMinutes;
       const isCompliant = avgMinutes === 0 || Math.abs(diffFromAvg) <= tolerance;
       const equityPct = avgMinutes > 0 ? Math.min(100, Math.round((p.totalMinutes / avgMinutes) * 100)) : 100;
+      const gameTimePercent = totalAvailableMatchMinutes > 0
+        ? Math.round((p.totalMinutes / totalAvailableMatchMinutes) * 100)
+        : equityPct;
+      const meetsTarget = gameTimePercent >= targetThreshold;
+
       return {
         ...p,
         diffFromAvg,
         equityCompliant: isCompliant,
         equityPercent: equityPct,
+        gameTimePercent,
+        meetsTarget,
       };
     });
-  }, [players, fixtures, seasonFilter, currentDefaultSeason, settings.periodDurationMinutes]);
+  }, [players, fixtures, seasonFilter, currentDefaultSeason, settings.periodDurationMinutes, settings.matchPeriodCount, settings.targetGameTimePercent]);
 
   const { squadAvgMinutes, gkRotationShareCount } = useMemo(() => {
     if (seasonStats.length === 0) {

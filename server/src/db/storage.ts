@@ -1118,18 +1118,89 @@ export class StorageManager {
     return fixture;
   }
 
+  /**
+   * Applies and synchronizes fixture minutes to involved players' totalMinutesPlayed
+   * and matchesPlayed counters. Tracks delta against previously credited fixture minutes
+   * to guarantee idempotent execution without double-counting on re-saves.
+   */
+  async applyFixtureMinutes(
+    fixture: Fixture
+  ): Promise<{ fixture: Fixture; updatedPlayers: Player[] }> {
+    await this.ensureInitialized();
+    const settings = await this.getSettings(fixture.teamId);
+    const pCount = fixture.matchPeriodCount || settings.matchPeriodCount || 2;
+    const duration = fixture.periodDurationMinutes || settings.periodDurationMinutes || 25;
+    const totalMatchMinutes = pCount * duration;
+
+    // 1. Calculate the target credited minutes per player for this fixture
+    const newMinutes: Record<string, number> = {};
+
+    if (fixture.postMatchRecording) {
+      if (fixture.postMatchRecording.trackingMode === 'full_credit') {
+        const participantIds =
+          fixture.matchSquad?.selectedPlayerIds ||
+          Object.keys(fixture.postMatchRecording.playerMinutes || {});
+        participantIds.forEach((pId) => {
+          newMinutes[pId] = totalMatchMinutes;
+        });
+      } else if (fixture.postMatchRecording.trackingMode === 'exact') {
+        const pMins = fixture.postMatchRecording.playerMinutes || {};
+        for (const [pId, mins] of Object.entries(pMins)) {
+          newMinutes[pId] = Math.max(0, mins);
+        }
+      }
+    } else if (fixture.matchSquad && (fixture.status === 'Completed' || fixture.status === 'Played')) {
+      fixture.matchSquad.lineupsByPeriod.forEach((lineup) => {
+        lineup.onPitch.forEach((entry) => {
+          newMinutes[entry.playerId] = (newMinutes[entry.playerId] || 0) + duration;
+        });
+      });
+    }
+
+    // 2. Compute deltas against previously credited minutes on this fixture
+    const prevCredited = fixture.creditedMinutes || {};
+    const allPlayerIds = new Set([
+      ...Object.keys(prevCredited),
+      ...Object.keys(newMinutes),
+    ]);
+
+    const updatedPlayers: Player[] = [];
+
+    for (const playerId of allPlayerIds) {
+      const prevMins = prevCredited[playerId] || 0;
+      const curMins = newMinutes[playerId] || 0;
+      const deltaMins = curMins - prevMins;
+      const deltaMatches = (curMins > 0 ? 1 : 0) - (prevMins > 0 ? 1 : 0);
+
+      if (deltaMins !== 0 || deltaMatches !== 0) {
+        const player = await this.getPlayerById(playerId);
+        if (player && player.teamId === fixture.teamId) {
+          player.totalMinutesPlayed = Math.max(0, (player.totalMinutesPlayed || 0) + deltaMins);
+          player.matchesPlayed = Math.max(0, (player.matchesPlayed || 0) + deltaMatches);
+          await this.savePlayer(player);
+          updatedPlayers.push(player);
+        }
+      }
+    }
+
+    // 3. Persist creditedMinutes record on the fixture
+    fixture.creditedMinutes = newMinutes;
+    await this.saveFixture(fixture);
+
+    return { fixture, updatedPlayers };
+  }
+
   async updatePostMatchRecording(
     fixtureId: string,
     postMatchRecording: PostMatchRecording
-  ): Promise<Fixture | null> {
+  ): Promise<{ fixture: Fixture; updatedPlayers: Player[] } | null> {
     await this.ensureInitialized();
     const fixture = await this.getFixtureById(fixtureId);
     if (!fixture) return null;
 
     fixture.postMatchRecording = postMatchRecording;
     fixture.status = 'Completed';
-    await this.saveFixture(fixture);
-    return fixture;
+    return await this.applyFixtureMinutes(fixture);
   }
 
   async updateFixtureScore(
@@ -1154,6 +1225,10 @@ export class StorageManager {
     }
     if (scoreData.isLive !== undefined) {
       fixture.isLive = scoreData.isLive;
+    }
+    if (fixture.status === 'Completed' || fixture.status === 'Played') {
+      const res = await this.applyFixtureMinutes(fixture);
+      return res.fixture;
     }
     await this.saveFixture(fixture);
     return fixture;
@@ -1185,6 +1260,19 @@ export class StorageManager {
 
   async deleteFixture(id: string): Promise<boolean> {
     await this.ensureInitialized();
+    const fixture = await this.getFixtureById(id);
+    if (fixture && fixture.creditedMinutes) {
+      for (const [pId, creditedMins] of Object.entries(fixture.creditedMinutes)) {
+        if (creditedMins > 0) {
+          const player = await this.getPlayerById(pId);
+          if (player) {
+            player.totalMinutesPlayed = Math.max(0, (player.totalMinutesPlayed || 0) - creditedMins);
+            player.matchesPlayed = Math.max(0, (player.matchesPlayed || 0) - 1);
+            await this.savePlayer(player);
+          }
+        }
+      }
+    }
     const prevLen = this.memoryStore.fixtures.length;
     this.memoryStore.fixtures = this.memoryStore.fixtures.filter((f) => f.id !== id);
     this.saveToFile();

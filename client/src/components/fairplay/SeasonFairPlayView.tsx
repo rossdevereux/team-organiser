@@ -27,6 +27,8 @@ export interface SeasonPlayerStat {
   diffFromAvg: number;
   equityCompliant: boolean;
   equityPercent: number;
+  gameTimePercent?: number;
+  meetsTarget?: boolean;
 }
 
 interface SeasonFairPlayViewProps {
@@ -223,6 +225,7 @@ export const SeasonFairPlayView: React.FC<SeasonFairPlayViewProps> = ({
                     </span>
                     <span className="text-[11px] text-slate-400">
                       {item.totalMatches} matches logged
+                      {item.gameTimePercent !== undefined ? ` • ${item.gameTimePercent}% game time` : ''}
                       {item.goalsCount > 0 ? ` • ⚽ ${item.goalsCount} goal${item.goalsCount > 1 ? 's' : ''}` : ''}
                     </span>
                   </div>
@@ -235,7 +238,7 @@ export const SeasonFairPlayView: React.FC<SeasonFairPlayViewProps> = ({
                     </span>
                     <span
                       className={`font-bold ${
-                        item.equityCompliant ? 'text-emerald-400' : 'text-amber-400'
+                        item.equityCompliant && (item.meetsTarget !== false) ? 'text-emerald-400' : 'text-amber-400'
                       }`}
                     >
                       {item.diffFromAvg > 0 ? `+${item.diffFromAvg}m` : `${item.diffFromAvg}m`} vs avg
@@ -244,7 +247,7 @@ export const SeasonFairPlayView: React.FC<SeasonFairPlayViewProps> = ({
                   <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-300 ${
-                        item.equityCompliant ? 'bg-emerald-500' : 'bg-amber-500'
+                        item.equityCompliant && (item.meetsTarget !== false) ? 'bg-emerald-500' : 'bg-amber-500'
                       }`}
                       style={{ width: `${Math.min(100, barWidth)}%` }}
                     />
@@ -260,12 +263,16 @@ export const SeasonFairPlayView: React.FC<SeasonFairPlayViewProps> = ({
                   )}
                   <span
                     className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      item.equityCompliant
+                      item.equityCompliant && (item.meetsTarget !== false)
                         ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                         : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                     }`}
                   >
-                    {item.equityCompliant ? 'Balanced' : item.diffFromAvg < 0 ? 'Due Time' : 'Above Avg'}
+                    {item.equityCompliant && (item.meetsTarget !== false)
+                      ? 'Balanced'
+                      : item.meetsTarget === false || item.diffFromAvg < 0
+                      ? `Below Target (${item.gameTimePercent ?? 0}%)`
+                      : 'Above Avg'}
                   </span>
                 </div>
               </div>

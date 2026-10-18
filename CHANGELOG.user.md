@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+- **Fair Play & Minutes Tracker Sync with Logged Match Time**:
+  - Recording match time or finalising scores now immediately updates player season totals and the Fair Play & Minutes tracker without needing to refresh your browser ([#15](https://github.com/rossdevereux/team-organiser/issues/15)).
+  - The Fair Play tracker now accurately displays each player's total match minutes, percentage of available team game time, and status badges (`Balanced` vs `Below Target`) based on recorded playing time.
+
 ## [1.1.6] - 2026-10-18
 
 ### Added
