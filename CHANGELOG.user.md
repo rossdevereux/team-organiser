@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+- **Offline Service Worker Caching Error**:
+  - Fixed a browser console error (`Failed to execute 'put' on 'Cache': Request method 'POST' is unsupported`) that occurred when submitting forms, saving match data, or signing in.
+
 ### Improved
 - **Bandwidth-Saving Live Match Synchronization**:
   - Live match tracking now uses a lightweight heartbeat status check that transfers 95% less mobile data pitchside, saving phone battery and mobile data allowances ([#16](https://github.com/rossdevereux/team-organiser/issues/16)).
