@@ -73,6 +73,7 @@ interface MatchdayContextType {
   updateTeam: (team: Team) => Promise<void>;
   deleteTeam: (id: string) => Promise<void>;
   shareTeam: (teamId: string, email: string) => Promise<void>;
+  unshareTeam: (teamId: string, memberIdOrEmail: string) => Promise<void>;
   // Formation actions
   changeFormation: (formationIdOrName: string) => Promise<void>;
   createCustomFormation: (formation: Formation) => Promise<void>;
@@ -1180,6 +1181,24 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const unshareTeam = async (teamId: string, memberIdOrEmail: string) => {
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`/api/teams/${teamId}/share/${encodeURIComponent(memberIdOrEmail)}`, {
+        method: 'DELETE',
+        headers,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.team) {
+          setTeams((prev) => prev.map((t) => (t.id === teamId ? data.team : t)));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to unshare team:', err);
+    }
+  };
+
   // Formation Change
   const changeFormation = async (formationIdOrName: string) => {
     if (activeFixture) {
@@ -1781,6 +1800,7 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateTeam,
         deleteTeam,
         shareTeam,
+        unshareTeam,
         changeFormation,
         createCustomFormation,
         createPlayer,

@@ -58,13 +58,22 @@ export interface TeamSettings {
   kitSecondaryColor?: string; // Club secondary/trim kit colour (hex, e.g. '#f59e0b')
 }
 
+export interface TeamMember {
+  userId: string;
+  email: string;
+  role?: 'coach' | 'viewer';
+  addedAt?: string;
+}
+
 export interface Team {
   id: string;
   name: string;
   ageGroup?: string; // e.g. "U10", "U12"
   ownerId: string;
   ownerEmail?: string;
-  sharedWith: string[]; // emails or user IDs of co-coaches
+  sharedWith: string[]; // user IDs (and fallback legacy emails) of co-coaches
+  sharedMembers?: TeamMember[]; // structured metadata pairing userId and email for UI display
+  pendingInvites?: string[]; // email addresses of invited coaches who haven't registered yet
   settings: TeamSettings;
   createdAt?: string;
   updatedAt?: string;

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Immutable User ID Resolution for Team Sharing**:
+  - Enhanced team sharing (`POST /api/teams/:id/share`) in [`server/src/routes/api.ts`](server/src/routes/api.ts) to resolve recipient emails to their immutable Firebase Auth `uid` via `getAuth().getUserByEmail` (with fallback to existing registered users) and store the permanent `userId` in `team.sharedWith` and structured `team.sharedMembers`.
+  - Added `pendingInvites: string[]` on `Team` model in [`server/src/types.ts`](server/src/types.ts) and [`client/src/types.ts`](client/src/types.ts) for invited coaches who have not registered an account yet.
+  - Implemented automatic invite claiming via `claimPendingInvites(userId, email)` in [`server/src/db/storage.ts`](server/src/db/storage.ts) during team retrieval (`GET /api/teams`), converting pending email invites to linked `userId` entries upon first user registration or sign-in.
+  - Added team unsharing endpoint (`DELETE /api/teams/:id/share/:memberIdOrEmail`) and context action `unshareTeam` in [`client/src/context/MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx).
+  - Added shared coaches list with status badges (`Linked UID` vs `Pending`) and access revocation controls in [`TeamManager.tsx`](client/src/components/TeamManager.tsx).
+  - Added unit test coverage in [`server/src/tests/teamAdminVisibility.test.ts`](server/src/tests/teamAdminVisibility.test.ts) verifying immutable `userId` access retention across email changes, pending invite claiming, and unsharing access revocation.
+
 ## [1.1.4] - 2026-10-18
 
 ### Added

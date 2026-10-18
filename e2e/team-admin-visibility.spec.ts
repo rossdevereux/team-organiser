@@ -80,7 +80,7 @@ test.describe('Team Admin Visibility & Access Suite', () => {
     await expect(page.getByText(/The Rovers FC \(U12s\)/i)).not.toBeVisible();
 
     // Verify team count in banner indicates (2)
-    await expect(page.getByText(/Manage Teams \(2\)/i)).toBeVisible();
+    await expect(page.getByText(/Team Management.*\(2\)/i)).toBeVisible();
   });
 
   test('displays clean empty state and does not leak other teams when admin has no teams', async ({ page }) => {

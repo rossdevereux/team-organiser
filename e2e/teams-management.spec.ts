@@ -12,9 +12,9 @@ test.describe('Teams Management & Multi-Squad Workflows', () => {
     await expect(page).toHaveURL(/(tab=teams|\/teams)/);
 
     // Verify header and description
-    await expect(page.getByRole('heading', { name: /Manage Teams/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Team Management/i })).toBeVisible();
     await expect(
-      page.getByText('Configure independent squads, age groups, match formats, and co-coach sharing.')
+      page.getByText('Create squads, set age-group match regulations, and collaborate with assistant coaches.')
     ).toBeVisible();
 
     // Verify active team indicator is visible on at least one team card
@@ -22,11 +22,11 @@ test.describe('Teams Management & Multi-Squad Workflows', () => {
   });
 
   test('should create a new youth team squad', async ({ page }) => {
-    await page.goto('/?tab=teams');
-    await expect(page.getByRole('heading', { name: /Manage Teams/i })).toBeVisible();
+    await page.goto('/teams');
+    await expect(page.getByRole('heading', { name: /Team Management/i })).toBeVisible();
 
     // Click "Create New Team" button
-    await page.getByRole('button', { name: 'Create New Team' }).click();
+    await page.getByRole('button', { name: /Create New Team/i }).click();
 
     // Verify creation form is visible
     await expect(page.getByText('Create New Squad / Team')).toBeVisible();
@@ -48,8 +48,8 @@ test.describe('Teams Management & Multi-Squad Workflows', () => {
   });
 
   test('should switch active team by selecting a team card', async ({ page }) => {
-    await page.goto('/?tab=teams');
-    await expect(page.getByRole('heading', { name: /Manage Teams/i })).toBeVisible();
+    await page.goto('/teams');
+    await expect(page.getByRole('heading', { name: /Team Management/i })).toBeVisible();
 
     // Wait for at least one team card title to be visible
     const teamHeading = page.locator('div.grid h3').first();
@@ -70,23 +70,23 @@ test.describe('Teams Management & Multi-Squad Workflows', () => {
   });
 
   test('should open co-coach sharing modal and invite an assistant coach', async ({ page }) => {
-    await page.goto('/?tab=teams');
+    await page.goto('/teams');
 
     // Click the share button on the first team card
     const shareButton = page.locator('button[title="Share team with co-coach"]').first();
     await shareButton.click();
 
     // Assert modal opened
-    await expect(page.getByRole('heading', { name: 'Share Team with Assistant Coach' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Invite Assistant Coach' })).toBeVisible();
     await expect(
-      page.getByText("Invite a co-coach, assistant manager, or parent to view and edit this team's matchday lineups")
+      page.getByText('Enter the email address of a coach or club admin to grant access to this squad.')
     ).toBeVisible();
 
     // Enter assistant email
     await page.fill('input[type="email"]', 'assistant.coach@subshuffle.com');
-    await page.getByRole('button', { name: 'Send Access' }).click();
+    await page.getByRole('button', { name: 'Send Invite' }).click();
 
     // Verify success feedback
-    await expect(page.getByText('Shared with assistant.coach@subshuffle.com')).toBeVisible();
+    await expect(page.getByText('Invitation sent to assistant.coach@subshuffle.com!')).toBeVisible();
   });
 });

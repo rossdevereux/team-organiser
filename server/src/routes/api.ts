@@ -23,6 +23,9 @@ router.get('/teams', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.uid;
     const userEmail = req.user?.email;
+    if (userId && userEmail) {
+      await storage.claimPendingInvites(userId, userEmail);
+    }
     const teams = await storage.getTeams(userId, userEmail);
     res.json(teams);
   } catch (err: any) {
@@ -146,7 +149,7 @@ router.delete('/teams/:id', async (req: AuthenticatedRequest, res: Response) => 
   }
 });
 
-// POST /api/teams/:id/share (Share team with another coach via email)
+// POST /api/teams/:id/share (Share team with another coach via email or userId)
 router.post('/teams/:id/share', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
@@ -161,12 +164,40 @@ router.post('/teams/:id/share', async (req: AuthenticatedRequest, res: Response)
       return res.status(403).json({ error: 'Access denied: You do not have permission to share this team' });
     }
 
-    const { email } = req.body;
-    if (!email || typeof email !== 'string') {
+    const { email, role } = req.body;
+    if (!email || typeof email !== 'string' || !email.trim()) {
       return res.status(400).json({ error: 'Valid email address is required to share' });
     }
 
-    const updatedTeam = await storage.shareTeam(id, email);
+    const normalizedEmail = email.trim().toLowerCase();
+    let resolvedUserId: string | undefined = undefined;
+
+    // 1. Attempt to resolve email to Firebase Auth user ID via Admin SDK
+    try {
+      const { getAuth } = await import('firebase-admin/auth');
+      const userRecord = await getAuth().getUserByEmail(normalizedEmail);
+      if (userRecord && userRecord.uid) {
+        resolvedUserId = userRecord.uid;
+      }
+    } catch {
+      // User not found in Firebase Auth or unconfigured in test
+    }
+
+    // 2. Fallback: check storage adminUsers
+    if (!resolvedUserId) {
+      const adminUsers = await storage.getAdminUsers();
+      const matched = adminUsers.find((u) => u.email?.trim().toLowerCase() === normalizedEmail);
+      if (matched && matched.uid) {
+        resolvedUserId = matched.uid;
+      }
+    }
+
+    const updatedTeam = await storage.shareTeam(id, {
+      email: normalizedEmail,
+      userId: resolvedUserId,
+      role: role || 'coach',
+    });
+
     if (!updatedTeam) {
       return res.status(404).json({ error: 'Team not found' });
     }
@@ -174,9 +205,41 @@ router.post('/teams/:id/share', async (req: AuthenticatedRequest, res: Response)
     res.json({
       message: `Team successfully shared with ${email}`,
       team: updatedTeam,
+      resolvedUserId,
+      isPending: !resolvedUserId,
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to share team', details: err.message });
+  }
+});
+
+// DELETE /api/teams/:id/share/:memberIdOrEmail (Remove co-coach from shared team)
+router.delete('/teams/:id/share/:memberIdOrEmail', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const memberIdOrEmail = req.params.memberIdOrEmail as string;
+    const existing = await storage.getTeamById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (userId && !storage.hasTeamAccess(existing, userId, userEmail)) {
+      return res.status(403).json({ error: 'Access denied: You do not have permission to modify team sharing' });
+    }
+
+    const updated = await storage.unshareTeam(id, memberIdOrEmail);
+    if (!updated) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    res.json({
+      message: `Member ${memberIdOrEmail} removed from team`,
+      team: updated,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to unshare team', details: err.message });
   }
 });
 

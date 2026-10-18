@@ -159,7 +159,7 @@ describe('Team Admin Visibility & Access Suite', () => {
     });
   });
 
-  describe('shareTeam helper', () => {
+  describe('shareTeam helper & userId resolution', () => {
     it('adds email to sharedWith array case-insensitively without duplicates', async () => {
       const updated = await storage.shareTeam('team_charlie_u14', 'BOB@CLUBADMIN.LOCAL');
       assert.ok(updated);
@@ -168,6 +168,64 @@ describe('Team Admin Visibility & Access Suite', () => {
       // Check Bob now has access
       const bobAccess = storage.hasTeamAccess(updated, adminBob.uid, adminBob.email);
       assert.strictEqual(bobAccess, true);
+    });
+
+    it('registers userId in sharedWith and preserves access even if user changes their email', async () => {
+      const updated = await storage.shareTeam('team_charlie_u14', {
+        email: 'bob.initial@club.local',
+        userId: adminBob.uid,
+      });
+      assert.ok(updated);
+      assert.ok(updated.sharedWith.includes(adminBob.uid));
+      assert.ok(updated.sharedMembers?.some((m) => m.userId === adminBob.uid));
+
+      // Bob changes email to completely new email address
+      const bobChangedEmail = 'bob.completely_new_email@otherclub.org';
+      const hasAccessAfterEmailChange = storage.hasTeamAccess(updated, adminBob.uid, bobChangedEmail);
+      assert.strictEqual(hasAccessAfterEmailChange, true, 'User should retain access via immutable userId despite email change');
+    });
+
+    it('records pending invites for unregistered coaches and auto-claims them upon user sign-in', async () => {
+      const unregisteredEmail = 'future.coach@grassroots.local';
+      const newCoachUid = 'coach_future_uid_555';
+
+      // 1. Share with unregistered email
+      const sharedTeam = await storage.shareTeam('team_alice_u10', unregisteredEmail);
+      assert.ok(sharedTeam);
+      assert.ok(sharedTeam.pendingInvites?.includes(unregisteredEmail));
+
+      // 2. Future coach registers and signs in -> triggers claimPendingInvites
+      const claimedCount = await storage.claimPendingInvites(newCoachUid, unregisteredEmail);
+      assert.ok(claimedCount >= 1);
+
+      // 3. Verify team now contains the new coach UID in sharedWith and pendingInvites is cleaned
+      const teamAfterClaim = await storage.getTeamById('team_alice_u10');
+      assert.ok(teamAfterClaim);
+      assert.ok(teamAfterClaim.sharedWith.includes(newCoachUid));
+      assert.ok(!teamAfterClaim.pendingInvites?.includes(unregisteredEmail));
+
+      // 4. Access verified by userId
+      const accessGranted = storage.hasTeamAccess(teamAfterClaim, newCoachUid, 'different.email@after.change');
+      assert.strictEqual(accessGranted, true);
+    });
+
+    it('unshares a team by memberId or email cleanly revoking access', async () => {
+      // Alice shares with Charlie
+      await storage.shareTeam('team_alice_u10', {
+        email: coachCharlie.email,
+        userId: coachCharlie.uid,
+      });
+
+      let team = await storage.getTeamById('team_alice_u10');
+      assert.ok(team);
+      assert.strictEqual(storage.hasTeamAccess(team, coachCharlie.uid, coachCharlie.email), true);
+
+      // Now unshare Charlie by userId
+      await storage.unshareTeam('team_alice_u10', coachCharlie.uid);
+
+      team = await storage.getTeamById('team_alice_u10');
+      assert.ok(team);
+      assert.strictEqual(storage.hasTeamAccess(team, coachCharlie.uid, coachCharlie.email), false);
     });
   });
 });

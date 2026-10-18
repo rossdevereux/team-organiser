@@ -27,6 +27,7 @@ export const TeamManager: React.FC = () => {
     updateTeam,
     deleteTeam,
     shareTeam,
+    unshareTeam,
     currentUser,
     setActiveTab,
   } = useMatchday();
@@ -98,13 +99,14 @@ export const TeamManager: React.FC = () => {
     e.preventDefault();
     if (!sharingTeamId || !shareEmail.trim()) return;
 
-    await shareTeam(sharingTeamId, shareEmail.trim());
-    setShareSuccess(`Shared with ${shareEmail}`);
+    const emailToShare = shareEmail.trim();
+    await shareTeam(sharingTeamId, emailToShare);
+    setShareSuccess(t('teams.shareSuccess', { email: emailToShare }));
     setShareEmail('');
     setTimeout(() => {
       setShareSuccess(null);
       setSharingTeamId(null);
-    }, 2000);
+    }, 2500);
   };
 
   return (
@@ -152,6 +154,103 @@ export const TeamManager: React.FC = () => {
             <p className="text-xs text-slate-300">
               {t('teams.shareDesc')}
             </p>
+
+            {/* Existing Shared Members List */}
+            {(() => {
+              const currentTeam = teams.find((t) => t.id === sharingTeamId);
+              const members = currentTeam?.sharedMembers || [];
+              const rawSharedWith = currentTeam?.sharedWith || [];
+              const pending = currentTeam?.pendingInvites || [];
+
+              // Collect unique list of coaches
+              const coachList: { identifier: string; email: string; userId?: string; isPending: boolean }[] = [];
+
+              members.forEach((m) => {
+                if (!coachList.some((c) => c.email.toLowerCase() === m.email.toLowerCase())) {
+                  coachList.push({
+                    identifier: m.userId || m.email,
+                    email: m.email,
+                    userId: m.userId,
+                    isPending: !m.userId,
+                  });
+                }
+              });
+
+              // Also check pendingInvites not in members
+              pending.forEach((pEmail) => {
+                if (!coachList.some((c) => c.email.toLowerCase() === pEmail.toLowerCase())) {
+                  coachList.push({
+                    identifier: pEmail,
+                    email: pEmail,
+                    isPending: true,
+                  });
+                }
+              });
+
+              // Also check sharedWith entries that might be legacy emails
+              rawSharedWith.forEach((idOrEmail) => {
+                if (idOrEmail.includes('@')) {
+                  if (!coachList.some((c) => c.email.toLowerCase() === idOrEmail.toLowerCase())) {
+                    coachList.push({
+                      identifier: idOrEmail,
+                      email: idOrEmail,
+                      isPending: true,
+                    });
+                  }
+                } else if (!coachList.some((c) => c.userId === idOrEmail)) {
+                  coachList.push({
+                    identifier: idOrEmail,
+                    email: idOrEmail,
+                    userId: idOrEmail,
+                    isPending: false,
+                  });
+                }
+              });
+
+              if (coachList.length === 0) return null;
+
+              return (
+                <div className="space-y-2 pt-1 border-t border-slate-800/80">
+                  <span className="text-[11px] font-semibold text-slate-400 block">
+                    Shared Coaches ({coachList.length})
+                  </span>
+                  <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                    {coachList.map((coach) => (
+                      <div
+                        key={coach.identifier}
+                        className="flex items-center justify-between p-2 rounded-xl bg-slate-950/80 border border-slate-800 text-xs"
+                      >
+                        <div className="flex items-center gap-2 truncate mr-2">
+                          <UserCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                          <span className="text-white truncate font-medium">{coach.email}</span>
+                          <span
+                            className={`text-[9px] px-1.5 py-0.5 rounded-md font-mono shrink-0 border ${
+                              coach.userId
+                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                : 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                            }`}
+                          >
+                            {coach.userId ? 'Linked UID' : 'Pending'}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (currentTeam) {
+                              await unshareTeam(currentTeam.id, coach.identifier);
+                            }
+                          }}
+                          className="p-1 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition shrink-0"
+                          title="Revoke access"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             <form onSubmit={handleShareSubmit} className="space-y-3">
               <div>

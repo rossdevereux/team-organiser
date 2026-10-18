@@ -7,6 +7,7 @@ import {
   Fixture,
   MatchSquad,
   Team,
+  TeamMember,
   PostMatchRecording,
   ClubSettings,
   AdminUser,
@@ -627,8 +628,19 @@ export class StorageManager {
     if (team.ownerId && team.ownerId === userId) return true;
     if (userEmail && team.ownerEmail && team.ownerEmail.trim().toLowerCase() === userEmail.trim().toLowerCase()) return true;
     if (team.sharedWith && Array.isArray(team.sharedWith)) {
-      if (team.sharedWith.includes(userId)) return true;
+      if (userId && team.sharedWith.includes(userId)) return true;
       if (userEmail && team.sharedWith.some((e) => typeof e === 'string' && e.trim().toLowerCase() === userEmail.trim().toLowerCase())) {
+        return true;
+      }
+    }
+    if (team.sharedMembers && Array.isArray(team.sharedMembers)) {
+      if (userId && team.sharedMembers.some((m) => m.userId === userId)) return true;
+      if (userEmail && team.sharedMembers.some((m) => m.email && m.email.trim().toLowerCase() === userEmail.trim().toLowerCase())) {
+        return true;
+      }
+    }
+    if (userEmail && team.pendingInvites && Array.isArray(team.pendingInvites)) {
+      if (team.pendingInvites.some((e) => typeof e === 'string' && e.trim().toLowerCase() === userEmail.trim().toLowerCase())) {
         return true;
       }
     }
@@ -697,20 +709,169 @@ export class StorageManager {
     return this.memoryStore.teams.length < prevLen;
   }
 
-  async shareTeam(teamId: string, emailOrUserId: string): Promise<Team | null> {
+  async shareTeam(
+    teamId: string,
+    target: { email: string; userId?: string; role?: 'coach' | 'viewer' } | string
+  ): Promise<Team | null> {
     await this.ensureInitialized();
     const team = await this.getTeamById(teamId);
     if (!team) return null;
 
-    const email = emailOrUserId.trim().toLowerCase();
+    let email = '';
+    let userId: string | undefined = undefined;
+    let role: 'coach' | 'viewer' = 'coach';
+
+    if (typeof target === 'string') {
+      const trimmed = target.trim();
+      if (trimmed.includes('@')) {
+        email = trimmed.toLowerCase();
+      } else {
+        userId = trimmed;
+      }
+    } else {
+      email = (target.email || '').trim().toLowerCase();
+      userId = target.userId ? target.userId.trim() : undefined;
+      role = target.role || 'coach';
+    }
+
     if (!team.sharedWith || !Array.isArray(team.sharedWith)) {
       team.sharedWith = [];
     }
-    if (!team.sharedWith.some((e) => typeof e === 'string' && e.trim().toLowerCase() === email)) {
-      team.sharedWith.push(email);
-      await this.saveTeam(team);
+    if (!team.sharedMembers || !Array.isArray(team.sharedMembers)) {
+      team.sharedMembers = [];
     }
+    if (!team.pendingInvites || !Array.isArray(team.pendingInvites)) {
+      team.pendingInvites = [];
+    }
+
+    if (userId) {
+      // Primary: add permanent userId to sharedWith
+      if (!team.sharedWith.includes(userId)) {
+        team.sharedWith.push(userId);
+      }
+      // If email was previously in pendingInvites, remove it
+      if (email) {
+        team.pendingInvites = team.pendingInvites.filter((e) => e.toLowerCase() !== email);
+      }
+      // Upsert sharedMembers record
+      const memberIdx = team.sharedMembers.findIndex(
+        (m) => m.userId === userId || (email && m.email?.toLowerCase() === email)
+      );
+      if (memberIdx >= 0) {
+        team.sharedMembers[memberIdx] = {
+          userId,
+          email: email || team.sharedMembers[memberIdx].email,
+          role,
+          addedAt: team.sharedMembers[memberIdx].addedAt || new Date().toISOString(),
+        };
+      } else {
+        team.sharedMembers.push({
+          userId,
+          email: email || '',
+          role,
+          addedAt: new Date().toISOString(),
+        });
+      }
+    } else if (email) {
+      // Pending: user not registered yet, record in pendingInvites and sharedWith as fallback
+      if (!team.pendingInvites.includes(email)) {
+        team.pendingInvites.push(email);
+      }
+      if (!team.sharedWith.includes(email)) {
+        team.sharedWith.push(email);
+      }
+      const memberIdx = team.sharedMembers.findIndex((m) => m.email?.toLowerCase() === email);
+      if (memberIdx >= 0) {
+        team.sharedMembers[memberIdx].role = role;
+      } else {
+        team.sharedMembers.push({
+          userId: '',
+          email,
+          role,
+          addedAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    team.updatedAt = new Date().toISOString();
+    await this.saveTeam(team);
     return team;
+  }
+
+  async unshareTeam(teamId: string, memberIdOrEmail: string): Promise<Team | null> {
+    await this.ensureInitialized();
+    const team = await this.getTeamById(teamId);
+    if (!team) return null;
+
+    const target = memberIdOrEmail.trim().toLowerCase();
+
+    if (team.sharedWith && Array.isArray(team.sharedWith)) {
+      team.sharedWith = team.sharedWith.filter(
+        (id) => id !== memberIdOrEmail && id.toLowerCase() !== target
+      );
+    }
+    if (team.sharedMembers && Array.isArray(team.sharedMembers)) {
+      team.sharedMembers = team.sharedMembers.filter(
+        (m) => m.userId !== memberIdOrEmail && m.email?.toLowerCase() !== target
+      );
+    }
+    if (team.pendingInvites && Array.isArray(team.pendingInvites)) {
+      team.pendingInvites = team.pendingInvites.filter((e) => e.toLowerCase() !== target);
+    }
+
+    team.updatedAt = new Date().toISOString();
+    await this.saveTeam(team);
+    return team;
+  }
+
+  async claimPendingInvites(userId: string, email: string): Promise<number> {
+    if (!userId || !email) return 0;
+    await this.ensureInitialized();
+    const normEmail = email.trim().toLowerCase();
+    let updatedCount = 0;
+
+    const allTeams = await this.getTeams();
+    for (const team of allTeams) {
+      let needsSave = false;
+      const hasPending = team.pendingInvites && team.pendingInvites.some((e) => e.toLowerCase() === normEmail);
+      const hasEmailInShared = team.sharedWith && team.sharedWith.some((e) => e.toLowerCase() === normEmail);
+
+      if (hasPending || hasEmailInShared) {
+        if (!team.sharedWith) team.sharedWith = [];
+        if (!team.sharedWith.includes(userId)) {
+          team.sharedWith.push(userId);
+          needsSave = true;
+        }
+
+        if (team.pendingInvites && team.pendingInvites.some((e) => e.toLowerCase() === normEmail)) {
+          team.pendingInvites = team.pendingInvites.filter((e) => e.toLowerCase() !== normEmail);
+          needsSave = true;
+        }
+
+        if (!team.sharedMembers) team.sharedMembers = [];
+        const memberIdx = team.sharedMembers.findIndex((m) => m.email?.toLowerCase() === normEmail);
+        if (memberIdx >= 0) {
+          team.sharedMembers[memberIdx].userId = userId;
+          needsSave = true;
+        } else {
+          team.sharedMembers.push({
+            userId,
+            email: normEmail,
+            role: 'coach',
+            addedAt: new Date().toISOString(),
+          });
+          needsSave = true;
+        }
+
+        if (needsSave) {
+          team.updatedAt = new Date().toISOString();
+          await this.saveTeam(team);
+          updatedCount++;
+        }
+      }
+    }
+
+    return updatedCount;
   }
 
   async addSeason(teamId: string, seasonName: string): Promise<Team | null> {
