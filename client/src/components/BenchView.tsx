@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import {
   Armchair,
@@ -36,6 +37,7 @@ export const BenchView: React.FC = () => {
   } = useMatchday();
 
   const { showToast } = useToast();
+  const { t } = useTranslation();
 
   const [replacingSubPlayer, setReplacingSubPlayer] = useState<Player | null>(null);
   const [promotingRestedPlayer, setPromotingRestedPlayer] = useState<Player | null>(null);
@@ -68,9 +70,9 @@ export const BenchView: React.FC = () => {
           <Armchair className="w-6 h-6" />
         </div>
         <div className="space-y-1">
-          <h3 className="text-base font-bold text-white">Substitutes Bench</h3>
+          <h3 className="text-base font-bold text-white">{t('lineup.bench')}</h3>
           <p className="text-xs text-slate-400 max-w-xs mx-auto">
-            Substitutes and rotation candidates will appear here during active matchdays.
+            {t('lineup.noBenchSubs')}
           </p>
         </div>
       </div>
@@ -124,14 +126,14 @@ export const BenchView: React.FC = () => {
               <Armchair className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[var(--text-main)]">Substitutes Bench</h3>
+              <h3 className="text-sm font-bold text-[var(--text-main)]">{t('lineup.bench')}</h3>
               <p className="text-xs text-slate-400">
-                Resting during {periodLabel} ({subs.length} players)
+                {periodLabel} ({subs.length} {t('common.players')})
               </p>
             </div>
           </div>
           <span className="text-[11px] font-semibold whitespace-nowrap px-3 py-1 rounded-full bg-[var(--surface-base)] text-slate-300 border border-[var(--surface-border)] shrink-0">
-            {selectedSwapSource ? 'Tap player to complete swap' : 'Tap to swap on pitch'}
+            {selectedSwapSource ? t('lineup.selectSwapSource') : t('lineup.tapToSwap')}
           </span>
         </div>
 
@@ -376,7 +378,7 @@ export const BenchView: React.FC = () => {
                       className="h-8 px-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-bold flex items-center gap-1 transition cursor-pointer shrink-0"
                     >
                       <UserPlus className="w-3.5 h-3.5" />
-                      <span>Promote</span>
+                      <span>{t('lineup.promoteToBench')}</span>
                     </button>
                   </div>
                 </div>

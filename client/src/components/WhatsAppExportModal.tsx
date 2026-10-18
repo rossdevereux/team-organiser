@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { Copy, Check, ExternalLink, X, MessageSquare, Sparkles } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
@@ -9,6 +10,7 @@ interface WhatsAppExportModalProps {
 }
 
 export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const { activeFixture } = useMatchday();
   const { showToast } = useToast();
   const [announcementText, setAnnouncementText] = useState<string>('');
@@ -47,7 +49,7 @@ export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen
     try {
       await navigator.clipboard.writeText(announcementText);
       setCopied(true);
-      showToast('Team sheet copied to clipboard!', 'success');
+      showToast(t('common.copied'), 'success');
       setTimeout(() => setCopied(false), 2500);
     } catch (err) {
       console.error('Failed to copy to clipboard:', err);
@@ -75,9 +77,9 @@ export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen
               </div>
             </div>
             <div>
-              <h3 className="text-base font-bold text-white">WhatsApp Team Announcement</h3>
+              <h3 className="text-base font-bold text-white">{t('modals.whatsAppTitle')}</h3>
               <p className="text-xs text-slate-400">
-                1-click copy formatted message for parents & team group chat
+                {t('modals.whatsAppSubtitle')}
               </p>
             </div>
           </div>
@@ -94,7 +96,7 @@ export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen
         <div className="relative rounded-2xl bg-[#0b141a] border border-[#202c33] p-4 text-xs font-mono text-emerald-100 shadow-inner flex-1 min-h-[160px] max-h-[55vh] overflow-y-auto">
           {loading ? (
             <div className="py-12 text-center text-slate-500 animate-pulse">
-              Generating formatted WhatsApp announcement...
+              {t('common.loading')}
             </div>
           ) : (
             <pre className="whitespace-pre-wrap font-sans text-xs text-slate-200 leading-relaxed select-all">
@@ -116,37 +118,38 @@ export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen
             onClick={onClose}
             className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800 transition cursor-pointer order-last sm:order-first flex items-center justify-center"
           >
-            Close
+            {t('common.close')}
           </button>
 
           <a
             href={shareUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#25D366]/20 hover:bg-[#25D366]/30 text-[#25D366] border border-[#25D366]/30 font-semibold text-xs transition"
+            className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 border border-[#25D366]/30 transition cursor-pointer flex items-center justify-center gap-2"
           >
-            <ExternalLink className="w-4 h-4 shrink-0" />
+            <ExternalLink className="w-4 h-4" />
             <span>Open in WhatsApp</span>
           </a>
 
           <button
             type="button"
             onClick={handleCopy}
-            className={`min-h-[44px] inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg transition cursor-pointer ${
+            disabled={!announcementText || loading}
+            className={`min-h-[44px] px-5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
               copied
-                ? 'bg-emerald-500 text-slate-950'
-                : 'bg-sky-600 hover:bg-sky-500 text-white shadow-sky-600/20'
+                ? 'bg-emerald-600 text-white shadow-emerald-600/30 ring-2 ring-emerald-400'
+                : 'bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 shadow-emerald-500/20'
             }`}
           >
             {copied ? (
               <>
-                <Check className="w-4 h-4 shrink-0" />
-                <span>Copied to Clipboard!</span>
+                <Check className="w-4 h-4" />
+                <span>{t('common.copied')}</span>
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4 shrink-0" />
-                <span>Copy to Clipboard</span>
+                <Copy className="w-4 h-4" />
+                <span>{t('modals.copyTeamSheet')}</span>
               </>
             )}
           </button>

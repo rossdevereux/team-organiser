@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import {
   Shirt,
@@ -45,6 +46,7 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
   } = useMatchday();
 
   const { showToast } = useToast();
+  const { t } = useTranslation();
 
   const [dragOverPosition, setDragOverPosition] = useState<string | null>(null);
   const [inspectedPlayer, setInspectedPlayer] = useState<{
@@ -76,9 +78,9 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
           <Shirt className="w-7 h-7" />
         </div>
         <div className="space-y-1">
-          <h3 className="text-base font-bold text-white">No Matchday Lineup Active</h3>
+          <h3 className="text-base font-bold text-white">{t('lineup.noLineupActive')}</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Select an upcoming match or launch the sample demo squad to explore tactical lineups and rotation controls.
+            {t('lineup.noLineupDesc')}
           </p>
         </div>
         <div className="flex items-center justify-center gap-3 pt-2">
@@ -86,13 +88,13 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
             onClick={() => enterDemoMode()}
             className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md transition cursor-pointer"
           >
-            Launch Demo Squad
+            {t('lineup.launchDemoSquad')}
           </button>
           <button
             onClick={() => setActiveTab('fixtures')}
             className="px-4 py-2 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-200 text-xs font-semibold border border-slate-700 transition cursor-pointer"
           >
-            Manage Fixtures
+            {t('lineup.manageFixtures')}
           </button>
         </div>
       </div>
@@ -203,13 +205,10 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
             </div>
             <div className="truncate">
               <span className="font-bold text-white uppercase text-[10px] tracking-wider block text-sky-400">
-                Swap Mode Active
+                {t('lineup.swapActive')}
               </span>
               <span className="truncate block">
-                Click any position on pitch or bench to swap{' '}
-                <strong className="text-white underline font-bold">
-                  {selectedPlayer ? selectedPlayer.name : 'selected player'}
-                </strong>
+                {t('lineup.tapToSwap')}
               </span>
             </div>
           </div>
@@ -222,7 +221,7 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-900/80 hover:bg-sky-800 text-sky-200 hover:text-white transition cursor-pointer min-h-[44px] shrink-0 font-semibold"
           >
             <X className="w-4 h-4" />
-            <span>Cancel</span>
+            <span>{t('common.cancel')}</span>
           </button>
         </div>
       )}
@@ -245,7 +244,7 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
                   : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
-              {effectivePeriodCount === 2 ? (p === 1 ? '1st Half' : '2nd Half') : `Period ${p}`}
+              {effectivePeriodCount === 2 ? (p === 1 ? t('lineup.firstHalf') : t('lineup.secondHalf')) : t('lineup.periodN', { period: p })}
             </button>
           ))}
         </div>
@@ -273,7 +272,7 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
             className="min-h-[40px] sm:min-h-[36px] h-9 px-3 rounded-xl bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold transition cursor-pointer whitespace-nowrap flex items-center shrink-0 shadow-sm"
             title={`Select matchday ${settings.matchdaySquadCap} players`}
           >
-            Squad ({settings.matchdaySquadCap})
+            {t('common.squad')} ({settings.matchdaySquadCap})
           </button>
 
           {/* Auto-Balance Button */}
@@ -284,7 +283,7 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
             title="Re-balance playing time automatically"
           >
             <Wand2 className="w-3.5 h-3.5 shrink-0" />
-            <span>Auto-Balance</span>
+            <span>{t('lineup.autoRotate')}</span>
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
+import { useTranslation } from 'react-i18next';
 import {
   HeartHandshake,
   Clock,
@@ -9,6 +10,7 @@ import { SeasonFairPlayView, SeasonPlayerStat } from './fairplay/SeasonFairPlayV
 import { MatchdayFairPlayView } from './fairplay/MatchdayFairPlayView';
 
 export const FairPlayStats: React.FC = () => {
+  const { t } = useTranslation();
   const { stats, settings, activeFixture, fixtures, players } = useMatchday();
 
   // Mode: 'match' or 'season'
@@ -222,13 +224,13 @@ export const FairPlayStats: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-white">Equal Playing Time & Fair Play Analytics</h2>
+              <h2 className="text-base font-bold text-white">{t('stats.title')}</h2>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-semibold">
                 FA Youth Charter Compliant
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              Track game time equity across individual matchdays and cumulative season long rotations.
+              {t('stats.subtitle')}
             </p>
           </div>
         </div>
@@ -245,7 +247,7 @@ export const FairPlayStats: React.FC = () => {
               }`}
             >
               <Trophy className="w-3.5 h-3.5" />
-              <span>Season-Long Fair Play</span>
+              <span>{t('stats.seasonView')}</span>
             </button>
             <button
               type="button"
@@ -257,7 +259,7 @@ export const FairPlayStats: React.FC = () => {
               }`}
             >
               <Clock className="w-3.5 h-3.5" />
-              <span>Matchday Lineup</span>
+              <span>{t('stats.matchdayView')}</span>
             </button>
           </div>
         </div>

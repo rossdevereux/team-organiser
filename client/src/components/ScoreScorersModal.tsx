@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { useToast } from '../context/ToastContext';
 import { Fixture, GoalScorer, Player } from '../types';
@@ -30,6 +31,7 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
 }) => {
   const { players, activeTeam, updateFixtureScore } = useMatchday();
   const { showToast } = useToast();
+  const { t } = useTranslation();
 
   const [homeScore, setHomeScore] = useState<number>(0);
   const [awayScore, setAwayScore] = useState<number>(0);
@@ -244,10 +246,10 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
             </div>
             <div>
               <h2 id="score-modal-title" className="text-base font-bold text-white flex items-center gap-2">
-                <span>Match Score & Goal Scorers</span>
+                <span>{t('modals.scoreTitle')}</span>
               </h2>
               <p className="text-xs text-slate-400">
-                vs {fixture.opponent} • {fixture.date} • {fixture.venue}
+                vs {fixture.opponent} • {fixture.date} • {t(fixture.venue === 'Away' ? 'common.away' : 'common.home')}
               </p>
             </div>
           </div>
@@ -536,7 +538,7 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
             onClick={onClose}
             className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -544,11 +546,11 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
             className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition cursor-pointer flex items-center gap-2"
           >
             {isSubmitting ? (
-              <span>Saving...</span>
+              <span>{t('common.loading')}</span>
             ) : (
               <>
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Save Score & Scorers</span>
+                <span>{t('common.save')}</span>
               </>
             )}
           </button>

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { Printer, X, Download, ShieldCheck } from 'lucide-react';
 
@@ -8,7 +9,8 @@ interface PrintMatchSheetProps {
 }
 
 export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClose }) => {
-  const { activeFixture, players, settings, stats } = useMatchday();
+  const { t } = useTranslation();
+  const { activeFixture, players, settings, stats, activeTeam } = useMatchday();
 
   // Close on Escape key press
   useEffect(() => {
@@ -66,7 +68,7 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
           <div className="flex items-center gap-2">
             <Printer className="w-5 h-5 text-sky-400" />
             <h3 className="text-base font-bold text-white">
-              Official Matchday Pitch Sheet & PDF Export
+              {t('modals.printSheetTitle')}
             </h3>
           </div>
           <div className="flex items-center gap-2">
@@ -75,7 +77,7 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
               className="min-h-[44px] flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs shadow-lg shadow-sky-600/20 transition cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span>Print / Save as PDF</span>
+              <span>{t('common.printSheet')}</span>
             </button>
             <button
               onClick={onClose}
@@ -83,7 +85,7 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
               title="Close print preview (Esc)"
             >
               <X className="w-4 h-4" />
-              <span>Close</span>
+              <span>{t('common.close')}</span>
             </button>
           </div>
         </div>
@@ -109,106 +111,154 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
                     Equal Playing Time Certified
                   </span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-950 mt-0.5">
-                  SubShuffle Official Match Sheet
+                <h1 className="text-2xl font-black tracking-tight text-slate-950 mt-0.5">
+                  Official Matchday Lineup & Referee Sheet
                 </h1>
-                <p className="text-sm font-semibold text-slate-700">
-                  vs {activeFixture.opponent} ({activeFixture.venue})
-                  {activeFixture.groundAddress && ` • ${activeFixture.groundAddress}`}
-                </p>
-                {captainPlayer && (
-                  <div className="text-xs font-bold text-amber-800 mt-1">
-                    © Matchday Captain: {captainPlayer.squadNumber ? `#${captainPlayer.squadNumber} ` : ''}{captainPlayer.name}
-                  </div>
-                )}
               </div>
             </div>
 
-            <div className="text-left md:text-right font-mono text-xs text-slate-800 space-y-1 shrink-0">
-              <div><strong>Date:</strong> {formattedDate}</div>
+            {/* Quick Metadata Box */}
+            <div className="bg-slate-100 border border-slate-300 rounded-xl p-3 text-xs space-y-1 font-mono md:text-right shrink-0">
               <div>
-                <strong>Kick-off:</strong> {activeFixture.kickOffTime || 'TBC'}
-                {activeFixture.meetTime && ` (Meet: ${activeFixture.meetTime})`}
+                <span className="text-slate-500 font-sans">Date: </span>
+                <strong className="text-slate-900">{formattedDate}</strong>
               </div>
               <div>
-                <strong>Format:</strong> {pitchCount}-a-side • {formationName}
-                {activeFixture.matchdaySquadCap && activeFixture.matchdaySquadCap !== settings.matchdaySquadCap
-                  ? ` • Friendly Sheet (${activeFixture.matchdaySquadCap} players)`
-                  : ` • ${settings.matchdaySquadCap || 10} Player Squad`}
+                <span className="text-slate-500 font-sans">Kick-Off: </span>
+                <strong className="text-slate-900">{activeFixture.kickOffTime || '10:00'}</strong>
+                <span className="text-slate-500 font-sans"> (Meet: {activeFixture.meetTime || '09:30'})</span>
               </div>
               <div>
-                <strong>Periods:</strong>{' '}
-                {periodCount === 2
-                  ? `2 Halves × ${periodDuration} mins`
-                  : `${periodCount} Periods × ${periodDuration} mins`}
+                <span className="text-slate-500 font-sans">Format: </span>
+                <strong className="text-slate-900">{pitchCount}-a-side ({formationName})</strong>
               </div>
             </div>
           </div>
 
-          {/* Lineups Matrix */}
-          <div className="space-y-3">
-            <h2 className="text-xs uppercase font-extrabold tracking-wider text-slate-950 border-b border-slate-300 pb-1">
-              {periodCount === 2 ? 'Halves' : 'Period'} Tactical Lineups & Substitutions
+          {/* Teams and Match Information */}
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <span className="text-[10px] uppercase font-bold text-slate-500 block">Home Team</span>
+              <p className="text-base font-bold text-slate-950 mt-0.5">
+                {activeFixture.venue !== 'Away' ? activeTeam?.name || 'Our Team' : activeFixture.opponent}
+              </p>
+            </div>
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <span className="text-[10px] uppercase font-bold text-slate-500 block">Away Team</span>
+              <p className="text-base font-bold text-slate-950 mt-0.5">
+                {activeFixture.venue === 'Away' ? activeTeam?.name || 'Our Team' : activeFixture.opponent}
+              </p>
+            </div>
+          </div>
+
+          {/* Venue & Pitch Address */}
+          {activeFixture.groundAddress && (
+            <div className="text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-start gap-2">
+              <span className="font-bold text-slate-700 shrink-0">Ground / Venue:</span>
+              <span className="text-slate-900 font-mono">{activeFixture.groundAddress}</span>
+            </div>
+          )}
+
+          {/* Matchday Captain & Player of Match Accolades */}
+          {(captainPlayer || potmPlayer) && (
+            <div className="grid grid-cols-2 gap-4 text-xs font-mono">
+              {captainPlayer && (
+                <div className="p-2.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-950">
+                  <span className="text-[10px] uppercase font-sans font-bold text-amber-800 block">Match Captain ©</span>
+                  <span className="font-bold text-sm">#{captainPlayer.squadNumber || '—'} {captainPlayer.name}</span>
+                </div>
+              )}
+              {potmPlayer && (
+                <div className="p-2.5 rounded-xl border border-indigo-300 bg-indigo-50 text-indigo-950">
+                  <span className="text-[10px] uppercase font-sans font-bold text-indigo-800 block">Player of the Match ★</span>
+                  <span className="font-bold text-sm">#{potmPlayer.squadNumber || '—'} {potmPlayer.name}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Period-by-Period Lineup Breakdown Tables */}
+          <div className="space-y-4">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1 flex items-center justify-between">
+              <span>Period-by-Period Player Rotations</span>
+              <span className="text-xs font-normal text-slate-500 lowercase">
+                {periodCount} periods • {periodDuration} mins each • {pitchCount} on pitch
+              </span>
             </h2>
 
-            <div className={`grid grid-cols-1 ${periodCount === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-4'} gap-3`}>
-              {periods.map((p) => {
-                const lineup = squad.lineupsByPeriod.find((l) => l.period === p);
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {periods.map((periodNum) => {
+                const lineup = squad.lineupsByPeriod.find((l) => l.period === periodNum);
+                const onPitchPlayers = (lineup?.onPitch || []).map((entry) => ({
+                  ...entry,
+                  player: playerMap.get(entry.playerId),
+                }));
+                const subPlayers = (lineup?.subs || [])
+                  .map((id) => playerMap.get(id))
+                  .filter(Boolean);
+
                 return (
                   <div
-                    key={p}
-                    className="border-2 border-slate-300 rounded-xl p-3 bg-slate-50 space-y-2 text-xs"
+                    key={periodNum}
+                    className="border border-slate-300 rounded-xl overflow-hidden text-xs"
                   >
-                    <div className="flex items-center justify-between border-b border-slate-300 pb-1 font-bold text-slate-900">
-                      <span>{periodCount === 2 ? (p === 1 ? 'FIRST HALF (P1)' : 'SECOND HALF (P2)') : `PERIOD ${p}`}</span>
-                      <span className="font-mono text-[10px] text-slate-600">
-                        {periodDuration} mins
+                    <div className="bg-slate-100 px-3 py-2 border-b border-slate-300 flex items-center justify-between font-bold">
+                      <span>{periodCount === 2 ? (periodNum === 1 ? '1st Half' : '2nd Half') : `Period ${periodNum}`}</span>
+                      <span className="font-mono text-[11px] text-slate-600">
+                        {onPitchPlayers.length} Active / {subPlayers.length} Subs
                       </span>
                     </div>
 
-                    {/* On Pitch List */}
-                    <div className="space-y-1">
-                      <span className="text-[10px] uppercase font-bold text-slate-500 block">
-                        On Pitch ({pitchCount})
-                      </span>
-                      {lineup?.onPitch.map((entry) => {
-                        const player = playerMap.get(entry.playerId);
-                        return (
-                          <div
-                            key={entry.position}
-                            className="flex items-center justify-between py-0.5 border-b border-slate-200 text-[11px]"
-                          >
-                            <span className="font-medium text-slate-900 truncate">
-                              {player?.squadNumber ? `#${player.squadNumber} ` : ''}
-                              {player?.name}
-                            </span>
-                            <span className="font-mono font-bold text-[10px] px-1 bg-slate-200 text-slate-800 rounded">
-                              {entry.position.replace('_', ' ')}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Subs List */}
-                    <div className="pt-2">
-                      <span className="text-[10px] uppercase font-bold text-amber-700 block">
-                        Substitutes Bench (3)
-                      </span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {lineup?.subs.map((subId) => {
-                          const player = playerMap.get(subId);
-                          return (
-                            <span
-                              key={subId}
-                              className="text-[10px] font-medium bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded"
+                    <div className="p-3 space-y-2">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">
+                          On Pitch ({onPitchPlayers.length})
+                        </span>
+                        <div className="grid grid-cols-1 gap-1 font-mono">
+                          {onPitchPlayers.map((entry, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between py-0.5 px-1.5 rounded bg-slate-50 border border-slate-200"
                             >
-                              {player?.squadNumber ? `#${player.squadNumber} ` : ''}
-                              {player?.name}
-                            </span>
-                          );
-                        })}
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-slate-500 w-5">
+                                  {entry.player?.squadNumber ? `#${entry.player.squadNumber}` : '—'}
+                                </span>
+                                <span className="font-sans font-semibold text-slate-900">
+                                  {entry.player?.name || 'Unknown'}
+                                </span>
+                              </div>
+                              <span
+                                className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${
+                                  entry.position === 'GK'
+                                    ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                    : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                }`}
+                              >
+                                {entry.position}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
+
+                      {subPlayers.length > 0 && (
+                        <div className="pt-2 border-t border-slate-200">
+                          <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">
+                            Substitutes Bench ({subPlayers.length})
+                          </span>
+                          <div className="flex flex-wrap gap-1 font-mono">
+                            {subPlayers.map((p, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-0.5 rounded bg-slate-100 border border-slate-300 text-[11px] text-slate-700"
+                              >
+                                #{p?.squadNumber || '—'} {p?.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -216,123 +266,64 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
             </div>
           </div>
 
-          {/* Equal Playing Time Verification Table */}
-          <div className="space-y-2">
-            <h2 className="text-xs uppercase font-extrabold tracking-wider text-slate-950 border-b border-slate-300 pb-1">
-              Matchday Playing Time Audit
+          {/* Full Squad Attendance and Season Minutes Audit */}
+          <div className="pt-2">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1 mb-2">
+              Matchday Squad Roster & Target Game Time
             </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border border-slate-300">
-                <thead>
-                  <tr className="bg-slate-100 border-b border-slate-300 text-[10px] uppercase font-bold text-slate-700">
-                    <th className="p-2">Player</th>
-                    <th className="p-2 text-center">No.</th>
-                    {periods.map((p) => (
-                      <th key={p} className="p-2 text-center">
-                        {periodCount === 2 ? (p === 1 ? '1st Half' : '2nd Half') : `P${p}`}
-                      </th>
-                    ))}
-                    <th className="p-2 text-center">Minutes</th>
-                    <th className="p-2 text-center">% Played</th>
-                    <th className="p-2 text-center">Goalie?</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 text-[11px]">
-                  {stats.map((s) => (
-                    <tr key={s.playerId}>
-                      <td className="p-1.5 font-bold text-slate-900">{s.player.name}</td>
-                      <td className="p-1.5 text-center font-mono">
-                        {s.player.squadNumber || '—'}
-                      </td>
-                      {periods.map((p) => {
-                        const played = s.periodsPlayed.includes(p);
-                        return (
-                          <td
-                            key={p}
-                            className={`p-1.5 text-center font-bold font-mono ${
-                              played ? 'text-emerald-700 bg-emerald-50' : 'text-slate-400'
-                            }`}
-                          >
-                            {played ? 'PITCH' : 'SUB'}
-                          </td>
-                        );
-                      })}
-                      <td className="p-1.5 text-center font-mono font-bold">
-                        {s.minutesPlayed}m
-                      </td>
-                      <td className="p-1.5 text-center font-mono font-bold">
-                        {s.gameTimePercent}%
-                      </td>
-                      <td className="p-1.5 text-center">
-                        {s.playedAsGoalkeeper ? '🧤 YES' : '—'}
-                      </td>
+            <table className="w-full text-xs text-left border border-slate-300">
+              <thead className="bg-slate-100 border-b border-slate-300 font-bold font-mono text-[11px]">
+                <tr>
+                  <th className="p-2">No.</th>
+                  <th className="p-2">Player Name</th>
+                  <th className="p-2">Position(s)</th>
+                  <th className="p-2 text-center">Periods Played</th>
+                  <th className="p-2 text-right">Est. Minutes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 font-mono">
+                {squad.selectedPlayerIds.map((id) => {
+                  const p = playerMap.get(id);
+                  let periodsPlayed = 0;
+                  squad.lineupsByPeriod.forEach((l) => {
+                    if (l.onPitch.some((item) => item.playerId === id)) {
+                      periodsPlayed++;
+                    }
+                  });
+                  const estMins = periodsPlayed * periodDuration;
+
+                  return (
+                    <tr key={id}>
+                      <td className="p-2 font-bold">{p?.squadNumber || '—'}</td>
+                      <td className="p-2 font-sans font-semibold">{p?.name}</td>
+                      <td className="p-2 text-slate-600">{p?.preferredPositions.join(', ')}</td>
+                      <td className="p-2 text-center font-bold">{periodsPlayed} / {periodCount}</td>
+                      <td className="p-2 text-right font-bold text-emerald-800">{estMins}m</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
 
-          {/* Rested Players, Player of Match & Coach Notes Footer */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-300 text-xs">
-            <div className="p-3 border border-slate-300 rounded-xl bg-slate-50">
-              <span className="font-bold uppercase text-[10px] text-slate-700 block mb-1">
-                Rested Players (Rotation):
-              </span>
-              <p className="text-slate-700">
-                {(squad.restedPlayerIds || [])
-                  .map((id) => playerMap.get(id)?.name)
-                  .filter(Boolean)
-                  .join(', ') || 'None'}
-              </p>
+          {/* Official Referee & Coach Sign-off Section */}
+          <div className="pt-4 border-t-2 border-slate-900 grid grid-cols-2 sm:grid-cols-3 gap-6 text-xs">
+            <div className="space-y-6">
+              <span className="font-bold text-slate-700 block">Team Coach Signature:</span>
+              <div className="border-b border-slate-400 w-full" />
             </div>
-
-            <div className="p-3 border border-slate-300 rounded-xl bg-slate-50">
-              <span className="font-bold uppercase text-[10px] text-slate-700 block mb-1">
-                ⭐ Player of the Match / Sportsmanship:
-              </span>
-              <p className="font-bold text-slate-900 mt-1">
-                {potmPlayer
-                  ? `${potmPlayer.squadNumber ? '#' + potmPlayer.squadNumber + ' ' : ''}${potmPlayer.name}`
-                  : '[ ___________________________ ]'}
-              </p>
+            <div className="space-y-6">
+              <span className="font-bold text-slate-700 block">Opponent Coach Signature:</span>
+              <div className="border-b border-slate-400 w-full" />
             </div>
-
-            <div className="p-3 border border-slate-300 rounded-xl bg-slate-50">
-              <span className="font-bold uppercase text-[10px] text-slate-700 block mb-1">
-                Match Sign-Off:
-              </span>
-              <div className="flex justify-between items-end h-7 text-[11px] text-slate-500">
-                <span>Score: [ ___ - ___ ]</span>
-                <span>Sign: ____________</span>
-              </div>
+            <div className="space-y-6">
+              <span className="font-bold text-slate-700 block">Referee Sign-off & Score:</span>
+              <div className="border-b border-slate-400 w-full" />
             </div>
           </div>
         </div>
-
-        {/* Bottom Actions Bar (Hidden in Print) */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-800 print:hidden text-xs">
-          <span className="text-slate-400">
-            Tip: Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px] border border-slate-700">Esc</kbd> or click outside to close
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold transition cursor-pointer"
-            >
-              Close
-            </button>
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold shadow-lg shadow-sky-600/20 transition cursor-pointer"
-            >
-              <Printer className="w-4 h-4" />
-              <span>Print / Save as PDF</span>
-            </button>
-          </div>
         </div>
       </div>
     </div>
-  </div>
   );
 };

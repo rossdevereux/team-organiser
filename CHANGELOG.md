@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Application-Wide Internationalisation Coverage (i18n)** ([#7](https://github.com/rossdevereux/team-organiser/issues/7)):
+  - Expanded comprehensive locale translation schemas across English (`en`), Spanish (`es`), French (`fr`), and German (`de`) in [`client/src/locales/`](client/src/locales/).
+  - Wired full translation dictionaries (`t(...)`) into all core matchday, squad, and public views:
+    - Tactical Pitch & Substitutes: [`PitchView.tsx`](client/src/components/PitchView.tsx) and [`BenchView.tsx`](client/src/components/BenchView.tsx).
+    - Squad Roster & Availability: [`SquadManager.tsx`](client/src/components/SquadManager.tsx).
+    - Match Rotation Matrix: [`RotationMatrix.tsx`](client/src/components/RotationMatrix.tsx).
+    - Team Management & Assistant Coach Invites: [`TeamManager.tsx`](client/src/components/TeamManager.tsx).
+    - Matchdays & Logistics: [`FixtureManager.tsx`](client/src/components/FixtureManager.tsx).
+    - Fair Play & Playing Time Analytics: [`FairPlayStats.tsx`](client/src/components/FairPlayStats.tsx).
+    - Youth Substitution Calculator: [`CalculatorPage.tsx`](client/src/pages/CalculatorPage.tsx).
+    - Modals & Pitchside Exports: [`WhatsAppExportModal.tsx`](client/src/components/WhatsAppExportModal.tsx), [`ScoreScorersModal.tsx`](client/src/components/ScoreScorersModal.tsx), [`SuggestedSubsModal.tsx`](client/src/components/SuggestedSubsModal.tsx), [`PrintMatchSheet.tsx`](client/src/components/PrintMatchSheet.tsx), and [`AuthModal.tsx`](client/src/components/auth/AuthModal.tsx).
+
 ### Fixed
 - **Authentication Dialog Viewport & Sizing**:
   - Teleported [`AuthModal.tsx`](client/src/components/auth/AuthModal.tsx) directly to `document.body` via React Portals (`createPortal`), preventing ancestor `backdrop-blur-xl` and header bounding constraints from clipping modal height to 64px.

@@ -9,6 +9,7 @@ import { EditFixtureModal } from './EditFixtureModal';
 import { ScoreScorersModal } from './ScoreScorersModal';
 import { EmptyState } from './EmptyState';
 import { useToast } from '../context/ToastContext';
+import { useTranslation } from 'react-i18next';
 import {
   Calendar,
   Plus,
@@ -35,6 +36,7 @@ import {
 } from 'lucide-react';
 
 export const FixtureManager: React.FC = () => {
+  const { t } = useTranslation();
   const {
     fixtures,
     players,
@@ -174,14 +176,14 @@ export const FixtureManager: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-white">Fixtures & Matches ({fixtures.length})</h2>
+              <h2 className="text-base font-bold text-white">{t('fixtures.title')} ({fixtures.length})</h2>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-semibold flex items-center gap-1">
                 <Trophy className="w-3 h-3 text-indigo-400" />
                 <span>{currentDefaultSeason}</span>
               </span>
             </div>
             <p className="text-xs text-slate-400">
-              Schedule upcoming matches, ground logistics, meet times, captaincy rotation, and post-match participation.
+              {t('fixtures.subtitle')}
             </p>
           </div>
         </div>
@@ -220,13 +222,13 @@ export const FixtureManager: React.FC = () => {
           {/* Season Filter Dropdown */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-[11px] text-slate-400">Season:</span>
+            <span className="text-[11px] text-slate-400">{t('stats.seasonView', 'Season')}:</span>
             <select
               value={selectedSeasonFilter}
               onChange={(e) => setSelectedSeasonFilter(e.target.value)}
               className="bg-transparent text-white font-semibold text-xs focus:outline-none cursor-pointer"
             >
-              <option value="ALL" className="bg-slate-900 text-white">All Seasons</option>
+              <option value="ALL" className="bg-slate-900 text-white">{t('fixtures.allFixtures', 'All Seasons')}</option>
               {allDistinctSeasons.map((s) => (
                 <option key={s} value={s} className="bg-slate-900 text-white">
                   {s}
@@ -254,7 +256,7 @@ export const FixtureManager: React.FC = () => {
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/20 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>New Fixture</span>
+            <span>{t('fixtures.addFixture')}</span>
           </button>
         </div>
       </div>
@@ -321,7 +323,7 @@ export const FixtureManager: React.FC = () => {
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Trophy className="w-4 h-4 text-indigo-400" />
-              <span>Schedule New Fixture & Logistics</span>
+              <span>{t('fixtures.addFixture')}</span>
             </h3>
             <button
               type="button"
@@ -334,7 +336,7 @@ export const FixtureManager: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 text-xs">
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Opponent Team</label>
+              <label className="block text-slate-400 font-semibold mb-1">{t('fixtures.opponentName')}</label>
               <input
                 type="text"
                 value={opponent}
@@ -348,7 +350,7 @@ export const FixtureManager: React.FC = () => {
             {/* Season Dropdown with Create Option */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-slate-400 font-semibold">Season</label>
+                <label className="text-slate-400 font-semibold">{t('stats.seasonView', 'Season')}</label>
                 <button
                   type="button"
                   onClick={() => setIsCreatingSeason(true)}
@@ -371,7 +373,7 @@ export const FixtureManager: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Match Date</label>
+              <label className="block text-slate-400 font-semibold mb-1">{t('fixtures.matchDate')}</label>
               <input
                 type="date"
                 value={date}
@@ -382,7 +384,7 @@ export const FixtureManager: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Kick-off Time</label>
+              <label className="block text-slate-400 font-semibold mb-1">{t('fixtures.kickOff')}</label>
               <input
                 type="time"
                 value={kickOffTime}
@@ -393,14 +395,14 @@ export const FixtureManager: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-slate-400 font-semibold mb-1">Venue</label>
+              <label className="block text-slate-400 font-semibold mb-1">{t('fixtures.homeAway')}</label>
               <select
                 value={venue}
                 onChange={(e) => setVenue(e.target.value as 'Home' | 'Away')}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium"
               >
-                <option value="Home">Home</option>
-                <option value="Away">Away</option>
+                <option value="Home">{t('fixtures.venueHome')}</option>
+                <option value="Away">{t('fixtures.venueAway')}</option>
               </select>
             </div>
           </div>
@@ -411,7 +413,7 @@ export const FixtureManager: React.FC = () => {
               <div className="flex items-center justify-between mb-1">
                 <label className="text-slate-400 font-semibold flex items-center gap-1">
                   <Clock className="w-3 h-3 text-indigo-400" />
-                  <span>Meet / Arrival Time</span>
+                  <span>{t('fixtures.meetTime')}</span>
                 </label>
                 <button
                   type="button"
@@ -432,7 +434,7 @@ export const FixtureManager: React.FC = () => {
             <div>
               <label className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
                 <MapPin className="w-3 h-3 text-rose-400" />
-                <span>Ground Address & Postcode</span>
+                <span>{t('fixtures.groundAddress')}</span>
               </label>
               <input
                 type="text"
@@ -446,7 +448,7 @@ export const FixtureManager: React.FC = () => {
             <div>
               <label className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
                 <Crown className="w-3 h-3 text-amber-400" />
-                <span>Matchday Captain (©)</span>
+                <span>{t('fixtures.captain')}</span>
               </label>
               <select
                 value={captainId}
@@ -553,13 +555,13 @@ export const FixtureManager: React.FC = () => {
               onClick={() => setIsAdding(false)}
               className="px-3.5 py-1.5 rounded-xl bg-slate-850 text-slate-400 hover:text-white text-xs font-semibold transition cursor-pointer"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/20 transition cursor-pointer"
             >
-              Create Fixture
+              {t('common.save')}
             </button>
           </div>
         </form>
@@ -884,14 +886,10 @@ export const FixtureManager: React.FC = () => {
       {filteredFixtures.length === 0 && (
         <EmptyState
           variant="fixtures"
-          title="No Fixtures Scheduled"
-          description={
-            selectedSeasonFilter === 'ALL'
-              ? 'Schedule your upcoming league or friendly matches to generate tactical player rotations and lineups.'
-              : `No fixtures found for season ${selectedSeasonFilter}. Schedule a match or select another season filter.`
-          }
+          title={t('fixtures.noFixtures')}
+          description={t('fixtures.noFixturesDesc')}
           action={{
-            label: 'Schedule Match',
+            label: t('fixtures.addFixture'),
             onClick: () => setIsAdding(true),
             icon: Plus,
           }}

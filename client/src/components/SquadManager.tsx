@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { Player } from '../types';
 import { EmptyState } from './EmptyState';
@@ -31,6 +32,7 @@ export const SquadManager: React.FC = () => {
   } = useMatchday();
 
   const { showToast } = useToast();
+  const { t } = useTranslation();
 
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
@@ -97,7 +99,7 @@ export const SquadManager: React.FC = () => {
         ...editingPlayer,
         ...playerData,
       });
-      showToast('Player profile updated successfully!', 'success');
+      showToast(t('squad.saveSuccess'), 'success');
     } else {
       await createPlayer({
         ...playerData,
@@ -105,7 +107,7 @@ export const SquadManager: React.FC = () => {
         matchesPlayed: 0,
         totalMinutesPlayed: 0,
       });
-      showToast('Player added to squad roster!', 'success');
+      showToast(t('squad.saveSuccess'), 'success');
     }
     setIsFormOpen(false);
     setEditingPlayer(null);
@@ -129,9 +131,9 @@ export const SquadManager: React.FC = () => {
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white">Full Squad Roster ({players.length})</h2>
+            <h2 className="text-base font-bold text-white">{t('squad.title')} ({players.length})</h2>
             <p className="text-xs text-slate-400">
-              Manage player profiles, preferred positions, and holiday/absence dates for fair rotation.
+              {t('squad.subtitle')}
             </p>
           </div>
         </div>
@@ -145,7 +147,7 @@ export const SquadManager: React.FC = () => {
             title="Download full squad roster as CSV file"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Export CSV</span>
+            <span>{t('squad.exportCSV')}</span>
           </button>
 
           <button
@@ -155,7 +157,7 @@ export const SquadManager: React.FC = () => {
             title="Bulk import squad roster from CSV or spreadsheet copy-paste"
           >
             <Upload className="w-3.5 h-3.5" />
-            <span>Import CSV</span>
+            <span>{t('squad.importCSV')}</span>
           </button>
 
           <button
@@ -164,7 +166,7 @@ export const SquadManager: React.FC = () => {
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs shadow-lg shadow-sky-600/20 transition cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
-            <span>Add Player</span>
+            <span>{t('squad.addPlayer')}</span>
           </button>
         </div>
       </div>
@@ -199,15 +201,15 @@ export const SquadManager: React.FC = () => {
       {players.length === 0 ? (
         <EmptyState
           variant="roster"
-          title="No Players in Squad Roster Yet"
-          description="Build your squad by adding individual players or importing your team roster from a CSV spreadsheet."
+          title={t('squad.noPlayers')}
+          description={t('squad.noPlayersDesc')}
           action={{
-            label: 'Add First Player',
+            label: t('squad.addPlayer'),
             onClick: handleStartAdd,
             icon: UserPlus,
           }}
           secondaryAction={{
-            label: 'Import CSV / Spreadsheet',
+            label: t('squad.importCSV'),
             onClick: () => setIsImportModalOpen(true),
             icon: Upload,
           }}

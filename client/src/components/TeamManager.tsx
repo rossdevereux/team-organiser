@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { Team, TeamSettings } from '../types';
 import { getFormationsForTeamSize } from '../utils/formations';
@@ -29,6 +30,8 @@ export const TeamManager: React.FC = () => {
     currentUser,
     setActiveTab,
   } = useMatchday();
+
+  const { t } = useTranslation();
 
   const [isCreating, setIsCreating] = useState(false);
   const [sharingTeamId, setSharingTeamId] = useState<string | null>(null);
@@ -113,9 +116,9 @@ export const TeamManager: React.FC = () => {
             <Shield className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white">Manage Teams ({teams.length})</h2>
+            <h2 className="text-base font-bold text-white">{t('teams.title')} ({teams.length})</h2>
             <p className="text-xs text-slate-400">
-              Configure independent squads, age groups, match formats, and co-coach sharing.
+              {t('teams.subtitle')}
             </p>
           </div>
         </div>
@@ -125,7 +128,7 @@ export const TeamManager: React.FC = () => {
           className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs shadow-lg shadow-sky-600/20 transition cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>Create New Team</span>
+          <span>{t('teams.createTeam')}</span>
         </button>
       </div>
 
@@ -136,7 +139,7 @@ export const TeamManager: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <Share2 className="w-4 h-4 text-sky-400" />
-                <h3 className="text-sm font-bold text-white">Share Team with Assistant Coach</h3>
+                <h3 className="text-sm font-bold text-white">{t('teams.shareTitle')}</h3>
               </div>
               <button
                 onClick={() => setSharingTeamId(null)}
@@ -147,13 +150,13 @@ export const TeamManager: React.FC = () => {
             </div>
 
             <p className="text-xs text-slate-300">
-              Invite a co-coach, assistant manager, or parent to view and edit this team's matchday lineups and rotations.
+              {t('teams.shareDesc')}
             </p>
 
             <form onSubmit={handleShareSubmit} className="space-y-3">
               <div>
                 <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                  Co-Coach Email Address
+                  {t('auth.emailAddress')}
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
@@ -161,7 +164,7 @@ export const TeamManager: React.FC = () => {
                     type="email"
                     value={shareEmail}
                     onChange={(e) => setShareEmail(e.target.value)}
-                    placeholder="coach.john@example.com"
+                    placeholder={t('teams.shareEmailPlaceholder')}
                     required
                     className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-sky-500 font-medium"
                   />
@@ -181,13 +184,13 @@ export const TeamManager: React.FC = () => {
                   onClick={() => setSharingTeamId(null)}
                   className="px-3.5 py-1.5 rounded-xl bg-slate-850 text-slate-400 hover:text-white text-xs font-semibold"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-lg shadow-sky-600/20"
                 >
-                  Send Access
+                  {t('teams.sendInvite')}
                 </button>
               </div>
             </form>

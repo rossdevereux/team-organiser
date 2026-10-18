@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { CheckCircle2, AlertTriangle, Wand2, Shield, Eye, Lock } from 'lucide-react';
 
 export const RotationMatrix: React.FC = () => {
+  const { t } = useTranslation();
   const {
     activeFixture,
     players,
@@ -18,7 +20,7 @@ export const RotationMatrix: React.FC = () => {
   if (!activeFixture || !activeFixture.matchSquad) {
     return (
       <div className="p-8 text-center text-slate-400 bg-slate-900/40 rounded-2xl border border-slate-800">
-        No matchday squad generated for this fixture yet. Click Auto-Balance to generate!
+        {t('matrix.noMatrix')} {t('matrix.clickToGenerate')}
       </div>
     );
   }
@@ -46,16 +48,16 @@ export const RotationMatrix: React.FC = () => {
     }
 
     if (lineup.subs.includes(playerId)) {
-      return { type: 'sub', label: 'SUB' };
+      return { type: 'sub', label: t('matrix.sub') };
     }
 
-    return { type: 'rested', label: 'RESTED' };
+    return { type: 'rested', label: t('matrix.rested') };
   };
 
   const matrixTitle =
     periodCount === 2
-      ? '2-Half Match Rotation Matrix'
-      : `${periodCount}-Period Fair Rotation Matrix`;
+      ? t('matrix.halfMatrix')
+      : t('matrix.periodMatrix', { count: periodCount });
 
   return (
     <div className="space-y-4">
@@ -65,11 +67,11 @@ export const RotationMatrix: React.FC = () => {
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <span>{matrixTitle}</span>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              Target: {settings.targetGameTimePercent}%+
+              {t('common.target')}: {settings.targetGameTimePercent}%+
             </span>
           </h3>
           <p className="text-xs text-slate-400">
-            Overview of pitch positions and substitutions across {periodCount === 2 ? 'both halves' : `all ${periodCount} periods`}.
+            {t('matrix.subtitle')}
           </p>
         </div>
 
@@ -78,7 +80,7 @@ export const RotationMatrix: React.FC = () => {
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-sky-600/20 transition cursor-pointer"
         >
           <Wand2 className="w-3.5 h-3.5" />
-          <span>Auto-Balance Periods</span>
+          <span>{t('lineup.autoRotate')}</span>
         </button>
       </div>
 
@@ -88,8 +90,8 @@ export const RotationMatrix: React.FC = () => {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
-                <th className="py-3 px-4">Player</th>
-                <th className="py-3 px-3 text-center">Pref Position</th>
+                <th className="py-3 px-4">{t('matrix.player')}</th>
+                <th className="py-3 px-3 text-center">{t('matrix.pos')}</th>
                 {periods.map((p) => (
                   <th key={p} className="py-3 px-3 text-center">
                     <button
@@ -98,111 +100,77 @@ export const RotationMatrix: React.FC = () => {
                         setActiveTab('lineup');
                       }}
                       className="hover:text-sky-400 transition inline-flex items-center gap-1 cursor-pointer font-bold"
-                      title={`Jump to ${periodCount === 2 ? (p === 1 ? '1st Half' : '2nd Half') : `Period ${p}`} on pitch`}
+                      title={`Jump to Period ${p} on Pitch`}
                     >
-                      <span>
-                        {periodCount === 2 ? (p === 1 ? '1st Half' : '2nd Half') : `P${p}`}
-                      </span>
-                      <Eye className="w-3 h-3 text-slate-500 hover:text-sky-400" />
+                      <span>{periodCount === 2 ? (p === 1 ? t('lineup.firstHalf') : t('lineup.secondHalf')) : t('lineup.periodN', { period: p })}</span>
+                      <Eye className="w-3 h-3 text-slate-500" />
                     </button>
                   </th>
                 ))}
-                <th className="py-3 px-3 text-center">Minutes</th>
-                <th className="py-3 px-3 text-center">Game Time</th>
-                <th className="py-3 px-4 text-center">Fairness</th>
+                <th className="py-3 px-3 text-center">{t('matrix.totalMins')}</th>
+                <th className="py-3 px-3 text-center">{t('matrix.percentPlayed')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-medium">
-              {[...matchSquad.selectedPlayerIds]
-                .sort((idA, idB) => {
-                  const pA = playerMap.get(idA);
-                  const pB = playerMap.get(idB);
-                  const numA = typeof pA?.squadNumber === 'number' && !isNaN(pA.squadNumber) ? pA.squadNumber : 9999;
-                  const numB = typeof pB?.squadNumber === 'number' && !isNaN(pB.squadNumber) ? pB.squadNumber : 9999;
-                  if (numA !== numB) return numA - numB;
-                  return (pA?.name || '').localeCompare(pB?.name || '');
-                })
-                .map((playerId) => {
-                const player = playerMap.get(playerId);
-                const pStats = statsMap.get(playerId);
-                const isFixed = isPlayerFixed(playerId);
-                const fixedPos = getFixedPlayerPosition(playerId);
+            <tbody className="divide-y divide-slate-800/60">
+              {players.map((player) => {
+                const pStats = statsMap.get(player.id);
+                const minutes = pStats?.minutesPlayed || 0;
+                const percent = pStats?.gameTimePercent || 0;
+                const meetsTarget = percent >= settings.targetGameTimePercent;
+                const fixed = isPlayerFixed(player.id);
+                const fixedPos = getFixedPlayerPosition(player.id);
 
                 return (
                   <tr
-                    key={playerId}
+                    key={player.id}
                     className="hover:bg-slate-800/30 transition-colors"
                   >
-                    {/* Player Name and Number */}
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2.5">
-                        <span className="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 font-bold text-[11px] flex items-center justify-center shrink-0">
-                          {player?.squadNumber ? `#${player.squadNumber}` : '—'}
+                    {/* Player Info */}
+                    <td className="py-2.5 px-4 font-medium text-white flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-[10px] border border-slate-700">
+                          {player.squadNumber || '—'}
                         </span>
-                        <div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-white font-semibold block text-xs">
-                              {player?.name || 'Unknown'}
-                            </span>
-                            {isFixed && (
-                              <span
-                                className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 inline-flex items-center gap-0.5"
-                                title={`Fixed in ${fixedPos} for all periods`}
-                              >
-                                <Lock className="w-2.5 h-2.5" />
-                                <span>Fixed {fixedPos}</span>
-                              </span>
-                            )}
-                          </div>
-                          {pStats?.playedAsGoalkeeper && (
-                            <span className="text-[10px] text-amber-400 font-normal flex items-center gap-1">
-                              <Shield className="w-2.5 h-2.5" /> Played GK
-                            </span>
-                          )}
-                        </div>
+                        <span className="font-semibold">{player.name}</span>
                       </div>
+                      {fixed && (
+                        <span
+                          className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1"
+                          title={`Locked as ${fixedPos} for this fixture`}
+                        >
+                          <Lock className="w-2.5 h-2.5" />
+                          <span>{fixedPos}</span>
+                        </span>
+                      )}
                     </td>
 
                     {/* Preferred Position */}
-                    <td className="py-3 px-3 text-center text-slate-400 text-[11px]">
-                      {player?.preferredPositions.join(', ') || '—'}
+                    <td className="py-2.5 px-3 text-center text-[11px] text-slate-400">
+                      {player.preferredPositions.join(', ')}
                     </td>
 
-                    {/* Quarter Cells */}
+                    {/* Status per period */}
                     {periods.map((p) => {
-                      const status = getPeriodStatus(playerId, p);
-
+                      const status = getPeriodStatus(player.id, p);
                       return (
-                        <td key={p} className="py-3 px-3 text-center">
+                        <td key={p} className="py-2.5 px-3 text-center">
                           {status.type === 'pitch' ? (
                             <span
-                              onClick={() => {
-                                setActivePeriod(p);
-                                setActiveTab('lineup');
-                              }}
-                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-tight cursor-pointer transition shadow-sm ${
-                                isFixed
-                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30 ring-1 ring-amber-500/30'
-                                  : status.isGk
-                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
-                                  : status.position?.startsWith('DEF')
-                                  ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 hover:bg-sky-500/30'
-                                  : status.position?.startsWith('MID')
-                                  ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-500/30'
-                                  : 'bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30'
+                              className={`inline-block px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                                status.isGk
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                  : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                               }`}
-                              title={
-                                isFixed
-                                  ? `Fixed in position (${status.label}) all match. Click to view on pitch.`
-                                  : `Pitch position in ${periodCount === 2 ? (p === 1 ? '1st Half' : '2nd Half') : `Period ${p}`}. Click to view on pitch.`
-                              }
                             >
-                              {isFixed && <Lock className="w-2.5 h-2.5 shrink-0 text-amber-400" />}
-                              <span>{status.label}</span>
+                              {status.label}
+                            </span>
+                          ) : status.type === 'sub' ? (
+                            <span className="inline-block px-2 py-1 rounded-md text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                              {status.label}
                             </span>
                           ) : (
-                            <span className="inline-block px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-800/80 text-slate-400 border border-slate-700/60 font-mono">
-                              BENCH
+                            <span className="inline-block px-2 py-1 rounded-md text-[10px] font-semibold bg-slate-800/40 text-slate-500 border border-slate-800">
+                              {status.label}
                             </span>
                           )}
                         </td>
@@ -210,59 +178,26 @@ export const RotationMatrix: React.FC = () => {
                     })}
 
                     {/* Total Minutes */}
-                    <td className="py-3 px-3 text-center font-mono text-slate-200">
-                      {pStats ? `${pStats.minutesPlayed}m` : '0m'}
+                    <td className="py-2.5 px-3 text-center font-mono font-medium text-slate-200">
+                      {minutes} {t('common.mins')}
                     </td>
 
-                    {/* Game Time % */}
-                    <td className="py-3 px-3 text-center">
-                      <div className="flex flex-col items-center gap-1">
+                    {/* % Played + Target indicator */}
+                    <td className="py-2.5 px-3 text-center font-mono">
+                      <div className="flex items-center justify-center gap-1.5">
                         <span
-                          className={`font-mono text-xs font-bold ${
-                            isFixed
-                              ? 'text-amber-300'
-                              : pStats && pStats.meetsTarget
-                              ? 'text-emerald-400'
-                              : 'text-amber-400'
+                          className={`font-bold ${
+                            meetsTarget ? 'text-emerald-400' : 'text-amber-400'
                           }`}
                         >
-                          {pStats ? `${pStats.gameTimePercent}%` : '0%'}
+                          {percent}%
                         </span>
-                        <div className="w-16 h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${
-                              isFixed
-                                ? 'bg-amber-400'
-                                : pStats && pStats.meetsTarget
-                                ? 'bg-emerald-500'
-                                : 'bg-amber-500'
-                            }`}
-                            style={{
-                              width: `${pStats ? Math.min(100, pStats.gameTimePercent) : 0}%`,
-                            }}
-                          />
-                        </div>
+                        {meetsTarget ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        ) : (
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        )}
                       </div>
-                    </td>
-
-                    {/* Fairness Checkmark */}
-                    <td className="py-3 px-4 text-center">
-                      {isFixed ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-amber-300 font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30">
-                          <Lock className="w-3 h-3" />
-                          <span>Fixed All Match</span>
-                        </span>
-                      ) : pStats && pStats.meetsTarget ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Target Met</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-amber-400 font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
-                          <AlertTriangle className="w-3.5 h-3.5" />
-                          <span>&lt; {settings.targetGameTimePercent}%</span>
-                        </span>
-                      )}
                     </td>
                   </tr>
                 );

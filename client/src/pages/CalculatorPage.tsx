@@ -20,6 +20,7 @@ import { useMatchday } from '../context/MatchdayContext';
 import { useToast } from '../context/ToastContext';
 import { AppVersion } from '../components/AppVersion';
 import { ReleaseNotesModal } from '../components/ReleaseNotesModal';
+import { useTranslation } from 'react-i18next';
 
 interface MatchFormatOption {
   id: string;
@@ -38,6 +39,7 @@ const FORMAT_OPTIONS: MatchFormatOption[] = [
 ];
 
 export const CalculatorPage: React.FC = () => {
+  const { t } = useTranslation();
   const { enterDemoMode } = useMatchday();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -158,18 +160,15 @@ Calculate rotations free: https://subshuffle.com/calculator`;
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4 relative">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold shadow-sm shadow-emerald-500/10">
             <RotateCcw className="w-4 h-4 text-emerald-400" />
-            <span>Free Grassroots Tool</span>
+            <span>{t('landing.badge', 'Free Grassroots Tool')}</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-            Youth Football Equal Playing Time &amp;{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-sky-400 to-indigo-400">
-              Substitution Calculator
-            </span>
+            {t('calculator.title')}
           </h1>
 
           <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            Calculate fair pitch splits, quarter substitutions, and target player minutes for FA 5v5, 7v7, 9v9, and 11v11 youth fixtures.
+            {t('calculator.subtitle')}
           </p>
         </div>
       </section>
@@ -182,13 +181,13 @@ Calculate rotations free: https://subshuffle.com/calculator`;
             <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800/90 shadow-xl space-y-6 backdrop-blur-xl">
               <h2 className="text-base font-bold text-white flex items-center gap-2 pb-3 border-b border-slate-800">
                 <Sparkles className="w-4 h-4 text-emerald-400" />
-                <span>Match Parameters</span>
+                <span>{t('calculator.matchFormat')}</span>
               </h2>
 
               {/* 1. Format Selection */}
               <div className="space-y-2.5">
                 <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                  Pitch Format &amp; Age Group
+                  {t('calculator.matchFormat')}
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {FORMAT_OPTIONS.map((f) => (
@@ -212,10 +211,10 @@ Calculate rotations free: https://subshuffle.com/calculator`;
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
                   <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    Total Match Duration
+                    {t('calculator.matchDuration')}
                   </label>
                   <span className="font-mono text-emerald-400 font-bold text-sm">
-                    {matchDuration} Minutes
+                    {matchDuration} {t('lineup.minutes', 'mins')}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -239,10 +238,10 @@ Calculate rotations free: https://subshuffle.com/calculator`;
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
                   <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    Match Breakdown
+                    {t('calculator.periods')}
                   </label>
                   <span className="font-mono text-sky-400 font-bold text-xs">
-                    {periodsCount} Periods • {minutesPerPeriod.toFixed(1)} mins each
+                    {periodsCount} {t('common.periods', 'Periods')} • {minutesPerPeriod.toFixed(1)} {t('lineup.minutes', 'mins')}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
@@ -270,10 +269,10 @@ Calculate rotations free: https://subshuffle.com/calculator`;
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
                   <label className="font-bold text-slate-300 uppercase tracking-wider">
-                    Attending Squad Size
+                    {t('calculator.squadSize')}
                   </label>
                   <span className="font-mono text-white font-bold text-sm">
-                    {squadSize} Players ({onPitch} Pitch + {subsCount} Subs)
+                    {squadSize} ({onPitch} + {subsCount} {t('lineup.subsBench')})
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -309,7 +308,7 @@ Calculate rotations free: https://subshuffle.com/calculator`;
             <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border-2 border-emerald-500/40 shadow-2xl shadow-emerald-500/10 space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
                 <span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  Target Equal Pitch Time
+                  {t('calculator.summary')}
                 </span>
                 <span
                   className={`text-xs font-bold px-2 py-0.5 rounded-full ${
@@ -324,22 +323,22 @@ Calculate rotations free: https://subshuffle.com/calculator`;
 
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80">
-                  <p className="text-[10px] uppercase font-bold text-slate-400">Target Time / Player</p>
+                  <p className="text-[10px] uppercase font-bold text-slate-400">{t('calculator.expectedMinutes')}</p>
                   <p className="text-3xl font-black text-emerald-400 font-mono mt-1">
                     {targetMinutesPerPlayer.toFixed(1)}m
                   </p>
                   <p className="text-[10px] text-slate-400 mt-1 font-medium">
-                    out of {matchDuration} minutes
+                    out of {matchDuration} {t('lineup.minutes', 'mins')}
                   </p>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80">
-                  <p className="text-[10px] uppercase font-bold text-slate-400">Game Time Share</p>
+                  <p className="text-[10px] uppercase font-bold text-slate-400">{t('matrix.percentPlayed')}</p>
                   <p className="text-3xl font-black text-sky-400 font-mono mt-1">
                     {targetPercentage.toFixed(0)}%
                   </p>
                   <p className="text-[10px] text-slate-400 mt-1 font-medium">
-                    {onPitch} on pitch • {subsCount} on bench
+                    {onPitch} {t('lineup.onPitchNow')} • {subsCount} {t('lineup.subsBench')}
                   </p>
                 </div>
               </div>
@@ -351,14 +350,14 @@ Calculate rotations free: https://subshuffle.com/calculator`;
                   className="flex-1 py-3 px-4 rounded-2xl bg-slate-900 hover:bg-slate-850 border border-slate-700 hover:border-slate-600 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md transition"
                 >
                   {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-300" />}
-                  <span>{copied ? 'Copied to Clipboard!' : 'Copy WhatsApp Summary'}</span>
+                  <span>{copied ? t('common.copied', 'Copied to Clipboard!') : t('calculator.copySummary')}</span>
                 </button>
 
                 <button
                   onClick={handleLaunchPlanner}
                   className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-slate-950 font-black text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/20 transition transform hover:-translate-y-0.5"
                 >
-                  <span>Open Full Tactical Pitch</span>
+                  <span>{t('nav.lineup')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -367,9 +366,9 @@ Calculate rotations free: https://subshuffle.com/calculator`;
             {/* Simulated Rotation Matrix Table */}
             <div className="p-5 rounded-3xl bg-slate-900/70 border border-slate-800 space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-slate-800 text-xs">
-                <span className="font-bold text-slate-300">Period-by-Period Rotation Grid</span>
+                <span className="font-bold text-slate-300">{t('matrix.title')}</span>
                 <span className="text-[10px] font-mono text-slate-400">
-                  {periodsCount} intervals × {minutesPerPeriod.toFixed(1)} mins
+                  {periodsCount} intervals × {minutesPerPeriod.toFixed(1)} {t('lineup.minutes', 'mins')}
                 </span>
               </div>
 
@@ -377,13 +376,13 @@ Calculate rotations free: https://subshuffle.com/calculator`;
                 <table className="w-full text-xs text-left">
                   <thead>
                     <tr className="text-[10px] uppercase font-bold text-slate-400 border-b border-slate-800">
-                      <th className="py-2 px-2">Player</th>
+                      <th className="py-2 px-2">{t('matrix.player')}</th>
                       {Array.from({ length: periodsCount }, (_, i) => (
                         <th key={i} className="py-2 px-1 text-center font-mono">
                           P{i + 1}
                         </th>
                       ))}
-                      <th className="py-2 px-2 text-right">Total Min</th>
+                      <th className="py-2 px-2 text-right">{t('matrix.totalMins')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 font-mono">
@@ -400,7 +399,7 @@ Calculate rotations free: https://subshuffle.com/calculator`;
                               </span>
                             ) : (
                               <span className="inline-block px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-bold text-[10px]">
-                                Sub
+                                {t('matrix.sub')}
                               </span>
                             )}
                           </td>

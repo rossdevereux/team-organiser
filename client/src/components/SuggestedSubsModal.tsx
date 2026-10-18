@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { Fixture, SuggestedSubPlan } from '../types';
 import {
@@ -29,6 +30,7 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
   onClose,
 }) => {
   const { getSuggestedSubs, settings, players } = useMatchday();
+  const { t } = useTranslation();
 
   const [interval, setInterval] = useState<number>(settings.defaultSubIntervalMinutes || 10);
   const [plans, setPlans] = useState<SuggestedSubPlan[]>([]);
@@ -114,13 +116,13 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-white">Sideline Suggested Substitution Guide</h3>
+                <h3 className="text-base font-bold text-white">{t('modals.suggestedSubsTitle')}</h3>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 font-semibold">
                   Live Match Assistant
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                Automatic position-matched sideline rotation schedule vs {fixture.opponent} ({totalMatchMinutes} mins total)
+                {t('modals.suggestedSubsSubtitle')} vs {fixture.opponent} ({totalMatchMinutes} {t('common.mins')})
               </p>
             </div>
           </div>
@@ -162,7 +164,7 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition cursor-pointer"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? 'Copied to Clipboard!' : 'Copy Sideline Plan'}</span>
+              <span>{copied ? t('common.copied') : t('common.copyToClipboard')}</span>
             </button>
           </div>
 
