@@ -155,7 +155,7 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
   const [userRole, setUserRole] = useState<UserRole>('coach');
   const [teams, setTeams] = useState<Team[]>([]);
-  const [activeTeamId, setActiveTeamId] = useState<string>(() => getInitialUrlState().teamId);
+  const [activeTeamId, setActiveTeamIdState] = useState<string>(() => getInitialUrlState().teamId);
   const [players, setPlayers] = useState<Player[]>([]);
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [activeFixtureId, setActiveFixtureId] = useState<string>(() => getInitialUrlState().fixtureId);
@@ -164,6 +164,46 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isOffline, setIsOffline] = useState<boolean>(() => (typeof navigator !== 'undefined' ? !navigator.onLine : false));
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Switch active team with immediate data isolation and zero leakage
+  const setActiveTeamId = useCallback((newTeamId: string) => {
+    setActiveTeamIdState(newTeamId);
+    setSelectedSwapSource(null);
+    setActivePeriodState(1);
+
+    if (!newTeamId) {
+      setPlayers([]);
+      setFixtures([]);
+      setActiveFixtureId('');
+      return;
+    }
+
+    if (isDemoTeamId(newTeamId)) {
+      const demoP = DEMO_PLAYERS.filter((p) => p.teamId === newTeamId);
+      const demoF = DEMO_FIXTURES.filter((f) => f.teamId === newTeamId);
+      setPlayers(demoP);
+      setFixtures(demoF);
+      setActiveFixtureId(demoF[0]?.id || '');
+    } else {
+      try {
+        const cachedP = localStorage.getItem(`subshuffle_cached_players_${newTeamId}`);
+        setPlayers(cachedP ? JSON.parse(cachedP) : []);
+        const cachedF = localStorage.getItem(`subshuffle_cached_fixtures_${newTeamId}`);
+        if (cachedF) {
+          const parsedF: Fixture[] = JSON.parse(cachedF);
+          setFixtures(parsedF);
+          setActiveFixtureId(parsedF[0]?.id || '');
+        } else {
+          setFixtures([]);
+          setActiveFixtureId('');
+        }
+      } catch (_) {
+        setPlayers([]);
+        setFixtures([]);
+        setActiveFixtureId('');
+      }
+    }
+  }, []);
 
   // Derive activeTab directly from TanStack Router URL pathname
   const activeTab = useMemo<
@@ -511,9 +551,11 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (pRes.ok) {
         const pData: Player[] = await pRes.json();
-        if (pData.length > 0) {
+        if (pData.length === 0 && isDemoTeamId(activeTeamId)) {
+          const demoP = DEMO_PLAYERS.filter((p) => p.teamId === activeTeamId);
+          setPlayers(demoP);
+        } else {
           setPlayers(pData);
-          hasPlayers = true;
           try {
             localStorage.setItem(`subshuffle_cached_players_${activeTeamId}`, JSON.stringify(pData));
           } catch (_) {}
@@ -522,9 +564,14 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (fRes.ok) {
         const fData: Fixture[] = await fRes.json();
-        if (fData.length > 0) {
+        if (fData.length === 0 && isDemoTeamId(activeTeamId)) {
+          const demoF = DEMO_FIXTURES.filter((f) => f.teamId === activeTeamId);
+          setFixtures(demoF);
+          if (demoF.length > 0 && (!activeFixtureId || !demoF.some((f) => f.id === activeFixtureId))) {
+            setActiveFixtureId(demoF[0].id);
+          }
+        } else {
           setFixtures(fData);
-          hasFixtures = true;
           try {
             localStorage.setItem(`subshuffle_cached_fixtures_${activeTeamId}`, JSON.stringify(fData));
           } catch (_) {}
@@ -532,24 +579,11 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           const matched = fData.find((f) => f.id === urlFixture);
           if (matched) {
             setActiveFixtureId(matched.id);
-          } else if (!activeFixtureId || !fData.some((f) => f.id === activeFixtureId)) {
+          } else if (fData.length > 0 && (!activeFixtureId || !fData.some((f) => f.id === activeFixtureId))) {
             const upcoming = fData.find((f) => f.status === 'Upcoming') || fData[0];
             setActiveFixtureId(upcoming.id);
-          }
-        }
-      }
-
-      // If demo team and backend didn't return players/fixtures, load from DEMO dataset
-      if (isDemoTeamId(activeTeamId)) {
-        if (!hasPlayers) {
-          const demoP = DEMO_PLAYERS.filter((p) => p.teamId === activeTeamId);
-          setPlayers(demoP);
-        }
-        if (!hasFixtures) {
-          const demoF = DEMO_FIXTURES.filter((f) => f.teamId === activeTeamId);
-          setFixtures(demoF);
-          if (demoF.length > 0 && (!activeFixtureId || !demoF.some((f) => f.id === activeFixtureId))) {
-            setActiveFixtureId(demoF[0].id);
+          } else if (fData.length === 0) {
+            setActiveFixtureId('');
           }
         }
       }
@@ -661,6 +695,7 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return activeFixture.matchSquad.selectedPlayerIds.map((playerId) => {
       const player = playerMap.get(playerId) || {
         id: playerId,
+        teamId: activeFixture.teamId || '',
         name: 'Player',
         preferredPositions: ['Midfield'],
         unavailableDates: [],

@@ -23,6 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Modals & Pitchside Exports: [`WhatsAppExportModal.tsx`](client/src/components/WhatsAppExportModal.tsx), [`ScoreScorersModal.tsx`](client/src/components/ScoreScorersModal.tsx), [`SuggestedSubsModal.tsx`](client/src/components/SuggestedSubsModal.tsx), [`PrintMatchSheet.tsx`](client/src/components/PrintMatchSheet.tsx), and [`AuthModal.tsx`](client/src/components/auth/AuthModal.tsx).
 
 ### Fixed
+- **Multi-Team Data Isolation & Cross-Team Leakage Prevention** ([#13](https://github.com/rossdevereux/team-organiser/issues/13)):
+  - Enforced mandatory `teamId: string` across client and server entity models for `Player` and `Fixture` in [`client/src/types.ts`](client/src/types.ts) and [`server/src/types.ts`](server/src/types.ts).
+  - Updated backend API validation in [`server/src/routes/api.ts`](server/src/routes/api.ts) (`POST /api/players`, `POST /api/fixtures`, `POST /api/players/bulk`) to reject requests missing `teamId` with HTTP 400.
+  - Hardened `GET /api/players` and `GET /api/fixtures` to filter strictly by `teamId`.
+  - Fixed client-side state caching in [`client/src/context/MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx): `setActiveTeamId` now immediately flushes previous team players, fixtures, and period states upon team switch, and `refreshTeamData` no longer ignores empty arrays (`[]`) returned for secondary or newly created teams.
+  - Configured Firestore Security Rules in [`firestore.rules`](firestore.rules) and registered in [`firebase.json`](firebase.json) to restrict read/write access for `players` and `fixtures` strictly to users with authorized team ownership or shared coach access.
+  - Added full test suite in [`server/src/tests/teamDataIsolation.test.ts`](server/src/tests/teamDataIsolation.test.ts) covering team data scoping, 400 validation for missing `teamId`, and secondary team empty state isolation.
 - **Authentication Dialog Viewport & Sizing**:
   - Teleported [`AuthModal.tsx`](client/src/components/auth/AuthModal.tsx) directly to `document.body` via React Portals (`createPortal`), preventing ancestor `backdrop-blur-xl` and header bounding constraints from clipping modal height to 64px.
   - Expanded dialog layout, input fields (`py-3 sm:py-3.5`, `text-sm sm:text-base`), and buttons (`min-h-[50px]`) for touch-friendly mobile interaction and high-contrast desktop readability.

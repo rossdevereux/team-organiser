@@ -23,6 +23,7 @@ const createMockPlayer = (
   overrides?: Partial<Player>
 ): Player => ({
   id,
+  teamId: 'team-1',
   name,
   preferredPositions,
   specificPositions: [],
@@ -47,6 +48,7 @@ const createMockSettings = (overrides?: Partial<TeamSettings>): TeamSettings => 
 // Helper to create mock fixture
 const createMockFixture = (overrides?: Partial<Fixture>): Fixture => ({
   id: 'fix-1',
+  teamId: 'team-1',
   opponent: 'Rovers FC',
   venue: 'Home',
   status: 'Upcoming',

@@ -223,6 +223,7 @@ export const calculateMatchStats = (
   const stats: MatchPlayerStats[] = matchSquad.selectedPlayerIds.map((playerId) => {
     const player = playerMap.get(playerId) || {
       id: playerId,
+      teamId: fixture?.teamId || '',
       name: 'Unknown Player',
       preferredPositions: ['Midfield'],
       unavailableDates: [],
@@ -831,6 +832,7 @@ export const generateSuggestedSubstitutions = (
     squad.selectedPlayerIds.forEach((id) => {
       const pl = playerMap.get(id) || {
         id,
+        teamId: fixture?.teamId || '',
         name: 'Player',
         preferredPositions: ['Midfield'],
         unavailableDates: [],

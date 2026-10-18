@@ -8,6 +8,9 @@
 ### Improved
 - **Revamped Sign-In Screen**: Enhanced the login and account registration dialog with larger, easy-to-read forms and touch-friendly buttons on mobile phones and desktop screens.
 
+### Fixed
+- **Team Data Isolation When Switching Teams**: Resolved an issue where players and fixtures from your primary team remained visible after creating or switching to a secondary team. Switching teams now immediately loads only that team's roster and schedule, showing a clean empty state for newly created squads ([#13](https://github.com/rossdevereux/team-organiser/issues/13)).
+
 ## [1.1.3] - 2026-10-18
 
 ### Added
