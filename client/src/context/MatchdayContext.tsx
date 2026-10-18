@@ -27,6 +27,7 @@ import {
 } from '../types';
 import { getFormationsForTeamSize, findFormation, DEFAULT_FORMATIONS } from '../utils/formations';
 import { DEMO_TEAMS, DEMO_PLAYERS, DEMO_FIXTURES, isDemoTeamId } from '../utils/demoData';
+import { useLiveMatchStatus } from '../hooks/useLiveMatchStatus';
 
 export interface SwapSource {
   type: 'pitch' | 'sub' | 'rested';
@@ -1707,54 +1708,49 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [activeFixture, activePeriod, players, updateLiveMatchState]
   );
 
-  // Synchronise live match status across coaches & devices
-  useEffect(() => {
-    if (!activeFixture || (!activeFixture.isLive && !activeFixture.liveMatchState?.isRunning)) {
-      return;
-    }
-    const fixtureId = activeFixture.id;
-    let isCancelled = false;
-
-    const pollInterval = setInterval(async () => {
-      if (document.hidden || !navigator.onLine) return;
+  // Optimised live match status polling via lightweight heartbeat endpoint with ETag & 304 conditional support
+  useLiveMatchStatus({
+    fixtureId: activeFixture?.id,
+    enabled: Boolean(
+      activeFixture &&
+        activeFixture.status !== 'Completed' &&
+        activeFixture.status !== 'Played' &&
+        (activeFixture.isLive || activeFixture.liveMatchState?.isRunning || activeFixture.status === 'In Progress')
+    ),
+    onStatusChange: (status) => {
+      if (!activeFixture) return;
+      setFixtures((prev) =>
+        prev.map((f) => {
+          if (f.id !== activeFixture.id) return f;
+          return {
+            ...f,
+            homeScore: status.homeScore,
+            awayScore: status.awayScore,
+            status:
+              status.status === 'completed'
+                ? 'Completed'
+                : status.status === 'live' || status.status === 'paused'
+                ? 'In Progress'
+                : f.status,
+            isLive: status.status === 'live',
+          };
+        })
+      );
+    },
+    onFullSyncNeeded: async () => {
+      if (!activeFixture) return;
       try {
         const headers = await getAuthHeaders();
-        const res = await fetch(`/api/fixtures/${fixtureId}`, { headers });
-        if (res.ok && !isCancelled) {
+        const res = await fetch(`/api/fixtures/${activeFixture.id}`, { headers });
+        if (res.ok) {
           const remoteFixture: Fixture = await res.json();
           setFixtures((prev) =>
-            prev.map((f) => {
-              if (f.id !== fixtureId) return f;
-              const remoteUpdated = remoteFixture.liveMatchState?.updatedAt;
-              const localUpdated = f.liveMatchState?.updatedAt;
-              if (!localUpdated || (remoteUpdated && remoteUpdated > localUpdated)) {
-                return remoteFixture;
-              }
-              if (
-                remoteFixture.homeScore !== f.homeScore ||
-                remoteFixture.awayScore !== f.awayScore ||
-                remoteFixture.status !== f.status
-              ) {
-                return {
-                  ...f,
-                  homeScore: remoteFixture.homeScore,
-                  awayScore: remoteFixture.awayScore,
-                  status: remoteFixture.status,
-                  isLive: remoteFixture.isLive,
-                };
-              }
-              return f;
-            })
+            prev.map((f) => (f.id === activeFixture.id ? remoteFixture : f))
           );
         }
       } catch (_) {}
-    }, 4000);
-
-    return () => {
-      isCancelled = true;
-      clearInterval(pollInterval);
-    };
-  }, [activeFixture?.id, activeFixture?.isLive, activeFixture?.liveMatchState?.isRunning, getAuthHeaders]);
+    },
+  });
 
   const getSuggestedSubs = async (
     fixtureId: string,

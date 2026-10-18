@@ -19,8 +19,8 @@ const app = express();
 const port = parseInt(process.env.PORT || '8080', 10);
 
 // Basic middleware
-app.use(cors());
-app.use(compression());
+app.use(cors({ exposedHeaders: ['ETag'] }));
+app.use(compression({ threshold: 256 }));
 app.use(express.json());
 
 // Request logger
