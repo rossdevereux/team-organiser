@@ -7,6 +7,8 @@
 - **WhatsApp Match Previews**: Clean social preview cards displaying the pitch lineup and app title when sharing SubShuffle links in WhatsApp or text messages.
 - **FA Youth Rules Guide**: Dedicated reference guide covering FA pitch formats, match lengths, ball sizes, and equal game time rules by age group.
 - **Features Showcase**: Explore all SubShuffle tools, offline matchday features, and lineup capabilities in one place.
+- **Email & Facebook Login**: Create an account and sign in using your email address and password, or connect via Facebook, in addition to Google Sign-In.
+- **Password Reset**: Easily request a password reset email if you forget your login credentials.
 
 ### Improved
 - **Faster Public Page Loading**: Enhanced page loading speeds and streamlined navigation so coaches on mobile devices can access match resources instantly.
