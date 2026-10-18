@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.4] - 2026-10-18
+
 ### Added
 - **Multi-Language Support Across All Screens**: SubShuffle is now fully translated into English, Spanish (Español), French (Français), and German (Deutsch) across all sections, including the tactical pitch, substitutions bench, squad roster, match matrix, fixture manager, fair play stats, and the substitution calculator ([#7](https://github.com/rossdevereux/team-organiser/issues/7)).
 
