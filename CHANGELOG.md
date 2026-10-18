@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.7] - 2026-10-18
+
 ### Fixed
 - **Fair Play & Minutes Cumulative Match Tracking** ([#15](https://github.com/rossdevereux/team-organiser/issues/15)):
   - Added `creditedMinutes?: Record<string, number>` to `Fixture` across [`shared/types.ts`](shared/types.ts), [`server/src/types.ts`](server/src/types.ts), and [`client/src/types.ts`](client/src/types.ts) to track credited match minutes idempotently per player and prevent duplicate increments.

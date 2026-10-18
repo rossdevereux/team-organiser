@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.7] - 2026-10-18
+
 ### Fixed
 - **Fair Play & Minutes Tracker Sync with Logged Match Time**:
   - Recording match time or finalising scores now immediately updates player season totals and the Fair Play & Minutes tracker without needing to refresh your browser ([#15](https://github.com/rossdevereux/team-organiser/issues/15)).
