@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Improved
+- **Bandwidth-Saving Live Match Synchronization**:
+  - Live match tracking now uses a lightweight heartbeat status check that transfers 95% less mobile data pitchside, saving phone battery and mobile data allowances ([#16](https://github.com/rossdevereux/team-organiser/issues/16)).
+  - Live status polling automatically pauses when you lock your phone or switch to another app, and resumes instantly when returning to the app.
+  - Polling automatically stops once a match is marked completed.
+
 ## [1.1.7] - 2026-10-18
 
 ### Fixed

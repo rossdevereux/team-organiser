@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Optimised Live Match Status Polling & Heartbeat** ([#16](https://github.com/rossdevereux/team-organiser/issues/16)):
+  - Added minimal runtime status endpoint `GET /api/fixtures/:id/live-status` in [`server/src/routes/api.ts`](server/src/routes/api.ts) delivering match state (`status`, `period`, `homeScore`, `awayScore`, `periodStartedAt`, `version`, `updatedAt`) in under 150 bytes uncompressed payload size.
+  - Implemented HTTP conditional request handling via `ETag` (`W/"<id>-<version>-<timestamp>"`) returning `304 Not Modified` with empty body (0 bytes) whenever fixture state has not mutated.
+  - Added Edge CDN and browser caching header `Cache-Control: public, max-age=1, s-maxage=3, stale-while-revalidate=2` and exposed `ETag` via CORS in [`server/src/index.ts`](server/src/index.ts).
+  - Configured Express server response compression threshold to 256 bytes (`compression({ threshold: 256 })`) in [`server/src/index.ts`](server/src/index.ts).
+  - Implemented monotonic `version` increment and `updatedAt` timestamp tracking in `saveFixture` in [`server/src/db/storage.ts`](server/src/db/storage.ts).
+  - Created client polling hook [`useLiveMatchStatus`](client/src/hooks/useLiveMatchStatus.ts) with adaptive polling intervals (5s during active live matches, 30s during half-time/pre-match, stops on match completion), Page Visibility API listeners that pause polling on locked screens or hidden tabs, and persistent ETag header passing.
+  - Integrated `useLiveMatchStatus` into [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx), replacing high-overhead full fixture polling.
+  - Added unit test suite in [`server/src/tests/liveMatchStatusPolling.test.ts`](server/src/tests/liveMatchStatusPolling.test.ts) and Playwright E2E suite in [`e2e/live-status-polling.spec.ts`](e2e/live-status-polling.spec.ts).
+
 ## [1.1.7] - 2026-10-18
 
 ### Fixed

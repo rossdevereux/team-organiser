@@ -9,7 +9,7 @@ import {
 import { getChangelogData } from '../services/changelogService.js';
 import { getFormationsForTeamSize, DEFAULT_FORMATIONS } from '../db/formations.js';
 import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
-import { Player, TeamSettings, Fixture, MatchSquad, Team, Formation, PostMatchRecording, GoalScorer, LiveMatchState } from '../types.js';
+import { Player, TeamSettings, Fixture, MatchSquad, Team, Formation, PostMatchRecording, GoalScorer, LiveMatchState, LiveStatusResponse } from '../types.js';
 
 const router = Router();
 
@@ -1032,6 +1032,82 @@ router.put('/fixtures/:id/live-state', async (req: AuthenticatedRequest, res: Re
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to update live match state', details: err.message });
+  }
+});
+
+// GET /api/fixtures/:id/live-status (Lightweight polling heartbeat with ETag / 304 conditional support)
+router.get('/fixtures/:id/live-status', async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const fixture = await storage.getFixtureById(id);
+    if (!fixture) {
+      return res.status(404).json({ error: 'Fixture not found' });
+    }
+
+    // Determine normalized match runtime status
+    let status: LiveStatusResponse['status'] = 'upcoming';
+    if (fixture.status === 'Completed' || fixture.status === 'Played') {
+      status = 'completed';
+    } else if (fixture.liveMatchState?.isRunning) {
+      status = 'live';
+    } else if (
+      fixture.liveMatchState &&
+      !fixture.liveMatchState.isRunning &&
+      ((fixture.liveMatchState.elapsedSeconds || 0) > 0 || (fixture.liveMatchState.currentPeriod || 1) > 1)
+    ) {
+      status = 'paused';
+    } else if (fixture.status === 'In Progress' || fixture.isLive) {
+      status = 'live';
+    } else {
+      status = 'upcoming';
+    }
+
+    const period = fixture.liveMatchState?.currentPeriod ?? 1;
+    const homeScore = fixture.homeScore ?? 0;
+    const awayScore = fixture.awayScore ?? 0;
+    const periodStartedAt = fixture.liveMatchState?.startedAt
+      ? new Date(fixture.liveMatchState.startedAt).getTime()
+      : null;
+    const version = fixture.version ?? 1;
+    const updatedAt =
+      fixture.updatedAt ||
+      fixture.liveMatchState?.updatedAt ||
+      (fixture.date ? new Date(fixture.date).toISOString() : new Date().toISOString());
+
+    // Generate ETag based on fixture ID, version, and updatedAt timestamp
+    const timestampMs = new Date(updatedAt).getTime();
+    const etag = `W/"${fixture.id}-${version}-${timestampMs}"`;
+
+    // Edge CDN & Browser Caching Headers
+    res.setHeader('Cache-Control', 'public, max-age=1, s-maxage=3, stale-while-revalidate=2');
+    res.removeHeader('Pragma');
+    res.removeHeader('Expires');
+    res.setHeader('ETag', etag);
+    res.setHeader('Access-Control-Expose-Headers', 'ETag');
+
+    // HTTP Conditional Request Handling (If-None-Match)
+    const clientEtag = req.headers['if-none-match'];
+    if (clientEtag) {
+      const cleanClient = clientEtag.replace(/^W\//, '').replace(/"/g, '').trim();
+      const cleanServer = etag.replace(/^W\//, '').replace(/"/g, '').trim();
+      if (cleanClient === cleanServer || clientEtag === etag) {
+        return res.status(304).end();
+      }
+    }
+
+    const payload: LiveStatusResponse = {
+      status,
+      period,
+      homeScore,
+      awayScore,
+      periodStartedAt,
+      version,
+      updatedAt,
+    };
+
+    return res.status(200).json(payload);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to fetch live match status', details: err.message });
   }
 });
 

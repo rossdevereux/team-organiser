@@ -1090,6 +1090,8 @@ export class StorageManager {
 
   async saveFixture(fixture: Fixture): Promise<Fixture> {
     await this.ensureInitialized();
+    fixture.version = (fixture.version || 0) + 1;
+    fixture.updatedAt = new Date().toISOString();
     const existingIndex = this.memoryStore.fixtures.findIndex((f) => f.id === fixture.id);
     if (existingIndex >= 0) {
       this.memoryStore.fixtures[existingIndex] = fixture;

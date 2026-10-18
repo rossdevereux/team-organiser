@@ -188,6 +188,18 @@ export interface Fixture {
   isLive?: boolean;
   liveMatchState?: LiveMatchState;
   creditedMinutes?: Record<string, number>; // playerId -> minutes credited to player totals
+  version?: number; // Monotonic revision number for ETag & cache invalidation
+  updatedAt?: string; // ISO timestamp of last fixture mutation
+}
+
+export interface LiveStatusResponse {
+  status: 'live' | 'upcoming' | 'completed' | 'paused';
+  period: number;
+  homeScore: number;
+  awayScore: number;
+  periodStartedAt: number | null;
+  version: number;
+  updatedAt: string;
 }
 
 // Stats computed per player in a match
