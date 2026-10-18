@@ -1,4 +1,4 @@
-# robots.txt for SubShuffle (https://subshuffle.app)
+# robots.txt for SubShuffle (https://subshuffle.com)
 # Technical SEO rules & crawl optimization
 
 User-agent: *
@@ -23,4 +23,4 @@ Disallow: /api/
 Disallow: /api/*
 
 # Link directly to sitemap index
-Sitemap: https://subshuffle.app/sitemap.xml
+Sitemap: https://subshuffle.com/sitemap.xml

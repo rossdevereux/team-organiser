@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added shared responsive header [`PublicNav.tsx`](client/src/components/PublicNav.tsx).
 
 ### Changed
+- **Production Domain Configuration**:
+  - Configured production domain to `https://subshuffle.com` across canonical links, Open Graph, Twitter cards, Schema.org structured data, `robots.txt`, XML sitemap, and WhatsApp clipboard sharing links.
 - **Route Code Splitting & Core Web Vitals**:
   - Configured `React.lazy()` route-level code splitting for authenticated dashboard pages in [`router.tsx`](client/src/router.tsx) with custom suspense loader ([#11](https://github.com/rossdevereux/team-organiser/issues/11)).
   - Refactored manual chunk splitting in [`vite.config.ts`](client/vite.config.ts) for `markdown-vendor` and `i18n-vendor`, reducing core client index bundle from 656 KB to 389 KB.

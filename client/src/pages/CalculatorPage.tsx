@@ -114,7 +114,7 @@ Squad Size: ${squadSize} players (${onPitch} active, ${subsCount} substitutes)
 Target Game Time: ${targetMinutesPerPlayer.toFixed(1)} mins per player (${targetPercentage.toFixed(0)}% game time)
 Fair Play Status: ${targetPercentage >= 50 ? '✅ Compliant with FA 50% Rule' : '⚠️ Below 50% Rule'}
 
-Calculate rotations free: https://subshuffle.app/calculator`;
+Calculate rotations free: https://subshuffle.com/calculator`;
 
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
