@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   LogIn,
@@ -52,7 +53,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setTab(initialTab);
       setErrorInfo(null);
       setResetSent(false);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
     }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen, initialTab]);
 
   useEffect(() => {
@@ -136,28 +144,33 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 md:p-8 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
-      <div className="relative w-full max-w-md my-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden text-slate-100 font-sans">
+      <div className="relative w-full max-w-[480px] sm:max-w-lg my-auto rounded-3xl bg-slate-900/95 border border-slate-700/80 shadow-2xl shadow-black/80 overflow-hidden text-slate-100 font-sans max-h-[92vh] flex flex-col">
         {/* Subtle Ambient Background Glow */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-20 -right-20 w-56 h-56 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-56 h-56 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header Bar */}
-        <div className="relative p-6 pb-4 flex items-start justify-between border-b border-slate-800/80">
-          <div className="flex items-center gap-3">
+        <div className="relative p-5 sm:p-6 pb-4 flex items-start justify-between border-b border-slate-800 shrink-0">
+          <div className="flex items-center gap-3.5">
             <img
               src="/logo-icon.png"
               alt="SubShuffle Logo"
-              className="w-10 h-10 object-contain drop-shadow-[0_4px_12px_rgba(16,185,129,0.3)] shrink-0"
+              className="w-11 h-11 sm:w-12 sm:h-12 object-contain drop-shadow-[0_4px_12px_rgba(16,185,129,0.35)] shrink-0"
             />
             <div>
-              <h2 id="auth-modal-title" className="text-lg font-black tracking-tight text-white flex items-center gap-1.5">
+              <h2 id="auth-modal-title" className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
                 <span>
                   {tab === 'forgot'
                     ? 'Reset Password'
@@ -166,11 +179,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     : 'Sign In to SubShuffle'}
                 </span>
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-300 mt-0.5 leading-relaxed">
                 {tab === 'forgot'
                   ? 'We will send a password reset link to your email.'
                   : tab === 'register'
-                  ? 'Get started free with cloud squad backup & sharing.'
+                  ? 'Get started free with cloud squad backup & assistant sharing.'
                   : 'Sync youth lineups and match rotations across devices.'}
               </p>
             </div>
@@ -178,28 +191,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 transition cursor-pointer shrink-0"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-750 transition cursor-pointer shrink-0 flex items-center justify-center ml-2"
             aria-label="Close dialog"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-5">
+        {/* Scrollable Content Body */}
+        <div className="p-5 sm:p-7 space-y-5 overflow-y-auto flex-1">
           {/* Error Banner */}
           {errorInfo && (
-            <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-              <div className="space-y-1.5 flex-1">
+            <div className="p-4 rounded-2xl bg-rose-500/15 border border-rose-500/40 text-rose-200 text-xs sm:text-sm flex items-start gap-3 shadow-lg shadow-rose-950/20">
+              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+              <div className="space-y-2 flex-1">
                 <p className="font-semibold leading-relaxed">{errorInfo.message}</p>
                 {errorInfo.isCollision && (
                   <button
                     type="button"
                     onClick={() => handleSocialSignIn('google')}
-                    className="mt-1 px-3 py-1.5 rounded-xl bg-slate-950 border border-rose-500/40 text-white font-bold text-[11px] flex items-center gap-1.5 hover:bg-slate-800 transition cursor-pointer"
+                    className="mt-1 px-3.5 py-2 rounded-xl bg-slate-950 border border-rose-500/50 text-white font-bold text-xs flex items-center gap-2 hover:bg-slate-800 transition cursor-pointer"
                   >
                     <span>Sign in with Google instead</span>
-                    <ArrowRight className="w-3 h-3" />
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
@@ -208,12 +222,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           {/* Password Reset Confirmation Banner */}
           {resetSent && (
-            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-start gap-2.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <div className="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-200 text-xs sm:text-sm flex items-start gap-3 shadow-lg shadow-emerald-950/20">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold">Password reset email dispatched!</p>
-                <p className="text-[11px] text-slate-300 mt-0.5">
-                  Check your inbox for instructions to set a new password.
+                <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                  Check your inbox for instructions to set a new password. You can now return to the sign in screen.
                 </p>
               </div>
             </div>
@@ -222,15 +236,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {tab !== 'forgot' && (
             <>
               {/* Social Login Buttons */}
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 {/* Google Sign In */}
                 <button
                   type="button"
                   onClick={() => handleSocialSignIn('google')}
                   disabled={loading}
-                  className="w-full min-h-[44px] px-4 py-2.5 rounded-2xl bg-slate-950 hover:bg-slate-850 border border-slate-700/80 hover:border-slate-600 text-xs font-bold text-white shadow-sm flex items-center justify-center gap-3 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group"
+                  className="w-full min-h-[50px] px-4 py-3 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm sm:text-base shadow-sm flex items-center justify-center gap-3 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
-                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                     <path
                       fill="#4285F4"
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -256,9 +270,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="button"
                   onClick={() => handleSocialSignIn('facebook')}
                   disabled={loading}
-                  className="w-full min-h-[44px] px-4 py-2.5 rounded-2xl bg-[#1877F2]/10 hover:bg-[#1877F2]/20 border border-[#1877F2]/40 text-xs font-bold text-[#4c9eff] hover:text-white shadow-sm flex items-center justify-center gap-3 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group"
+                  className="w-full min-h-[50px] px-4 py-3 rounded-2xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold text-sm sm:text-base shadow-sm flex items-center justify-center gap-3 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
-                  <svg className="w-4 h-4 fill-current shrink-0 text-[#1877F2]" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 fill-current shrink-0 text-white" viewBox="0 0 24 24">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
                   <span>Continue with Facebook</span>
@@ -266,30 +280,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
 
               {/* Or Divider */}
-              <div className="relative flex items-center justify-center my-4">
+              <div className="relative flex items-center justify-center my-3">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-800" />
+                  <div className="w-full border-t border-slate-700/80" />
                 </div>
-                <div className="relative px-3 bg-slate-900 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <div className="relative px-3 bg-slate-900 text-xs font-bold uppercase tracking-wider text-slate-400">
                   or with email
                 </div>
               </div>
 
               {/* Sign In vs Register Tabs */}
-              <div className="grid grid-cols-2 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
+              <div className="grid grid-cols-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs sm:text-sm">
                 <button
                   type="button"
                   onClick={() => {
                     setTab('signin');
                     setErrorInfo(null);
                   }}
-                  className={`py-2 px-3 rounded-xl font-bold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  className={`py-2.5 px-4 rounded-xl font-bold transition cursor-pointer flex items-center justify-center gap-2 ${
                     tab === 'signin'
-                      ? 'bg-slate-800 text-white shadow-sm'
+                      ? 'bg-slate-800 text-white shadow-md'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  <LogIn className="w-3.5 h-3.5" />
+                  <LogIn className="w-4 h-4" />
                   <span>Sign In</span>
                 </button>
                 <button
@@ -298,13 +312,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     setTab('register');
                     setErrorInfo(null);
                   }}
-                  className={`py-2 px-3 rounded-xl font-bold transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  className={`py-2.5 px-4 rounded-xl font-bold transition cursor-pointer flex items-center justify-center gap-2 ${
                     tab === 'register'
-                      ? 'bg-slate-800 text-white shadow-sm'
+                      ? 'bg-slate-800 text-white shadow-md'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  <UserPlus className="w-3.5 h-3.5" />
+                  <UserPlus className="w-4 h-4" />
                   <span>Create Account</span>
                 </button>
               </div>
@@ -312,46 +326,46 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           )}
 
           {/* Email Form */}
-          <form onSubmit={handleEmailSubmit} className="space-y-3.5">
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
             {tab === 'register' && (
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                  Coach / Team Name <span className="text-slate-500 font-normal">(optional)</span>
+              <div className="space-y-1.5">
+                <label className="text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider">
+                  Coach / Team Name <span className="text-slate-400 font-normal normal-case">(optional)</span>
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="e.g. Coach David"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs text-white placeholder-slate-500 outline-none transition"
+                    className="w-full pl-11 pr-4 py-3 sm:py-3.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 text-sm sm:text-base text-white placeholder-slate-500 outline-none transition"
                   />
                 </div>
               </div>
             )}
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+            <div className="space-y-1.5">
+              <label className="text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="coach@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs text-white placeholder-slate-500 outline-none transition"
+                  className="w-full pl-11 pr-4 py-3 sm:py-3.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 text-sm sm:text-base text-white placeholder-slate-500 outline-none transition"
                 />
               </div>
             </div>
 
             {tab !== 'forgot' && (
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                  <label className="text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider">
                     Password
                   </label>
                   {tab === 'signin' && (
@@ -362,40 +376,40 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         setErrorInfo(null);
                         setResetSent(false);
                       }}
-                      className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition cursor-pointer"
+                      className="text-xs sm:text-sm font-bold text-emerald-400 hover:text-emerald-300 transition cursor-pointer"
                     >
                       Forgot password?
                     </button>
                   )}
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs text-white placeholder-slate-500 outline-none transition"
+                    className="w-full pl-11 pr-4 py-3 sm:py-3.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 text-sm sm:text-base text-white placeholder-slate-500 outline-none transition"
                   />
                 </div>
               </div>
             )}
 
             {tab === 'register' && (
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+              <div className="space-y-1.5">
+                <label className="text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider">
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
                     type="password"
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs text-white placeholder-slate-500 outline-none transition"
+                    className="w-full pl-11 pr-4 py-3 sm:py-3.5 rounded-xl bg-slate-950 border border-slate-700/80 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 text-sm sm:text-base text-white placeholder-slate-500 outline-none transition"
                   />
                 </div>
               </div>
@@ -404,23 +418,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full min-h-[44px] py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              className="w-full min-h-[50px] py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2.5 transition active:scale-[0.99] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
               {loading ? (
-                <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
               ) : tab === 'forgot' ? (
                 <>
-                  <Mail className="w-4 h-4" />
+                  <Mail className="w-5 h-5" />
                   <span>Send Reset Email</span>
                 </>
               ) : tab === 'register' ? (
                 <>
-                  <UserPlus className="w-4 h-4" />
+                  <UserPlus className="w-5 h-5" />
                   <span>Create Account</span>
                 </>
               ) : (
                 <>
-                  <LogIn className="w-4 h-4" />
+                  <LogIn className="w-5 h-5" />
                   <span>Sign In</span>
                 </>
               )}
@@ -437,9 +451,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   setErrorInfo(null);
                   setResetSent(false);
                 }}
-                className="text-xs font-semibold text-slate-400 hover:text-white transition cursor-pointer flex items-center justify-center gap-1.5 mx-auto"
+                className="text-sm font-semibold text-slate-300 hover:text-white transition cursor-pointer flex items-center justify-center gap-2 mx-auto"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <RotateCcw className="w-4 h-4" />
                 <span>Return to Sign In</span>
               </button>
             </div>
@@ -448,4 +462,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Authentication Dialog Viewport & Sizing**:
+  - Teleported [`AuthModal.tsx`](client/src/components/auth/AuthModal.tsx) directly to `document.body` via React Portals (`createPortal`), preventing ancestor `backdrop-blur-xl` and header bounding constraints from clipping modal height to 64px.
+  - Expanded dialog layout, input fields (`py-3 sm:py-3.5`, `text-sm sm:text-base`), and buttons (`min-h-[50px]`) for touch-friendly mobile interaction and high-contrast desktop readability.
+  - Added `variant="hero"` and `variant="card"` options in [`AuthButton.tsx`](client/src/components/AuthButton.tsx) and updated [`LandingHero.tsx`](client/src/components/LandingHero.tsx) to provide prominent, full-sized call-to-action buttons.
+
 ## [1.1.3] - 2026-10-18
 
 ### Added

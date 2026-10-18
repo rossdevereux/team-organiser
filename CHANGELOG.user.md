@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Improved
+- **Revamped Sign-In Screen**: Enhanced the login and account registration dialog with larger, easy-to-read forms and touch-friendly buttons on mobile phones and desktop screens.
+
 ## [1.1.3] - 2026-10-18
 
 ### Added

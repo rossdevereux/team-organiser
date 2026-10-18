@@ -168,7 +168,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             )}
 
             <div className="w-full sm:w-auto">
-              <AuthButton onSignInSuccess={onSignInSuccess} />
+              <AuthButton onSignInSuccess={onSignInSuccess} variant="hero" />
             </div>
           </div>
 
@@ -451,7 +451,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 ) : (
-                  <AuthButton onSignInSuccess={onSignInSuccess} />
+                  <AuthButton onSignInSuccess={onSignInSuccess} variant="card" />
                 )}
               </div>
             </div>
