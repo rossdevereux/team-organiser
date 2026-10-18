@@ -9,7 +9,7 @@ import {
 import { getChangelogData } from '../services/changelogService.js';
 import { getFormationsForTeamSize, DEFAULT_FORMATIONS } from '../db/formations.js';
 import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
-import { Player, TeamSettings, Fixture, MatchSquad, Team, Formation, PostMatchRecording, GoalScorer } from '../types.js';
+import { Player, TeamSettings, Fixture, MatchSquad, Team, Formation, PostMatchRecording, GoalScorer, LiveMatchState } from '../types.js';
 
 const router = Router();
 
@@ -976,6 +976,51 @@ router.put('/fixtures/:id/score', async (req: AuthenticatedRequest, res: Respons
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to save fixture score', details: err.message });
+  }
+});
+
+// PUT /api/fixtures/:id/live-state (Persist live match timer, period timestamps, substitutions, and running state)
+router.put('/fixtures/:id/live-state', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const fixture = await storage.getFixtureById(id);
+    if (!fixture) {
+      return res.status(404).json({ error: 'Fixture not found' });
+    }
+
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (fixture.teamId && userId) {
+      const team = await storage.getTeamById(fixture.teamId);
+      if (team && !storage.hasTeamAccess(team, userId, userEmail)) {
+        return res.status(403).json({ error: 'Access denied: only authorised coaches or organisers can update live match state' });
+      }
+    }
+
+    // Body can be { liveMatchState: LiveMatchState, matchSquad?: MatchSquad } or directly LiveMatchState
+    const payload = req.body;
+    const liveMatchState: LiveMatchState = payload?.liveMatchState || payload;
+    const matchSquad: MatchSquad | undefined = payload?.matchSquad;
+
+    if (!liveMatchState || typeof liveMatchState !== 'object') {
+      return res.status(400).json({ error: 'Live match state payload is required' });
+    }
+
+    if (matchSquad && matchSquad.lineupsByPeriod) {
+      await storage.updateMatchSquad(id, matchSquad);
+    }
+
+    const updated = await storage.updateLiveMatchState(id, liveMatchState);
+    if (!updated) {
+      return res.status(404).json({ error: 'Fixture not found' });
+    }
+
+    res.json({
+      message: 'Live match state persisted successfully',
+      fixture: updated,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to update live match state', details: err.message });
   }
 });
 

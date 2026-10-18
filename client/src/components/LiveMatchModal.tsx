@@ -19,7 +19,7 @@ import {
   ChevronRight,
   ShieldCheck,
 } from 'lucide-react';
-import { SingleSubChange } from '../types';
+import { SingleSubChange, LiveMatchPeriodTimer, LiveMatchState } from '../types';
 import { ScoreScorersModal } from './ScoreScorersModal';
 
 interface LiveMatchModalProps {
@@ -71,21 +71,61 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     setActivePeriod,
     settings,
     players,
-    handleSwap,
     getSuggestedSubs,
     updateFixtureScore,
+    updateLiveMatchState,
+    executeLiveSubstitution,
     activeTeam,
   } = useMatchday();
 
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+  // Active period timer derived deterministically from activeFixture's liveMatchState
+  const activePeriodTimer: LiveMatchPeriodTimer =
+    activeFixture?.liveMatchState?.periodTimers?.[activePeriod] || {
+      elapsedSeconds:
+        activeFixture?.liveMatchState?.currentPeriod === activePeriod
+          ? activeFixture.liveMatchState.elapsedSeconds || 0
+          : 0,
+      isRunning:
+        activeFixture?.liveMatchState?.currentPeriod === activePeriod
+          ? Boolean(activeFixture.liveMatchState.isRunning)
+          : false,
+      startedAt:
+        activeFixture?.liveMatchState?.currentPeriod === activePeriod
+          ? activeFixture.liveMatchState.startedAt
+          : undefined,
+    };
+
+  const isRunning = Boolean(activePeriodTimer.isRunning);
+
+  // Re-render tick every second while timer is running so elapsedSeconds advances smoothly
+  const [, setTicker] = useState<number>(0);
+  useEffect(() => {
+    if (!isOpen || !isRunning) return;
+    const interval = setInterval(() => {
+      setTicker((t) => t + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isOpen, isRunning]);
+
+  // Derive current elapsed seconds (identical across all devices derived from startedAt)
+  const elapsedSeconds =
+    isRunning && activePeriodTimer.startedAt
+      ? activePeriodTimer.elapsedSeconds +
+        Math.max(
+          0,
+          Math.floor((Date.now() - new Date(activePeriodTimer.startedAt).getTime()) / 1000)
+        )
+      : activePeriodTimer.elapsedSeconds || 0;
+
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [highContrast, setHighContrast] = useState<boolean>(false);
-  const [subLog, setSubLog] = useState<{ time: string; text: string }[]>([]);
   const [suggestedChanges, setSuggestedChanges] = useState<SingleSubChange[]>([]);
   const [selectedOffId, setSelectedOffId] = useState<string>('');
   const [selectedOnId, setSelectedOnId] = useState<string>('');
   const [isScoreModalOpen, setIsScoreModalOpen] = useState<boolean>(false);
+  const whistlePlayedWindow = useRef<number>(-1);
+
+  const subLog = activeFixture?.liveMatchState?.subLog || [];
 
   const homeScore = typeof activeFixture?.homeScore === 'number' ? activeFixture.homeScore : 0;
   const awayScore = typeof activeFixture?.awayScore === 'number' ? activeFixture.awayScore : 0;
@@ -109,9 +149,6 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
 
   const intervalSeconds = (settings.defaultSubIntervalMinutes || 10) * 60;
   const periodDurationSeconds = (settings.periodDurationMinutes || 25) * 60;
-
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const whistlePlayedWindow = useRef<number>(-1);
 
   // Close on Escape key press
   useEffect(() => {
@@ -141,35 +178,21 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     };
   }, [isOpen, activeFixture, getSuggestedSubs, settings.defaultSubIntervalMinutes]);
 
-  // Main match timer tick
+  // Automatic whistle alert when substitution interval reached
   useEffect(() => {
-    if (isRunning) {
-      timerRef.current = setInterval(() => {
-        setElapsedSeconds((prev) => {
-          const next = prev + 1;
-          const currentWindow = Math.floor(next / intervalSeconds);
-
-          // Trigger whistle alert on sub interval reached
-          if (
-            soundEnabled &&
-            next > 0 &&
-            next % intervalSeconds === 0 &&
-            whistlePlayedWindow.current !== currentWindow
-          ) {
-            whistlePlayedWindow.current = currentWindow;
-            playRefWhistle();
-          }
-
-          return next;
-        });
-      }, 1000);
-    } else if (timerRef.current) {
-      clearInterval(timerRef.current);
+    if (
+      soundEnabled &&
+      isRunning &&
+      elapsedSeconds > 0 &&
+      elapsedSeconds % intervalSeconds === 0
+    ) {
+      const currentWindow = Math.floor(elapsedSeconds / intervalSeconds);
+      if (whistlePlayedWindow.current !== currentWindow) {
+        whistlePlayedWindow.current = currentWindow;
+        playRefWhistle();
+      }
     }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isRunning, intervalSeconds, soundEnabled]);
+  }, [elapsedSeconds, isRunning, intervalSeconds, soundEnabled]);
 
   if (!isOpen || !activeFixture) return null;
 
@@ -191,30 +214,107 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
   const formattedSubCountdown = `${String(subMinutes).padStart(2, '0')}:${String(subSecs).padStart(2, '0')}`;
   const subProgressPercent = Math.min(100, Math.round((secondsIntoCurrentInterval / intervalSeconds) * 100));
 
-  const handleToggleTimer = () => {
-    setIsRunning(!isRunning);
-  };
+  const handleToggleTimer = async () => {
+    if (!activeFixture) return;
+    const isNowRunning = !isRunning;
+    const nowIso = new Date().toISOString();
 
-  const handleResetTimer = () => {
-    setIsRunning(false);
-    setElapsedSeconds(0);
-    whistlePlayedWindow.current = -1;
-  };
+    let newElapsed = activePeriodTimer.elapsedSeconds || 0;
+    let startedAt: string | undefined = undefined;
 
-  const handleExecuteQuickSub = (offId: string, onId: string, targetPos?: string) => {
-    const offPlayer = playerMap.get(offId);
-    const onPlayer = playerMap.get(onId);
-    if (!offPlayer || !onPlayer) return;
+    if (isNowRunning) {
+      startedAt = nowIso;
+    } else {
+      // Pausing: accumulate running time from current segment
+      if (activePeriodTimer.startedAt) {
+        const additional = Math.max(
+          0,
+          Math.floor((Date.now() - new Date(activePeriodTimer.startedAt).getTime()) / 1000)
+        );
+        newElapsed += additional;
+      }
+    }
 
-    handleSwap({ type: 'pitch', playerId: offId, position: targetPos });
-    handleSwap({ type: 'sub', playerId: onId });
-
-    const logEntry = {
-      time: formattedTime,
-      text: `OFF: ${offPlayer.name} ➡️ ON: ${onPlayer.name}${targetPos ? ` (${targetPos})` : ''}`,
+    const updatedPeriodTimer: LiveMatchPeriodTimer = {
+      isRunning: isNowRunning,
+      startedAt,
+      elapsedSeconds: newElapsed,
     };
-    setSubLog((prev) => [logEntry, ...prev]);
 
+    const prevTimers = activeFixture.liveMatchState?.periodTimers || {};
+    const updatedTimers = {
+      ...prevTimers,
+      [activePeriod]: updatedPeriodTimer,
+    };
+
+    const updatedLiveState: LiveMatchState = {
+      isRunning: isNowRunning,
+      currentPeriod: activePeriod,
+      startedAt,
+      elapsedSeconds: newElapsed,
+      periodTimers: updatedTimers,
+      subLog: activeFixture.liveMatchState?.subLog || [],
+    };
+
+    await updateLiveMatchState(activeFixture.id, updatedLiveState);
+  };
+
+  const handleResetTimer = async () => {
+    if (!activeFixture) return;
+    const updatedPeriodTimer: LiveMatchPeriodTimer = {
+      isRunning: false,
+      startedAt: undefined,
+      elapsedSeconds: 0,
+    };
+
+    const prevTimers = activeFixture.liveMatchState?.periodTimers || {};
+    const updatedTimers = {
+      ...prevTimers,
+      [activePeriod]: updatedPeriodTimer,
+    };
+
+    const updatedLiveState: LiveMatchState = {
+      isRunning: false,
+      currentPeriod: activePeriod,
+      startedAt: undefined,
+      elapsedSeconds: 0,
+      periodTimers: updatedTimers,
+      subLog: activeFixture.liveMatchState?.subLog || [],
+    };
+
+    whistlePlayedWindow.current = -1;
+    await updateLiveMatchState(activeFixture.id, updatedLiveState);
+  };
+
+  const handleSelectPeriod = async (p: number) => {
+    setActivePeriod(p);
+    if (!activeFixture) return;
+
+    const prevTimers = activeFixture.liveMatchState?.periodTimers || {};
+    const targetTimer: LiveMatchPeriodTimer = prevTimers[p] || {
+      isRunning: false,
+      startedAt: undefined,
+      elapsedSeconds: 0,
+    };
+
+    const updatedLiveState: LiveMatchState = {
+      isRunning: targetTimer.isRunning,
+      currentPeriod: p,
+      startedAt: targetTimer.startedAt,
+      elapsedSeconds: targetTimer.elapsedSeconds,
+      periodTimers: {
+        ...prevTimers,
+        [p]: targetTimer,
+      },
+      subLog: activeFixture.liveMatchState?.subLog || [],
+    };
+
+    whistlePlayedWindow.current = -1;
+    await updateLiveMatchState(activeFixture.id, updatedLiveState);
+  };
+
+  const handleExecuteQuickSub = async (offId: string, onId: string, targetPos?: string) => {
+    await executeLiveSubstitution(offId, onId, targetPos);
     if (soundEnabled) {
       playRefWhistle();
     }
@@ -493,7 +593,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
                 <button
                   key={p}
                   type="button"
-                  onClick={() => setActivePeriod(p)}
+                  onClick={() => handleSelectPeriod(p)}
                   className={`px-3 py-1.5 rounded-xl font-bold transition cursor-pointer ${
                     activePeriod === p
                       ? 'bg-sky-600 text-white shadow'

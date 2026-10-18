@@ -128,6 +128,38 @@ export interface GoalScorer {
   isOwnGoal?: boolean;
 }
 
+export interface LiveMatchSubLogEntry {
+  id?: string;
+  minute: number; // match minute (e.g. 14)
+  time: string; // e.g. "14:22"
+  period: number; // 1, 2, etc.
+  offPlayerId: string;
+  offPlayerName: string;
+  onPlayerId: string;
+  onPlayerName: string;
+  position?: string;
+  text: string;
+  timestamp: string; // ISO timestamp
+}
+
+export interface LiveMatchPeriodTimer {
+  elapsedSeconds: number;
+  isRunning: boolean;
+  startedAt?: string; // ISO string when timer was started
+}
+
+export interface LiveMatchState {
+  isRunning: boolean;
+  currentPeriod: number;
+  startedAt?: string; // ISO string when current running segment began
+  elapsedSeconds: number; // Accumulated elapsed seconds in current period prior to startedAt
+  periodTimers?: Record<number, LiveMatchPeriodTimer>;
+  subLog?: LiveMatchSubLogEntry[];
+  periodDurationMinutes?: number;
+  subIntervalMinutes?: number;
+  updatedAt?: string;
+}
+
 export interface Fixture {
   id: string;
   teamId: string;
@@ -154,6 +186,7 @@ export interface Fixture {
   awayScore?: number;
   scorers?: GoalScorer[];
   isLive?: boolean;
+  liveMatchState?: LiveMatchState;
 }
 
 // Stats computed per player in a match

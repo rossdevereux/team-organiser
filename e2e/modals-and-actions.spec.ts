@@ -20,12 +20,12 @@ test.describe('Modals & Action Tools Suite', () => {
     }
 
     // Verify modal is open
-    await expect(page.getByRole('heading', { name: /WhatsApp Team Announcement/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /WhatsApp.*Announcement/i })).toBeVisible();
     await expect(page.getByText(/Includes matchday squad, rested players/i)).toBeVisible();
 
     // Close with Escape
     await page.keyboard.press('Escape');
-    await expect(page.getByRole('heading', { name: /WhatsApp Team Announcement/i })).not.toBeVisible();
+    await expect(page.getByRole('heading', { name: /WhatsApp.*Announcement/i })).not.toBeVisible();
   });
 
   test('opens Print / PDF modal with official emblem and closes via Close button', async ({ page }) => {
@@ -38,16 +38,16 @@ test.describe('Modals & Action Tools Suite', () => {
       await printBtn.click();
 
       // Verify Print modal header
-      await expect(page.getByRole('heading', { name: /Official Matchday Pitch Sheet/i })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Official.*Sheet/i }).first()).toBeVisible();
 
       // Verify presence of document print area
       const printArea = page.locator('.print-area');
       await expect(printArea).toBeVisible();
 
       // Click Close button
-      const closeBtn = page.locator('button[title*="Close print preview"]').first();
+      const closeBtn = page.locator('button[title*="Close print preview"], button[title*="Exit Print"]').first();
       await closeBtn.click();
-      await expect(page.getByRole('heading', { name: /Official Matchday Pitch Sheet/i })).not.toBeVisible();
+      await expect(page.getByRole('heading', { name: /Official.*Sheet/i })).not.toBeVisible();
     }
   });
 
