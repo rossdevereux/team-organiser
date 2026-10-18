@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.5] - 2026-10-18
+
 ### Added
 - **Immutable User ID Resolution for Team Sharing**:
   - Enhanced team sharing (`POST /api/teams/:id/share`) in [`server/src/routes/api.ts`](server/src/routes/api.ts) to resolve recipient emails to their immutable Firebase Auth `uid` via `getAuth().getUserByEmail` (with fallback to existing registered users) and store the permanent `userId` in `team.sharedWith` and structured `team.sharedMembers`.

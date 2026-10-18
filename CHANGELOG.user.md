@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.5] - 2026-10-18
+
 ### Added
 - **Email-Proof Assistant Coach Sharing**:
   - When inviting a co-coach, SubShuffle now links their permanent account ID rather than just their email address. If an assistant coach changes their email address in the future, they will automatically retain access to shared team squads and matchdays.
