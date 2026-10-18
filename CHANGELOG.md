@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.8] - 2026-10-18
+
 ### Fixed
 - **Service Worker Cache PUT Non-GET Request Error**:
   - Guarded against unsupported non-GET HTTP methods in [`client/public/sw.js`](client/public/sw.js) to resolve `TypeError: Failed to execute 'put' on 'Cache': Request method 'POST' is unsupported` when executing POST, PUT, or DELETE operations (e.g. Firebase Auth sign-ins, match updates, external APIs).

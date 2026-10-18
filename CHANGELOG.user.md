@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.8] - 2026-10-18
+
 ### Fixed
 - **Offline Service Worker Caching Error**:
   - Fixed a browser console error (`Failed to execute 'put' on 'Cache': Request method 'POST' is unsupported`) that occurred when submitting forms, saving match data, or signing in.
