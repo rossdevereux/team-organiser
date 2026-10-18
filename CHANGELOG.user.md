@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-10-18
+
+### Improved
+- **Platform Maintenance**: Routine platform synchronization and performance improvements across devices.
+
 ## [1.1.1] - 2026-10-17
 
 ### Added
