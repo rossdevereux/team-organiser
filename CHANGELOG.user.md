@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-10-18
+
 ### Added
 - **Equal Playing Time Calculator**: A free public calculator to plan halves and quarter splits for 5v5, 7v7, 9v9, and 11v11 youth matches without needing to log in.
 - **WhatsApp Match Previews**: Clean social preview cards displaying the pitch lineup and app title when sharing SubShuffle links in WhatsApp or text messages.
