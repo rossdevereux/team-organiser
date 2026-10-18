@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Fair Play & Minutes Cumulative Match Tracking** ([#15](https://github.com/rossdevereux/team-organiser/issues/15)):
+  - Added `creditedMinutes?: Record<string, number>` to `Fixture` across [`shared/types.ts`](shared/types.ts), [`server/src/types.ts`](server/src/types.ts), and [`client/src/types.ts`](client/src/types.ts) to track credited match minutes idempotently per player and prevent duplicate increments.
+  - Implemented `applyFixtureMinutes(fixture)` in [`server/src/db/storage.ts`](server/src/db/storage.ts) to automatically calculate minute and appearance deltas when fixtures are saved via `updatePostMatchRecording`, `updateFixtureScore`, `updateFixture`, or removed via `deleteFixture`, updating each player's `totalMinutesPlayed` and `matchesPlayed` in storage.
+  - Updated API endpoints `PUT /api/fixtures/:id/post-match` and `PUT /api/fixtures/:id/score` in [`server/src/routes/api.ts`](server/src/routes/api.ts) to return updated player records (`updatedPlayers`).
+  - Enhanced [`FairPlayStats.tsx`](client/src/components/FairPlayStats.tsx) and [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx) to inspect recorded match time (`postMatchRecording` and `creditedMinutes`) alongside period lineups, calculating dynamic team available minutes and real-time player game time percentages without requiring page reloads.
+  - Updated [`SeasonFairPlayView.tsx`](client/src/components/fairplay/SeasonFairPlayView.tsx) to display exact game time percentages and dynamic playtime balance badges (`Balanced` vs `Below Target (X%)`).
+  - Added unit test suite in [`server/src/tests/fairPlayMinutes.test.ts`](server/src/tests/fairPlayMinutes.test.ts) and Playwright E2E suite in [`e2e/fair-play-minutes.spec.ts`](e2e/fair-play-minutes.spec.ts).
+
 ## [1.1.6] - 2026-10-18
 
 ### Added

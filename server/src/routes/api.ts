@@ -687,7 +687,11 @@ router.put('/fixtures/:id', async (req: AuthenticatedRequest, res: Response) => 
       id,
     };
 
-    const saved = await storage.saveFixture(updated);
+    let saved = await storage.saveFixture(updated);
+    if (saved.status === 'Completed' || saved.status === 'Played') {
+      const resMinutes = await storage.applyFixtureMinutes(saved);
+      saved = resMinutes.fixture;
+    }
     res.json(saved);
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to update fixture', details: err.message });
@@ -869,7 +873,8 @@ router.put('/fixtures/:id/post-match', async (req: Request, res: Response) => {
 
     res.json({
       message: 'Post-match playing time saved successfully',
-      fixture: updated,
+      fixture: updated.fixture,
+      updatedPlayers: updated.updatedPlayers,
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to save post-match recording', details: err.message });
@@ -970,9 +975,15 @@ router.put('/fixtures/:id/score', async (req: AuthenticatedRequest, res: Respons
       return res.status(404).json({ error: 'Fixture not found' });
     }
 
+    let updatedPlayers: Player[] | undefined;
+    if (updated.status === 'Completed' || updated.status === 'Played') {
+      updatedPlayers = await storage.getPlayers(updated.teamId);
+    }
+
     res.json({
       message: 'Fixture score and goal scorers saved successfully',
       fixture: updated,
+      updatedPlayers,
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to save fixture score', details: err.message });

@@ -1377,6 +1377,9 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         headers,
         body: JSON.stringify(fixture),
       });
+      if (fixture.status === 'Completed' || fixture.status === 'Played') {
+        await refreshTeamData();
+      }
     } catch (err) {
       console.error('Failed to update fixture:', err);
     }
@@ -1387,6 +1390,7 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setFixtures((prev) => prev.filter((f) => f.id !== id));
       const headers = await getAuthHeaders();
       await fetch(`/api/fixtures/${id}`, { method: 'DELETE', headers });
+      await refreshTeamData();
       if (activeFixtureId === id) {
         const remaining = fixtures.filter((f) => f.id !== id);
         if (remaining.length > 0) {
@@ -1418,6 +1422,60 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const savePostMatchRecording = async (fixtureId: string, recording: PostMatchRecording) => {
     try {
+      const targetFixture = fixtures.find((f) => f.id === fixtureId);
+      const prevCredited = targetFixture?.creditedMinutes || {};
+      const pCount = targetFixture?.matchPeriodCount || settings.matchPeriodCount || 2;
+      const duration = targetFixture?.periodDurationMinutes || settings.periodDurationMinutes || 25;
+      const totalMatchMinutes = pCount * duration;
+
+      const newMinutes: Record<string, number> = {};
+      if (recording.trackingMode === 'full_credit') {
+        const participantIds =
+          targetFixture?.matchSquad?.selectedPlayerIds ||
+          Object.keys(recording.playerMinutes || {});
+        participantIds.forEach((pId) => {
+          newMinutes[pId] = totalMatchMinutes;
+        });
+      } else if (recording.trackingMode === 'exact') {
+        const pMins = recording.playerMinutes || {};
+        for (const [pId, mins] of Object.entries(pMins)) {
+          newMinutes[pId] = Math.max(0, mins);
+        }
+      }
+
+      // Optimistic fixture update
+      setFixtures((prev) =>
+        prev.map((f) => {
+          if (f.id === fixtureId) {
+            return {
+              ...f,
+              postMatchRecording: recording,
+              status: 'Completed',
+              creditedMinutes: newMinutes,
+            };
+          }
+          return f;
+        })
+      );
+
+      // Optimistic player minutes update
+      setPlayers((prev) =>
+        prev.map((p) => {
+          const prevMins = prevCredited[p.id] || 0;
+          const curMins = newMinutes[p.id] || 0;
+          const deltaMins = curMins - prevMins;
+          const deltaMatches = (curMins > 0 ? 1 : 0) - (prevMins > 0 ? 1 : 0);
+          if (deltaMins !== 0 || deltaMatches !== 0) {
+            return {
+              ...p,
+              totalMinutesPlayed: Math.max(0, (p.totalMinutesPlayed || 0) + deltaMins),
+              matchesPlayed: Math.max(0, (p.matchesPlayed || 0) + deltaMatches),
+            };
+          }
+          return p;
+        })
+      );
+
       const headers = await getAuthHeaders();
       const res = await fetch(`/api/fixtures/${fixtureId}/post-match`, {
         method: 'PUT',
@@ -1428,6 +1486,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const data = await res.json();
         if (data.fixture) {
           setFixtures((prev) => prev.map((f) => (f.id === fixtureId ? data.fixture : f)));
+        }
+        if (Array.isArray(data.updatedPlayers) && data.updatedPlayers.length > 0) {
+          const updatedMap = new Map<string, Player>(data.updatedPlayers.map((p: Player) => [p.id, p]));
+          setPlayers((prev) => prev.map((p) => updatedMap.get(p.id) || p));
         }
       }
     } catch (err) {
@@ -1473,6 +1535,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const data = await res.json();
         if (data.fixture) {
           setFixtures((prev) => prev.map((f) => (f.id === fixtureId ? data.fixture : f)));
+        }
+        if (Array.isArray(data.updatedPlayers) && data.updatedPlayers.length > 0) {
+          const updatedMap = new Map<string, Player>(data.updatedPlayers.map((p: Player) => [p.id, p]));
+          setPlayers((prev) => prev.map((p) => updatedMap.get(p.id) || p));
         }
       }
     } catch (err) {

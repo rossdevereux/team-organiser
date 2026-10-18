@@ -143,6 +143,7 @@ export interface Fixture {
   awayScore?: number;
   scorers?: GoalScorer[];
   isLive?: boolean;
+  creditedMinutes?: Record<string, number>; // playerId -> minutes credited to player totals
 }
 
 // Stats computed per player in a match
