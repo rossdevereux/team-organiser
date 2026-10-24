@@ -240,3 +240,100 @@ export interface UserSubscription {
   currentPeriodEnd?: string; // ISO 8601
   cancelAtPeriodEnd?: boolean;
 }
+
+// ================= Team Dashboard & Season Analytics Models =================
+
+export interface ScorerLeaderboardItem {
+  playerId: string;
+  playerName: string;
+  squadNumber?: number;
+  goals: number;
+  matchesPlayed: number;
+  goalsPerMatch: number;
+  hatTricks: number;
+  matchGoals: {
+    fixtureId: string;
+    date: string;
+    opponent: string;
+    goals: number;
+  }[];
+}
+
+export interface PotmLeaderboardItem {
+  playerId: string;
+  playerName: string;
+  squadNumber?: number;
+  awardsCount: number;
+  matchesPlayed?: number;
+  latestAward?: {
+    fixtureId: string;
+    date: string;
+    opponent: string;
+  };
+}
+
+export interface DefensiveWallItem {
+  playerId: string;
+  playerName: string;
+  squadNumber?: number;
+  cleanSheets: number;
+  defensiveMinutes: number;
+  gkMinutes: number;
+  outfieldDefMinutes: number;
+  matchesPlayed: number;
+  cleanSheetRate: number; // percentage (cleanSheets / matchesPlayed)
+}
+
+export interface PlayerVersatilityItem {
+  playerId: string;
+  playerName: string;
+  squadNumber?: number;
+  totalMinutes: number;
+  minutesByPosition: Record<BroadPosition, number>;
+  periodsByPosition: Record<BroadPosition, number>;
+  categoriesCount: number; // 1 to 4
+  versatilityLevel: 'Specialist' | 'Developing' | 'Versatile' | 'Total Footballer';
+}
+
+export interface TeamMilestoneBadge {
+  id: string;
+  title: string;
+  description: string;
+  category: 'appearance' | 'defensive' | 'attacking' | 'attendance' | 'versatility';
+  icon: string; // e.g. 'medal', 'shield', 'goal', 'hands', 'streak', 'star'
+  achievedAt?: string;
+  playerName?: string;
+  playerId?: string;
+  count?: number;
+}
+
+export interface TeamDashboardSummary {
+  teamId: string;
+  season: string;
+  generatedAt: string;
+  overview: {
+    matchesPlayed: number;
+    record: {
+      wins: number;
+      draws: number;
+      losses: number;
+    };
+    goalsFor: number;
+    goalsAgainst: number;
+    goalDifference: number;
+    cleanSheets: number;
+    squadEquityScore: number; // percentage of players hitting 50%+ target
+    squadAttendanceRate: number; // percentage across squad
+    totalSquadMembers: number;
+    totalAvailableMinutes: number;
+  };
+  scorersLeaderboard: ScorerLeaderboardItem[];
+  potmLeaderboard: PotmLeaderboardItem[];
+  defensiveWall: DefensiveWallItem[];
+  versatilityHeatmap: {
+    teamMinutesByPosition: Record<BroadPosition, number>;
+    players: PlayerVersatilityItem[];
+    designatedGkCoveragePercent: number;
+  };
+  milestones: TeamMilestoneBadge[];
+}

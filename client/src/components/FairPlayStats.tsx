@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
 import { useTranslation } from 'react-i18next';
+import { Link } from '@tanstack/react-router';
 import {
   HeartHandshake,
   Clock,
   Trophy,
+  Award,
 } from 'lucide-react';
 import { SeasonFairPlayView, SeasonPlayerStat } from './fairplay/SeasonFairPlayView';
 import { MatchdayFairPlayView } from './fairplay/MatchdayFairPlayView';
@@ -324,6 +326,15 @@ export const FairPlayStats: React.FC = () => {
               <span>{t('stats.matchdayView')}</span>
             </button>
           </div>
+
+          <Link
+            to="/team-dashboard"
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+            title="Open Team Dashboard: Golden Boot, POTM, The Wall & Awards"
+          >
+            <Award className="w-3.5 h-3.5 text-amber-400" />
+            <span>Team Dashboard & Awards</span>
+          </Link>
         </div>
       </div>
 

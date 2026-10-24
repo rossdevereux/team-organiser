@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+- **Team Dashboard, Season Leaderboards & Presentation Day Awards** ([#17](https://github.com/rossdevereux/team-organiser/issues/17)):
+  - Added an all-in-one Team Dashboard tab to track season performance, achievements, and player development.
+  - **Golden Boot Leaderboard:** Celebrates top squad scorers with gold, silver, and bronze rankings, goals-per-match ratios, and hat-trick badges (⚽⚽⚽).
+  - **Player of the Match (POTM) Tracker:** Ranks squad POTM recipients with star honors and tracks latest award match opponents.
+  - **The Wall (Defensive Recognition):** Celebrates defenders and goalkeepers equally by tracking clean sheets achieved on pitch, defensive playing minutes, and shutout percentages.
+  - **Positional Versatility Breakdown:** Visual color-coded distribution showing time spent in Goalkeeper (🧤), Defence (🛡️), Midfield (⚡), and Attack (🎯), plus designated goalkeeper coverage metrics.
+  - **Milestone & Badge Celebrations:** Auto-calculates milestone awards including Appearance Clubs (10, 25, 50 matches), Safe Hands (3+ clean sheets for keepers), First Goal Hero, and Ever-Present attendance.
+  - **Print Presentation Day Awards Sheet:** Generate an official presentation day certificate and season summary suitable for printing or PDF export on end-of-season awards night.
+
 ## [1.2.0] - 2026-10-24
 
 ### Added

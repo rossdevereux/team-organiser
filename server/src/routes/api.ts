@@ -7,6 +7,7 @@ import {
   generateSuggestedSubstitutions,
   rebalanceRemainingPeriods,
 } from '../services/rotationService.js';
+import { calculateSeasonDashboardSummary } from '../services/dashboardService.js';
 import { getChangelogData } from '../services/changelogService.js';
 import { getFormationsForTeamSize, DEFAULT_FORMATIONS } from '../db/formations.js';
 import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
@@ -89,6 +90,38 @@ router.get('/teams/:id', async (req: AuthenticatedRequest, res: Response) => {
     res.json(team);
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to fetch team', details: err.message });
+  }
+});
+
+// GET /api/teams/:id/dashboard-summary
+router.get('/teams/:id/dashboard-summary', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const season = req.query.season as string | undefined;
+
+    const team = await storage.getTeamById(id);
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    if (userId && !storage.hasTeamAccess(team, userId, userEmail)) {
+      return res.status(403).json({ error: 'Access denied: not an authorized coach for this team' });
+    }
+
+    // Check cached summary
+    const cached = storage.getCachedSeasonSummary(id, season);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    const summary = await calculateSeasonDashboardSummary(id, season);
+    storage.setCachedSeasonSummary(id, season, summary);
+    res.json(summary);
+  } catch (err: any) {
+    console.error('Error generating season dashboard summary:', err);
+    res.status(500).json({ error: 'Failed to generate season dashboard summary', details: err.message });
   }
 });
 

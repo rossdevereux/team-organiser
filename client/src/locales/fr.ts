@@ -62,6 +62,7 @@ export const fr = {
     squad: 'Effectif & Présences',
     fixtures: 'Matchs & Résultats',
     stats: 'Temps de Jeu & Équité',
+    dashboard: 'Tableau de bord',
     teams: 'Équipes & Partage',
     admin: 'Administration du Club',
     calculator: 'Calculateur',

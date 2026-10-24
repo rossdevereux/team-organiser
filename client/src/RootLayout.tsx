@@ -91,9 +91,10 @@ function DashboardShell() {
     if (location.pathname === '/') {
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
-      if (tab && ['lineup', 'matrix', 'squad', 'fixtures', 'stats', 'teams', 'admin'].includes(tab)) {
+      if (tab && ['lineup', 'matrix', 'squad', 'fixtures', 'stats', 'teams', 'admin', 'dashboard', 'team-dashboard'].includes(tab)) {
+        const targetPath = tab === 'dashboard' ? '/team-dashboard' : `/${tab}`;
         (navigate as any)({
-          to: `/${tab}`,
+          to: targetPath,
           search: (prev: any) => prev,
         });
       }

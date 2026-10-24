@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Comprehensive Team Dashboard, Season Leaderboards & Presentation Awards** ([#17](https://github.com/rossdevereux/team-organiser/issues/17)):
+  - Built backend season aggregation service [`server/src/services/dashboardService.ts`](server/src/services/dashboardService.ts) calculating season KPIs (W/D/L record, win rate, goals for/against/diff, clean sheet rate, squad equity score, attendance rate), Golden Boot leaderboard, Player of the Match honors, defensive wall contributions, positional versatility distributions, designated GK coverage, and milestone badges.
+  - Implemented secure API endpoint `GET /api/teams/:id/dashboard-summary` with team access control, caching in [`server/src/db/storage.ts`](server/src/db/storage.ts), and cache invalidation on player and fixture mutations.
+  - Created interactive frontend dashboard [`TeamDashboardView.tsx`](client/src/components/TeamDashboardView.tsx) and page [`TeamDashboardPage.tsx`](client/src/pages/TeamDashboardPage.tsx) featuring responsive KPI ribbons, Golden Boot goal scoring leaderboards with hat-trick detection, Player of the Match tracker, The Wall defensive recognition (crediting clean sheets on pitch and defensive minutes equally alongside attackers), and positional versatility breakdown with multi-segment stacked progress bars.
+  - Implemented official Presentation Day Awards Certificate modal [`PrintPresentationCard.tsx`](client/src/components/PrintPresentationCard.tsx) enabling coaches to generate and print end-of-season awards certificates or PDF summaries for presentation nights.
+  - Registered `/team-dashboard` (and `/dashboard` alias) route in [`router.tsx`](client/src/router.tsx), added Dashboard tab in [`Navbar.tsx`](client/src/components/Navbar.tsx), updated navigation context in [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx), and added cross-navigation from [`FairPlayStats.tsx`](client/src/components/FairPlayStats.tsx).
+  - Added localized strings for Dashboard navigation in [`en.ts`](client/src/locales/en.ts), [`es.ts`](client/src/locales/es.ts), [`fr.ts`](client/src/locales/fr.ts), and [`de.ts`](client/src/locales/de.ts).
+  - Added comprehensive backend test suite [`server/src/tests/dashboardService.test.ts`](server/src/tests/dashboardService.test.ts) covering KPIs, Golden Boot, POTM, defensive metrics, versatility, milestones, and cross-team data scoping.
 - **Stripe Billing & Subscriptions Setup Documentation**:
   - Added dedicated configuration and architecture guide in [`README.md`](README.md) covering Stripe Checkout, Stripe Customer Portal, webhook secret configuration, Stripe CLI local testing, and Cloud Run production secrets.
   - Documented `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in [`server/.env.example`](server/.env.example) and the environment configuration section.

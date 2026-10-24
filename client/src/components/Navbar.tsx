@@ -16,6 +16,7 @@ import {
   WifiOff,
   Crown,
   BookOpen,
+  Trophy,
 } from 'lucide-react';
 import { ContextSwitcher } from '../design-system';
 
@@ -465,6 +466,20 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               {t('nav.stats')}
+            </Link>
+            <Link
+              role="button"
+              to="/team-dashboard"
+              search={(prev: any) => prev}
+              className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap gap-1.5 ${
+                activeTab === 'dashboard'
+                  ? 'bg-amber-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              }`}
+              title="Team Dashboard, Leaderboards & Awards"
+            >
+              <Trophy className="w-3.5 h-3.5 text-amber-400" />
+              <span>{t('nav.dashboard')}</span>
             </Link>
             <Link
               role="button"

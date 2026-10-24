@@ -62,6 +62,7 @@ export const es = {
     squad: 'Plantilla y Asistencia',
     fixtures: 'Partidos y Resultados',
     stats: 'Juego Limpio y Minutos',
+    dashboard: 'Panel de Equipo',
     teams: 'Equipos y Colaboración',
     admin: 'Administración del Club',
     calculator: 'Calculadora',

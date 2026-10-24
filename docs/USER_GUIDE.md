@@ -35,7 +35,9 @@ This guide walks you through every stage of your season, from your initial team 
 - [6. Post-Match & Fair Play Analytics](#6-post-match--fair-play-analytics)
   - [Finalising Match Results](#finalising-match-results)
   - [Season Fair Play Equity Gauges](#season-fair-play-equity-gauges)
+  - [Team Dashboard, Awards & Leaderboards](#team-dashboard-awards--leaderboards)
   - [Official Referee PDF Match Sheets](#official-referee-pdf-match-sheets)
+  - [Presentation Day Awards Cards](#presentation-day-awards-cards)
   - [WhatsApp Post-Match Debrief](#whatsapp-post-match-debrief)
 - [7. Administration, Roles & Subscriptions](#7-administration-roles--subscriptions)
   - [Coach & Member Roles](#coach--member-roles)
@@ -213,11 +215,26 @@ Open the **Stats** tab at any point in the season:
 - **Fair Play Indicator:** Green indicates all squad members are within 10% of equal game time.
 - **Development Chart:** Visualizes what positions each player has experienced (defence vs midfield vs attack) over the course of the campaign.
 
+### Team Dashboard, Awards & Leaderboards
+The **Team Dashboard** (accessible via the top navigation or from the Fair Play Stats view) delivers a comprehensive, season-long analytics hub designed specifically for grassroots teams:
+- **Overview KPIs Ribbon:** Real-time tracking of team record (Wins, Draws, Losses), Win Rate %, Goals For / Conceded / Goal Difference, Clean Sheets count, Squad Equity Compliance %, and Average Squad Attendance.
+- **Golden Boot Leaderboard:** Celebrates squad goal scorers ranked with Gold, Silver, and Bronze badges, tracking goals per match ratio and detecting hat-tricks (⚽⚽⚽).
+- **Player of the Match (POTM) Tracker:** Ranks squad POTM recipients with star honors and tracks recency details (opponent and match date).
+- **The Wall (Defensive Recognition):** Essential for youth football to ensure defenders and goalkeepers are celebrated equally alongside forwards. Tracks clean sheets achieved on pitch, combined defensive and goalkeeper playing minutes, and shutout rate percentage.
+- **Positional Versatility Breakdown:** Visual multi-segment progress bars illustrating the exact distribution of minutes across Goalkeeper (🧤), Defence (🛡️), Midfield (⚡), and Attack (🎯), accompanied by versatility development labels (*Specialist*, *Developing*, *Versatile*, and *Total Footballer*), plus Designated Goalkeeper coverage percentage.
+- **Auto-Generated Milestone Badges:** Celebrates player accomplishments such as Appearance Clubs (10, 25, 50 matches), Safe Hands (3+ clean sheets for keepers), First Goal Hero, Ever-Present (100% attendance), and team Clean Sheet streaks.
+
 ### Official Referee PDF Match Sheets
 Need to submit team sheets to the league secretary or referee before kick-off?
 1. Tap **Share / Export** -> **Print Team Sheet**.
 2. SubShuffle formats an official FA-standard team sheet complete with starting lineup, substitutes, squad numbers, coaches, and fair play notes.
 3. Print directly to a wireless printer or save as a PDF.
+
+### Presentation Day Awards Cards
+At the end of your season or for club presentation nights:
+1. Open the **Team Dashboard** and tap **Print Awards Sheet**.
+2. SubShuffle automatically formats an official, high-contrast Presentation Day Certificate and Season Summary including full win-loss record, Golden Boot winner, Player of the Season, The Wall defensive honors, milestone achievements, and an official coach verification line.
+3. Print on A4 cardstock or save as a clean PDF record for players and parents.
 
 ### WhatsApp Post-Match Debrief
 Share match highlights with parents:

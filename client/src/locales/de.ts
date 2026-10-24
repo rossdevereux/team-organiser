@@ -62,6 +62,7 @@ export const de = {
     squad: 'Kader & Anwesenheit',
     fixtures: 'Spiele & Ergebnisse',
     stats: 'Fair Play & Spielminuten',
+    dashboard: 'Team-Dashboard',
     teams: 'Teams & Freigaben',
     admin: 'Vereinsverwaltung',
     calculator: 'Rechner',

@@ -515,6 +515,27 @@ export class StorageManager {
   private isFirestoreAvailable: boolean = false;
   private firestoreInstance: any = null;
   private initPromise: Promise<void>;
+  private seasonSummaryCache = new Map<string, any>();
+
+  getCachedSeasonSummary(teamId: string, season?: string): any | null {
+    return this.seasonSummaryCache.get(`${teamId}:${season || 'ALL'}`) || null;
+  }
+
+  setCachedSeasonSummary(teamId: string, season: string | undefined, summary: any): void {
+    this.seasonSummaryCache.set(`${teamId}:${season || 'ALL'}`, summary);
+  }
+
+  invalidateSeasonSummary(teamId?: string): void {
+    if (teamId) {
+      for (const key of this.seasonSummaryCache.keys()) {
+        if (key.startsWith(`${teamId}:`)) {
+          this.seasonSummaryCache.delete(key);
+        }
+      }
+    } else {
+      this.seasonSummaryCache.clear();
+    }
+  }
 
   constructor(customFirestore?: any) {
     this.memoryStore = {
@@ -961,6 +982,7 @@ export class StorageManager {
         console.error('Firestore save error:', err);
       }
     }
+    this.invalidateSeasonSummary(player.teamId);
     return player;
   }
 
@@ -988,6 +1010,7 @@ export class StorageManager {
         console.error('Firestore batch save error:', err);
       }
     }
+    this.invalidateSeasonSummary(players[0]?.teamId);
     return players;
   }
 
@@ -1004,6 +1027,7 @@ export class StorageManager {
         console.error('Firestore delete error:', err);
       }
     }
+    this.invalidateSeasonSummary();
     return this.memoryStore.players.length < prevLen;
   }
 
@@ -1108,6 +1132,7 @@ export class StorageManager {
         console.error('Firestore save fixture error:', err);
       }
     }
+    this.invalidateSeasonSummary(fixture.teamId);
     return fixture;
   }
 
@@ -1297,6 +1322,7 @@ export class StorageManager {
         console.error('Firestore delete error:', err);
       }
     }
+    this.invalidateSeasonSummary(fixture?.teamId);
     return this.memoryStore.fixtures.length < prevLen;
   }
 

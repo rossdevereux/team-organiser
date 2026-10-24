@@ -20,6 +20,7 @@ const LazyMatrixPage = React.lazy(() => import('./pages/MatrixPage').then((m) =>
 const LazySquadPage = React.lazy(() => import('./pages/SquadPage').then((m) => ({ default: m.SquadPage })));
 const LazyFixturesPage = React.lazy(() => import('./pages/FixturesPage').then((m) => ({ default: m.FixturesPage })));
 const LazyStatsPage = React.lazy(() => import('./pages/StatsPage').then((m) => ({ default: m.StatsPage })));
+const LazyTeamDashboardPage = React.lazy(() => import('./pages/TeamDashboardPage').then((m) => ({ default: m.TeamDashboardPage })));
 const LazyTeamsPage = React.lazy(() => import('./pages/TeamsPage').then((m) => ({ default: m.TeamsPage })));
 const LazyAdminPage = React.lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 const LazyCalculatorPage = React.lazy(() => import('./pages/CalculatorPage').then((m) => ({ default: m.CalculatorPage })));
@@ -97,6 +98,18 @@ const statsRoute = createRoute({
   component: withSuspense(LazyStatsPage),
 });
 
+const teamDashboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/team-dashboard',
+  component: withSuspense(LazyTeamDashboardPage),
+});
+
+const dashboardAliasRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/dashboard',
+  component: withSuspense(LazyTeamDashboardPage),
+});
+
 const teamsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/teams',
@@ -120,6 +133,8 @@ const routeTree = rootRoute.addChildren([
   squadRoute,
   fixturesRoute,
   statsRoute,
+  teamDashboardRoute,
+  dashboardAliasRoute,
   teamsRoute,
   adminRoute,
 ]);
