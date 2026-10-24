@@ -15,23 +15,23 @@ import {
 
 const router = Router();
 
-// Pricing catalog (Grassroots Pricing Spec)
+// Pricing catalog (Grassroots Pricing Spec - Infrastructure Recovery)
 export const PRICING_PLANS = {
   coach_monthly: {
     id: 'coach_monthly',
     name: 'Coach Monthly',
-    priceGbp: 3.99,
-    unitAmount: 399,
+    priceGbp: 1.50,
+    unitAmount: 150,
     interval: 'month' as const,
-    description: 'Full automated rotations, fair play minutes & live sideline alerts',
+    description: 'Covers grassroots server & infrastructure costs — automated rotations & live alerts',
   },
   coach_annual: {
     id: 'coach_annual',
     name: 'Coach Annual',
-    priceGbp: 29.99,
-    unitAmount: 2999,
+    priceGbp: 15.00,
+    unitAmount: 1500,
     interval: 'year' as const,
-    description: 'Save ~37% (£2.50/mo) — unlimited youth teams, matches & PDF sheets',
+    description: 'Only £1.25/mo (£15/yr) — covers all team fixtures, automated fair play & PDF sheets',
   },
 };
 

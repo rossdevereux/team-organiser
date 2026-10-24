@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
 import { useToast } from '../context/ToastContext';
 import { UserRole } from '../firebase';
-import { AdminUser, ClubSettings, BackupData } from '../types';
+import { AdminUser, ClubSettings, BackupData, SubscriptionStatus, SubscriptionTier } from '../types';
 import {
   Shield,
   Users,
@@ -14,6 +14,7 @@ import {
   fetchAdminUsers,
   inviteAdminUser,
   updateAdminUserRole,
+  updateAdminUserSubscription,
   deleteAdminUser,
   fetchClubSettings,
   saveClubSettings,
@@ -97,6 +98,27 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigateHome }) => {
       showToast(`User claim successfully updated to '${role}'`, 'success');
     } catch (err: any) {
       showToast(err.message || 'Failed to update user role', 'error');
+    }
+  };
+
+  const handleUpdateSubscription = async (
+    uid: string,
+    status: SubscriptionStatus,
+    tier?: SubscriptionTier
+  ) => {
+    try {
+      const res = await updateAdminUserSubscription(uid, { status, tier });
+      setUsers((prev) =>
+        prev.map((u) => (u.uid === uid ? { ...u, subscription: res.subscription } : u))
+      );
+      showToast(
+        status === 'lifetime'
+          ? 'Granted Free for Life status! User has perpetual active access.'
+          : `User subscription updated to '${status}'`,
+        'success'
+      );
+    } catch (err: any) {
+      showToast(err.message || 'Failed to update user subscription', 'error');
     }
   };
 
@@ -249,6 +271,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigateHome }) => {
           users={users}
           onInviteUser={handleInviteUser}
           onUpdateRole={handleUpdateRole}
+          onUpdateSubscription={handleUpdateSubscription}
           onDeleteUser={handleDeleteUser}
         />
       )}

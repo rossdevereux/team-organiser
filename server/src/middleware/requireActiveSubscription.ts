@@ -15,6 +15,9 @@ import { UserSubscription } from '../types.js';
  */
 export function isSubscriptionActive(sub?: UserSubscription | null): boolean {
   if (!sub) return false;
+  if (sub.status === 'lifetime' || sub.tier === 'free_for_life') {
+    return true;
+  }
   const now = Date.now();
 
   switch (sub.status) {
@@ -80,8 +83,12 @@ export const requireActiveSubscription = async (
     return next();
   }
 
-  // Fast path: Zero-lookup check via custom claim if active
-  if (req.user.subscriptionStatus === 'active') {
+  // Fast path: Zero-lookup check via custom claim if active or lifetime
+  if (
+    req.user.subscriptionStatus === 'active' ||
+    req.user.subscriptionStatus === 'lifetime' ||
+    req.user.subscriptionTier === 'free_for_life'
+  ) {
     return next();
   }
 

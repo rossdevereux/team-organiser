@@ -6,6 +6,7 @@ import express from 'express';
 import { storage } from '../db/storage.js';
 import apiRouter from '../routes/api.js';
 import billingRouter from '../routes/billing.js';
+import adminRouter from '../routes/admin.js';
 import {
   isSubscriptionActive,
   getTrialDaysRemaining,
@@ -58,6 +59,7 @@ describe('Stripe Billing & Free Trial Monetisation Suite (Issue #6)', () => {
       })
     );
     app.use('/api', apiRouter);
+    app.use('/api/admin', adminRouter);
     app.use('/api/billing', billingRouter);
 
     await new Promise<void>((resolve) => {
@@ -177,6 +179,23 @@ describe('Stripe Billing & Free Trial Monetisation Suite (Issue #6)', () => {
         currentPeriodEnd: new Date(now - 2 * 86400000).toISOString(),
       };
       assert.equal(isSubscriptionActive(canceledExpired), false);
+
+      // Lifetime / Free for Life (Perpetual active access)
+      const lifetimeSub: UserSubscription = {
+        status: 'lifetime',
+        tier: 'free_for_life',
+        trialStartedAt: new Date(now - 100 * 86400000).toISOString(),
+        trialEndsAt: new Date(now - 70 * 86400000).toISOString(),
+      };
+      assert.equal(isSubscriptionActive(lifetimeSub), true);
+
+      const freeForLifeTierSub: UserSubscription = {
+        status: 'expired',
+        tier: 'free_for_life',
+        trialStartedAt: new Date(now - 100 * 86400000).toISOString(),
+        trialEndsAt: new Date(now - 70 * 86400000).toISOString(),
+      };
+      assert.equal(isSubscriptionActive(freeForLifeTierSub), true);
     });
 
     it('dynamically flips status to expired in storage when trial end date is exceeded', async () => {
@@ -366,8 +385,8 @@ describe('Stripe Billing & Free Trial Monetisation Suite (Issue #6)', () => {
       assert.equal(typeof data.isSubscriptionActive, 'boolean');
       assert.ok(data.pricingPlans.coach_monthly);
       assert.ok(data.pricingPlans.coach_annual);
-      assert.equal(data.pricingPlans.coach_monthly.priceGbp, 3.99);
-      assert.equal(data.pricingPlans.coach_annual.priceGbp, 29.99);
+      assert.equal(data.pricingPlans.coach_monthly.priceGbp, 1.50);
+      assert.equal(data.pricingPlans.coach_annual.priceGbp, 15.00);
     });
 
     it('POST /api/billing/create-checkout-session creates session or mock redirect URL', async () => {
@@ -502,6 +521,60 @@ describe('Stripe Billing & Free Trial Monetisation Suite (Issue #6)', () => {
       assert.equal(res.status, 200);
       const sub = await storage.getUserSubscription(testUserId);
       assert.equal(sub.status, 'expired');
+    });
+
+    it('PUT /api/admin/users/:uid/subscription allows Club Owner to grant Free for Life status', async () => {
+      const targetCoachUid = `grant_lifetime_${Date.now()}`;
+      await storage.upsertAdminUser({
+        uid: targetCoachUid,
+        email: 'lucky.coach@grassroots.local',
+        displayName: 'Lucky Coach',
+        role: 'coach',
+      });
+
+      // Attempt to grant lifetime as owner
+      const grantRes = await fetch(`${baseUrl}/admin/users/${targetCoachUid}/subscription`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': 'club_owner_uid',
+          'x-user-email': 'owner@grassroots.local',
+          'x-user-role': 'owner',
+          Authorization: 'Bearer mock-dev-token',
+        },
+        body: JSON.stringify({
+          status: 'lifetime',
+        }),
+      });
+
+      assert.equal(grantRes.status, 200);
+      const grantData = await grantRes.json();
+      assert.equal(grantData.subscription.status, 'lifetime');
+      assert.equal(grantData.subscription.tier, 'free_for_life');
+
+      // Verify entitlement check returns active
+      const fetchedSub = await storage.getUserSubscription(targetCoachUid);
+      assert.equal(fetchedSub.status, 'lifetime');
+      assert.equal(isSubscriptionActive(fetchedSub), true);
+
+      // Verify non-owner cannot grant subscriptions
+      const forbiddenRes = await fetch(`${baseUrl}/admin/users/${targetCoachUid}/subscription`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': 'regular_coach_uid',
+          'x-user-email': 'coach@grassroots.local',
+          'x-user-role': 'coach',
+          Authorization: 'Bearer mock-dev-token',
+        },
+        body: JSON.stringify({
+          status: 'lifetime',
+        }),
+      });
+      assert.equal(forbiddenRes.status, 403);
+
+      // Clean up
+      await storage.deleteAdminUser(targetCoachUid);
     });
   });
 });

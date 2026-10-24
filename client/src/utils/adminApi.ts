@@ -1,5 +1,5 @@
 import { getAuthToken, UserRole } from '../firebase';
-import { AdminUser, ClubSettings, BackupData } from '../types';
+import { AdminUser, ClubSettings, BackupData, SubscriptionStatus, SubscriptionTier, UserSubscription } from '../types';
 
 export async function getAdminHeaders(): Promise<Record<string, string>> {
   const token = await getAuthToken();
@@ -43,6 +43,23 @@ export async function updateAdminUserRole(uid: string, role: UserRole): Promise<
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.error || 'Failed to update user role');
   }
+}
+
+export async function updateAdminUserSubscription(
+  uid: string,
+  payload: { status: SubscriptionStatus; tier?: SubscriptionTier }
+): Promise<{ subscription: UserSubscription; user: AdminUser }> {
+  const headers = await getAdminHeaders();
+  const res = await fetch(`/api/admin/users/${uid}/subscription`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to update user subscription');
+  }
+  return res.json();
 }
 
 export async function deleteAdminUser(uid: string): Promise<void> {

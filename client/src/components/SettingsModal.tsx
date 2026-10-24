@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { TeamSettings } from '../types';
 import { getFormationsForTeamSize } from '../utils/formations';
-import { Sliders, X, Check, Plus, CreditCard, Sparkles, ExternalLink, ShieldCheck, Clock, Zap } from 'lucide-react';
+import { Sliders, X, Check, Plus, CreditCard, Sparkles, ExternalLink, ShieldCheck, Clock, Zap, Crown } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
 import { getAuthToken } from '../firebase';
 
@@ -97,9 +97,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
   };
 
+  const isLifetime = subscription?.status === 'lifetime' || subscription?.tier === 'free_for_life';
   const isPro = subscription?.status === 'active';
-  const isTrial = subscription?.status === 'trialing';
-  const isExpired = subscription?.status === 'expired' || (!isSubscriptionActive && !isTrial && !isPro);
+  const isTrial = !isLifetime && subscription?.status === 'trialing';
+  const isExpired = !isLifetime && (subscription?.status === 'expired' || (!isSubscriptionActive && !isTrial && !isPro));
 
   return (
     <div
@@ -154,7 +155,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           >
             <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
             <span>Billing & Plan</span>
-            {isPro && (
+            {isLifetime ? (
+              <span className="text-[9px] px-1 rounded bg-amber-500/30 text-amber-200 font-mono">LIFETIME</span>
+            ) : isPro && (
               <span className="text-[9px] px-1 rounded bg-emerald-500/30 text-emerald-200 font-mono">PRO</span>
             )}
           </button>
@@ -169,7 +172,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider">Current Plan</div>
                   <div className="text-base font-bold text-white flex items-center gap-2 mt-0.5">
                     <span>
-                      {isPro
+                      {isLifetime
+                        ? 'Free for Life (Complimentary)'
+                        : isPro
                         ? subscription?.tier === 'coach_annual'
                           ? 'Coach Annual Pro'
                           : 'Coach Monthly Pro'
@@ -177,7 +182,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         ? '30-Day Free Trial'
                         : 'Free Trial Expired'}
                     </span>
-                    {isPro ? (
+                    {isLifetime ? (
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-mono font-bold flex items-center gap-1">
+                        <Crown className="w-3 h-3 text-amber-400" />
+                        LIFETIME
+                      </span>
+                    ) : isPro ? (
                       <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-bold">
                         ACTIVE
                       </span>
@@ -197,6 +207,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <ShieldCheck className="w-5 h-5" />
                 </div>
               </div>
+
+              {isLifetime && (
+                <div className="text-amber-400/90 text-[11px] flex items-center gap-1.5 pt-1">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>
+                    Complimentary lifetime access granted. Perpetual active access to all features.
+                  </span>
+                </div>
+              )}
 
               {isTrial && subscription?.trialEndsAt && (
                 <div className="text-slate-400 text-[11px] flex items-center gap-1.5 pt-1">
@@ -219,7 +238,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* Plan Action CTA */}
             <div className="space-y-2 pt-1">
-              {!isPro ? (
+              {isLifetime ? (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs text-center font-medium">
+                  Your account is permanently entitled to all features without any recurring fees.
+                </div>
+              ) : !isPro ? (
                 <button
                   type="button"
                   onClick={() => {
@@ -229,7 +252,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition cursor-pointer shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
                 >
                   <Zap className="w-4 h-4 fill-slate-950" />
-                  <span>{isExpired ? 'Upgrade to Continue Using SubShuffle Pro' : 'Upgrade Plan (£29.99/yr or £3.99/mo)'}</span>
+                  <span>{isExpired ? 'Upgrade to Continue Using SubShuffle Pro' : 'Upgrade Plan (£15.00/yr or £1.50/mo)'}</span>
                 </button>
               ) : (
                 <div className="grid grid-cols-2 gap-2">

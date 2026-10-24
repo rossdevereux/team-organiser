@@ -123,9 +123,10 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose }) =
     }
   };
 
-  const isExpired = subscription?.status === 'expired' || (!isSubscriptionActive && subscription?.status !== 'past_due');
-  const isPastDue = subscription?.status === 'past_due';
-  const isActivePro = subscription?.status === 'active';
+  const isLifetime = subscription?.status === 'lifetime' || subscription?.tier === 'free_for_life';
+  const isExpired = !isLifetime && (subscription?.status === 'expired' || (!isSubscriptionActive && subscription?.status !== 'past_due'));
+  const isPastDue = !isLifetime && subscription?.status === 'past_due';
+  const isActivePro = !isLifetime && subscription?.status === 'active';
 
   return (
     <div
@@ -153,22 +154,26 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose }) =
         <div className="text-center space-y-2 pt-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            <span>SubShuffle Grassroots Pro</span>
+            <span>SubShuffle Grassroots Cost Recovery</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            {isExpired
+            {isLifetime
+              ? 'Complimentary Free for Life Access'
+              : isExpired
               ? 'Your 30-Day Free Trial Has Ended'
               : isPastDue
               ? 'Update Your Billing Information'
-              : 'Save Hours Every Sunday Morning'}
+              : 'Support Grassroots Infrastructure'}
           </h2>
 
           <p className="text-sm text-slate-300 max-w-lg mx-auto">
-            Keep lineups fair, eliminate Sunday morning sideline stress, and calculate squad minutes automatically.
+            {isLifetime
+              ? 'Your account has complimentary lifetime access with all features permanently unlocked.'
+              : 'Priced strictly to cover our cloud server and hosting costs — £1.50/mo or £15/yr to keep grassroots rotations automated and stress-free.'}
           </p>
 
-          {!isExpired && !isActivePro && !isPastDue && trialDaysRemaining > 0 && (
+          {!isLifetime && !isExpired && !isActivePro && !isPastDue && trialDaysRemaining > 0 && (
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300 mt-1">
               <Clock className="w-3.5 h-3.5 text-sky-400" />
               <span>
@@ -190,22 +195,22 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose }) =
             }`}
           >
             <div className="absolute -top-3 right-4 px-2.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow">
-              Save 37% (Best Value)
+              Best Value (£1.25/mo)
             </div>
 
             <div className="space-y-1">
               <div className="text-sm font-bold text-slate-200">Coach Annual</div>
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-black text-white">£29.99</span>
+                <span className="text-3xl font-black text-white">£15.00</span>
                 <span className="text-xs text-slate-400">/ year</span>
               </div>
               <div className="text-xs font-semibold text-emerald-400 font-mono">
-                Only ~£2.50 / month
+                Only ~£1.25 / month
               </div>
             </div>
 
             <p className="text-[11px] text-slate-400 mt-3 pt-3 border-t border-slate-800/80">
-              Covers your entire season with all tournaments and mid-match rebalancing included.
+              Covers your entire season and hosting costs for all team fixtures, automated fair play & PDF sheets.
             </p>
           </div>
 
@@ -221,7 +226,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose }) =
             <div className="space-y-1">
               <div className="text-sm font-bold text-slate-200">Coach Monthly</div>
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-black text-white">£3.99</span>
+                <span className="text-3xl font-black text-white">£1.50</span>
                 <span className="text-xs text-slate-400">/ month</span>
               </div>
               <div className="text-xs text-slate-400 font-mono">
@@ -230,7 +235,7 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose }) =
             </div>
 
             <p className="text-[11px] text-slate-400 mt-3 pt-3 border-t border-slate-800/80">
-              Month-to-month access for grassroots coaches running seasonal friendlies and cup runs.
+              Month-to-month access to cover server and database infrastructure costs.
             </p>
           </div>
         </div>
@@ -281,19 +286,24 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose }) =
           <button
             type="button"
             onClick={handleCheckout}
-            disabled={loadingCheckout}
+            disabled={loadingCheckout || isLifetime}
             className="w-full min-h-[48px] py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm transition cursor-pointer shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 group disabled:opacity-50"
             data-testid="upgrade-checkout-button"
           >
-            {loadingCheckout ? (
+            {isLifetime ? (
+              <>
+                <Sparkles className="w-4 h-4 text-slate-950" />
+                <span>Complimentary Lifetime Access Active (Free for Life)</span>
+              </>
+            ) : loadingCheckout ? (
               <span>Connecting to Secure Stripe Checkout...</span>
             ) : (
               <>
                 <Zap className="w-4 h-4 fill-slate-950 group-hover:scale-110 transition-transform" />
                 <span>
                   {selectedPlan === 'coach_annual'
-                    ? 'Upgrade to Coach Annual (£29.99/yr)'
-                    : 'Upgrade to Coach Monthly (£3.99/mo)'}
+                    ? 'Upgrade to Coach Annual (£15.00/yr)'
+                    : 'Upgrade to Coach Monthly (£1.50/mo)'}
                 </span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </>

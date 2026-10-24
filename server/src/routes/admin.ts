@@ -2,10 +2,18 @@ import { Router, Response } from 'express';
 import { requireAuth, requireRole, AuthenticatedRequest } from '../middleware/auth.js';
 import {
   setCustomUserRole,
+  setUserSubscriptionClaims,
   listAllUsersWithClaims,
 } from '../auth/claims.js';
 import { storage } from '../db/storage.js';
-import { UserRole, ClubSettings, BackupData } from '../types.js';
+import {
+  UserRole,
+  ClubSettings,
+  BackupData,
+  SubscriptionStatus,
+  SubscriptionTier,
+  UserSubscription,
+} from '../types.js';
 
 const router = Router();
 
@@ -60,6 +68,56 @@ router.put('/users/:uid/role', requireRole(['owner']), async (req: Authenticated
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to update user role', details: err.message });
+  }
+});
+
+// PUT /api/admin/users/:uid/subscription - Update individual user subscription (Free for Life, Active, etc.) (Owner only)
+router.put('/users/:uid/subscription', requireRole(['owner']), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const targetUid = String(req.params.uid);
+    const { status, tier } = req.body as {
+      status: SubscriptionStatus;
+      tier?: SubscriptionTier;
+    };
+
+    const validStatuses: SubscriptionStatus[] = [
+      'trialing',
+      'active',
+      'past_due',
+      'canceled',
+      'expired',
+      'lifetime',
+    ];
+
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({
+        error: `Invalid subscription status. Must be one of: ${validStatuses.join(', ')}`,
+      });
+    }
+
+    const assignedTier: SubscriptionTier =
+      tier || (status === 'lifetime' ? 'free_for_life' : 'coach_monthly');
+
+    const existingSub = await storage.getUserSubscription(targetUid);
+    const updatedSub: UserSubscription = {
+      ...existingSub,
+      status,
+      tier: assignedTier,
+    };
+
+    // Synchronize Firebase Custom User Claims & persistent storage
+    await setUserSubscriptionClaims(targetUid, updatedSub);
+
+    const updatedUser = await storage.getAdminUserByUid(targetUid);
+
+    res.json({
+      message: `User subscription successfully updated to ${status} (${assignedTier})`,
+      uid: targetUid,
+      subscription: updatedSub,
+      user: updatedUser,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to update user subscription', details: err.message });
   }
 });
 

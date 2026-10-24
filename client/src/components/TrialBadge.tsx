@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Sparkles, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Clock, Sparkles, AlertTriangle, ShieldCheck, Crown } from 'lucide-react';
 import { useMatchday } from '../context/MatchdayContext';
 
 interface TrialBadgeProps {
@@ -22,6 +22,21 @@ export const TrialBadge: React.FC<TrialBadgeProps> = ({ onOpenPaywall, className
       openPaywall();
     }
   };
+
+  // Lifetime / Free for Life presentation
+  if (subscription.status === 'lifetime' || subscription.tier === 'free_for_life') {
+    return (
+      <div
+        className={`h-9 whitespace-nowrap shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold transition shadow-sm select-none ${className}`}
+        title="Complimentary Lifetime Access — Free for Life"
+        data-testid="subscription-badge-lifetime"
+      >
+        <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+        <span className="hidden md:inline font-semibold text-[11px] tracking-wide">Free for Life</span>
+        <span className="md:hidden font-semibold text-[11px]">Lifetime</span>
+      </div>
+    );
+  }
 
   // Active paid subscriber presentation
   if (subscription.status === 'active') {

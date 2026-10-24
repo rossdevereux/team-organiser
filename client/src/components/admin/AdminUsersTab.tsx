@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AdminUser } from '../../types';
+import { AdminUser, SubscriptionStatus, SubscriptionTier } from '../../types';
 import { UserRole } from '../../firebase';
 import {
   Users,
@@ -10,6 +10,10 @@ import {
   Trash2,
   CheckCircle2,
   Shield,
+  Sparkles,
+  Clock,
+  AlertTriangle,
+  XCircle,
 } from 'lucide-react';
 import { ConfirmModal } from '../ConfirmModal';
 
@@ -17,6 +21,7 @@ interface AdminUsersTabProps {
   users: AdminUser[];
   onInviteUser: (email: string, displayName: string, role: UserRole) => Promise<void>;
   onUpdateRole: (uid: string, role: UserRole) => Promise<void>;
+  onUpdateSubscription?: (uid: string, status: SubscriptionStatus, tier?: SubscriptionTier) => Promise<void>;
   onDeleteUser: (uid: string) => Promise<void>;
 }
 
@@ -24,6 +29,7 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({
   users,
   onInviteUser,
   onUpdateRole,
+  onUpdateSubscription,
   onDeleteUser,
 }) => {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
@@ -36,6 +42,9 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({
   const ownersCount = users.filter((u) => u.role === 'owner').length;
   const coachesCount = users.filter((u) => u.role === 'coach').length;
   const viewersCount = users.filter((u) => u.role === 'viewer').length;
+  const lifetimeCount = users.filter(
+    (u) => u.subscription?.status === 'lifetime' || u.subscription?.tier === 'free_for_life'
+  ).length;
 
   const handleInviteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,13 +70,13 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({
   return (
     <div className="space-y-6">
       {/* KPI Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
         <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
           <span className="text-[10px] uppercase font-bold text-slate-500">Total Registered</span>
           <p className="text-2xl font-black text-slate-100">{users.length}</p>
           <span className="text-[11px] text-slate-400 flex items-center gap-1">
             <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-            Firebase Auth Accounts
+            Auth Accounts
           </span>
         </div>
 
@@ -85,7 +94,16 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({
           <p className="text-2xl font-black text-indigo-300">{coachesCount}</p>
           <span className="text-[11px] text-indigo-400/70 flex items-center gap-1">
             <UserCheck className="w-3 h-3" />
-            Matchday Lineups & Subs
+            Tactical & Subs
+          </span>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-yellow-500/10 to-amber-500/15 border border-yellow-500/25 space-y-1">
+          <span className="text-[10px] uppercase font-bold text-amber-300">Free for Life</span>
+          <p className="text-2xl font-black text-yellow-300">{lifetimeCount}</p>
+          <span className="text-[11px] text-amber-300/80 flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-yellow-400" />
+            Perpetual Access
           </span>
         </div>
 
@@ -94,7 +112,7 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({
           <p className="text-2xl font-black text-slate-300">{viewersCount}</p>
           <span className="text-[11px] text-slate-400 flex items-center gap-1">
             <Eye className="w-3 h-3" />
-            Read-Only Pitch Access
+            Read-Only Pitch
           </span>
         </div>
       </div>
@@ -103,9 +121,9 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({
       <div className="rounded-3xl bg-slate-900/80 border border-slate-800 shadow-xl overflow-hidden">
         <div className="p-5 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-base font-bold text-slate-100">User Access & Token Claims</h3>
+            <h3 className="text-base font-bold text-slate-100">User Access, Roles & Subscription Entitlements</h3>
             <p className="text-xs text-slate-400">
-              Manage roles embedded directly into the Firebase JWT ID token with zero database lookups.
+              Manage roles and subscription tiers (including complimentary Free for Life status) with instant Firebase token claim synchronization.
             </p>
           </div>
 
@@ -126,75 +144,139 @@ export const AdminUsersTab: React.FC<AdminUsersTabProps> = ({
               <tr>
                 <th className="py-3 px-4">User</th>
                 <th className="py-3 px-4">Firebase UID</th>
-                <th className="py-3 px-4">JWT Custom Claim</th>
+                <th className="py-3 px-4">JWT Role</th>
                 <th className="py-3 px-4">Role Action</th>
+                <th className="py-3 px-4">Subscription</th>
+                <th className="py-3 px-4">Subscription Action</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {users.map((u) => (
-                <tr key={u.uid} className="hover:bg-slate-850/50 transition">
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-300 shrink-0">
-                        {u.displayName?.[0] || u.email[0].toUpperCase()}
+              {users.map((u) => {
+                const isLifetime =
+                  u.subscription?.status === 'lifetime' || u.subscription?.tier === 'free_for_life';
+                const subStatus = isLifetime ? 'lifetime' : (u.subscription?.status || 'trialing');
+
+                return (
+                  <tr key={u.uid} className="hover:bg-slate-850/50 transition">
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-xs text-slate-300 shrink-0">
+                          {u.displayName?.[0] || u.email[0].toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-slate-200 truncate">
+                            {u.displayName || 'Club Member'}
+                          </p>
+                          <p className="text-[11px] text-slate-400 font-mono truncate">{u.email}</p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-slate-200 truncate">
-                          {u.displayName || 'Club Member'}
-                        </p>
-                        <p className="text-[11px] text-slate-400 font-mono truncate">{u.email}</p>
-                      </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">
-                    <span className="truncate max-w-[130px] block" title={u.uid}>
-                      {u.uid}
-                    </span>
-                  </td>
+                    <td className="py-3.5 px-4 font-mono text-[11px] text-slate-500">
+                      <span className="truncate max-w-[110px] block" title={u.uid}>
+                        {u.uid}
+                      </span>
+                    </td>
 
-                  <td className="py-3.5 px-4">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
-                        u.role === 'owner'
-                          ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                          : u.role === 'coach'
-                          ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30'
-                          : 'bg-slate-800 text-slate-300 border border-slate-700'
-                      }`}
-                    >
-                      {u.role === 'owner' && <Crown className="w-3 h-3 text-amber-400" />}
-                      {u.role === 'coach' && <UserCheck className="w-3 h-3 text-indigo-400" />}
-                      {u.role === 'viewer' && <Eye className="w-3 h-3 text-slate-400" />}
-                      <span>{u.role}</span>
-                    </span>
-                  </td>
+                    <td className="py-3.5 px-4">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${
+                          u.role === 'owner'
+                            ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                            : u.role === 'coach'
+                            ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30'
+                            : 'bg-slate-800 text-slate-300 border border-slate-700'
+                        }`}
+                      >
+                        {u.role === 'owner' && <Crown className="w-3 h-3 text-amber-400" />}
+                        {u.role === 'coach' && <UserCheck className="w-3 h-3 text-indigo-400" />}
+                        {u.role === 'viewer' && <Eye className="w-3 h-3 text-slate-400" />}
+                        <span>{u.role}</span>
+                      </span>
+                    </td>
 
-                  <td className="py-3.5 px-4">
-                    <select
-                      value={u.role}
-                      onChange={(e) => onUpdateRole(u.uid, e.target.value as UserRole)}
-                      className="h-8 px-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs font-semibold focus:outline-none focus:border-amber-500 cursor-pointer"
-                    >
-                      <option value="owner">Owner (Full Governance)</option>
-                      <option value="coach">Coach (Tactical & Subs)</option>
-                      <option value="viewer">Viewer (Read Only)</option>
-                    </select>
-                  </td>
+                    <td className="py-3.5 px-4">
+                      <select
+                        value={u.role}
+                        onChange={(e) => onUpdateRole(u.uid, e.target.value as UserRole)}
+                        className="h-8 px-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 text-xs font-semibold focus:outline-none focus:border-amber-500 cursor-pointer"
+                      >
+                        <option value="owner">Owner (Full Governance)</option>
+                        <option value="coach">Coach (Tactical & Subs)</option>
+                        <option value="viewer">Viewer (Read Only)</option>
+                      </select>
+                    </td>
 
-                  <td className="py-3.5 px-4 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setUserToDelete(u)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
-                      title="Remove user from club"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    {/* Subscription Status Badge */}
+                    <td className="py-3.5 px-4">
+                      {isLifetime ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-yellow-300 border border-amber-500/40 shadow-sm">
+                          <Sparkles className="w-3 h-3 text-yellow-400" />
+                          <span>Free for Life</span>
+                        </span>
+                      ) : u.subscription?.status === 'active' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          <span>Active Pro</span>
+                        </span>
+                      ) : u.subscription?.status === 'past_due' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                          <AlertTriangle className="w-3 h-3 text-amber-400" />
+                          <span>Past Due</span>
+                        </span>
+                      ) : u.subscription?.status === 'expired' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                          <XCircle className="w-3 h-3 text-rose-400" />
+                          <span>Expired</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                          <Clock className="w-3 h-3 text-sky-400" />
+                          <span>Trialing</span>
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Subscription Action Dropdown */}
+                    <td className="py-3.5 px-4">
+                      <select
+                        value={subStatus}
+                        onChange={(e) => {
+                          const newStatus = e.target.value as SubscriptionStatus;
+                          onUpdateSubscription?.(
+                            u.uid,
+                            newStatus,
+                            newStatus === 'lifetime' ? 'free_for_life' : undefined
+                          );
+                        }}
+                        className={`h-8 px-2.5 rounded-lg border text-xs font-semibold focus:outline-none cursor-pointer transition ${
+                          isLifetime
+                            ? 'bg-amber-950/40 border-amber-500/50 text-amber-200 focus:border-amber-400'
+                            : 'bg-slate-950 border-slate-800 text-slate-200 focus:border-amber-500'
+                        }`}
+                        title="Set subscription entitlement for this user"
+                      >
+                        <option value="lifetime">👑 Free for Life (Perpetual)</option>
+                        <option value="active">✅ Active Pro</option>
+                        <option value="trialing">⏱️ Free Trial (30d)</option>
+                        <option value="expired">❌ Expired / Blocked</option>
+                      </select>
+                    </td>
+
+                    <td className="py-3.5 px-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => setUserToDelete(u)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
+                        title="Remove user from club"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

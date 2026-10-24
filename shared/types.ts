@@ -227,8 +227,8 @@ export interface SuggestedSubPlan {
 }
 
 // Subscription & Monetisation Models
-export type SubscriptionTier = 'free_trial' | 'coach_monthly' | 'coach_annual' | 'club_unlimited';
-export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'canceled' | 'expired';
+export type SubscriptionTier = 'free_trial' | 'coach_monthly' | 'coach_annual' | 'club_unlimited' | 'free_for_life';
+export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'canceled' | 'expired' | 'lifetime';
 
 export interface UserSubscription {
   status: SubscriptionStatus;

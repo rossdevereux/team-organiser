@@ -3,12 +3,18 @@
 ## [Unreleased]
 
 ### Added
+- **Complimentary "Free for Life" Lifetime Status**:
+  - Club Owners can now grant permanent "Free for Life" status to individual coaches from the Admin Portal.
+  - Coaches with Free for Life access enjoy perpetual active access to all features with no trial expiration or recurring fees.
 - **30-Day Free Trial & SubShuffle Pro Billing**:
   - New coaches automatically receive an automatic, credit-card-free 30-day trial upon registering to try out automatic rotations on real matchdays ([#6](https://github.com/rossdevereux/team-organiser/issues/6)).
   - Top navigation now features an active trial countdown pill showing your remaining trial days with color indicators.
-  - Transparent grassroots pricing: Coach Annual at £29.99/year (save ~37%) or Coach Monthly at £3.99/month.
   - Added a Billing & Plan section in Team Settings to manage subscriptions, view renewal dates, and access VAT invoices in the Stripe Customer Portal.
   - No Hostage Data guarantee: if your trial ends, you retain permanent free access to view match lineups, minutes stats, and export pitch sheets.
+
+### Changed
+- **Grassroots Infrastructure Pricing**:
+  - Transparent cost-recovery pricing: Coach Monthly at **£1.50/month** or Coach Annual at **£15.00/year** (~£1.25/month), strictly covering server and cloud infrastructure expenses.
 
 ## [1.1.9] - 2026-10-24
 
