@@ -12,6 +12,7 @@ import {
   calculateMatchStats,
   getFixedPositionsMap,
   InMatchTracker,
+  generateWhatsAppAnnouncement,
 } from '../services/rotationService.js';
 import { Player, Fixture, TeamSettings } from '../types.js';
 
@@ -954,6 +955,260 @@ describe('rotationService: Position Preference & Substitutions Suite', () => {
       assert.equal(p3Stats?.periodsPlayed.length, 1);
       assert.deepEqual(p3Stats?.periodsPlayed, [2]);
       assert.equal(p3Stats?.minutesPlayed, 25);
+    });
+
+    it('pro-rates playing time accurately when plannedInGameSubs are present', () => {
+      // 9 players in a 7-a-side 2x25m match (50 mins total)
+      // p1..p7 start on pitch, p8 and p9 are bench subs
+      // At min 12.5 of Period 1: p8 subs in for p2, p9 subs in for p3
+      // At min 12.5 of Period 2: p8 subs in for p4, p9 subs in for p5
+      const matchSquad = {
+        fixtureId: 'fix-rolling-1',
+        manualOverrides: false,
+        selectedPlayerIds: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9'],
+        restedPlayerIds: [],
+        lineupsByPeriod: [
+          {
+            period: 1,
+            onPitch: [
+              { playerId: 'p1', position: 'GK' },
+              { playerId: 'p2', position: 'CB' },
+              { playerId: 'p3', position: 'LB' },
+              { playerId: 'p4', position: 'RB' },
+              { playerId: 'p5', position: 'CM' },
+              { playerId: 'p6', position: 'LM' },
+              { playerId: 'p7', position: 'ST' },
+            ],
+            subs: ['p8', 'p9'],
+          },
+          {
+            period: 2,
+            onPitch: [
+              { playerId: 'p1', position: 'GK' },
+              { playerId: 'p2', position: 'CB' },
+              { playerId: 'p3', position: 'LB' },
+              { playerId: 'p4', position: 'RB' },
+              { playerId: 'p5', position: 'CM' },
+              { playerId: 'p6', position: 'LM' },
+              { playerId: 'p7', position: 'ST' },
+            ],
+            subs: ['p8', 'p9'],
+          },
+        ],
+        plannedInGameSubs: [
+          {
+            period: 1,
+            targetMinute: 12.5,
+            matchMinute: 13,
+            playerOutId: 'p2',
+            playerInId: 'p8',
+            position: 'CB',
+          },
+          {
+            period: 1,
+            targetMinute: 12.5,
+            matchMinute: 13,
+            playerOutId: 'p3',
+            playerInId: 'p9',
+            position: 'LB',
+          },
+          {
+            period: 2,
+            targetMinute: 12.5,
+            matchMinute: 38,
+            playerOutId: 'p4',
+            playerInId: 'p8',
+            position: 'RB',
+          },
+          {
+            period: 2,
+            targetMinute: 12.5,
+            matchMinute: 38,
+            playerOutId: 'p5',
+            playerInId: 'p9',
+            position: 'CM',
+          },
+        ],
+      };
+
+      const mockPlayers = [
+        createMockPlayer('p1', 'GK Player', ['Goalkeeper']),
+        createMockPlayer('p2', 'CB Player', ['Defence']),
+        createMockPlayer('p3', 'LB Player', ['Defence']),
+        createMockPlayer('p4', 'RB Player', ['Defence']),
+        createMockPlayer('p5', 'CM Player', ['Midfield']),
+        createMockPlayer('p6', 'LM Player', ['Midfield']),
+        createMockPlayer('p7', 'ST Player', ['Attack']),
+        createMockPlayer('p8', 'Bench Def', ['Defence']),
+        createMockPlayer('p9', 'Bench Mid', ['Midfield']),
+      ];
+
+      const settings = createMockSettings({
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+        targetGameTimePercent: 50,
+      });
+
+      const stats = calculateMatchStats(matchSquad, mockPlayers, settings);
+
+      // p1 plays both full halves = 50 mins (100%)
+      const p1 = stats.find((s) => s.playerId === 'p1');
+      assert.equal(p1?.minutesPlayed, 50);
+      assert.equal(p1?.gameTimePercent, 100);
+      assert.equal(p1?.meetsTarget, true);
+
+      // p2 started in P1 (subbed off at 12.5 = 12.5m) and played full P2 (25m) = 37.5m (75%)
+      const p2 = stats.find((s) => s.playerId === 'p2');
+      assert.equal(p2?.minutesPlayed, 37.5);
+      assert.equal(p2?.gameTimePercent, 75);
+      assert.equal(p2?.meetsTarget, true);
+
+      // p4 played full P1 (25m) and started P2 (subbed off at 12.5 = 12.5m) = 37.5m (75%)
+      const p4 = stats.find((s) => s.playerId === 'p4');
+      assert.equal(p4?.minutesPlayed, 37.5);
+      assert.equal(p4?.gameTimePercent, 75);
+      assert.equal(p4?.meetsTarget, true);
+
+      // p8 was bench sub in P1 (came on at 12.5 = 12.5m) and in P2 (came on at 12.5 = 12.5m) = 25m (50%)
+      const p8 = stats.find((s) => s.playerId === 'p8');
+      assert.equal(p8?.minutesPlayed, 25);
+      assert.equal(p8?.gameTimePercent, 50);
+      assert.equal(p8?.meetsTarget, true);
+
+      // p9 was bench sub in P1 (12.5m) and in P2 (12.5m) = 25m (50%)
+      const p9 = stats.find((s) => s.playerId === 'p9');
+      assert.equal(p9?.minutesPlayed, 25);
+      assert.equal(p9?.gameTimePercent, 50);
+      assert.equal(p9?.meetsTarget, true);
+    });
+  });
+
+  describe('Lineup Continuity & In-Game Rolling Substitutions (Issue #25)', () => {
+    it('preserves starting lineup across half-time when preserveLineupAcrossBreaks is true', () => {
+      const mockPlayers = [
+        createMockPlayer('p1', 'Player 1', ['Goalkeeper']),
+        createMockPlayer('p2', 'Player 2', ['Defence']),
+        createMockPlayer('p3', 'Player 3', ['Defence']),
+        createMockPlayer('p4', 'Player 4', ['Midfield']),
+        createMockPlayer('p5', 'Player 5', ['Midfield']),
+        createMockPlayer('p6', 'Player 6', ['Attack']),
+        createMockPlayer('p7', 'Player 7', ['Attack']),
+        createMockPlayer('p8', 'Player 8', ['Defence']),
+        createMockPlayer('p9', 'Player 9', ['Midfield']),
+      ];
+
+      const fixture = createMockFixture({
+        preserveLineupAcrossBreaks: true,
+        midPeriodSubIntervalMinutes: 12.5,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+      });
+
+      const settings = createMockSettings({
+        pitchPlayerCount: 7,
+        matchdaySquadCap: 9,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+      });
+
+      const squad = generateFairRotation(fixture, mockPlayers, settings);
+
+      assert.equal(squad.lineupsByPeriod.length, 2);
+      const p1Lineup = squad.lineupsByPeriod[0];
+      const p2Lineup = squad.lineupsByPeriod[1];
+
+      // Second half starting pitch lineup must be identical to first half
+      const p1PitchIds = p1Lineup.onPitch.map((op) => op.playerId).sort();
+      const p2PitchIds = p2Lineup.onPitch.map((op) => op.playerId).sort();
+      assert.deepEqual(p1PitchIds, p2PitchIds, 'Period 2 starting pitch lineup must carry over from Period 1');
+
+      // Bench substitutes must also be identical
+      assert.deepEqual(p1Lineup.subs.sort(), p2Lineup.subs.sort());
+
+      // Planned in-game substitutions must be generated
+      assert.ok(squad.plannedInGameSubs);
+      assert.ok(squad.plannedInGameSubs!.length >= 2, 'Should generate planned in-game rolling substitutions');
+
+      // Check planned subs target minute
+      squad.plannedInGameSubs!.forEach((sub) => {
+        assert.equal(sub.targetMinute, 12.5);
+        assert.ok(sub.matchMinute >= 12);
+        assert.ok(sub.playerOutId);
+        assert.ok(sub.playerInId);
+        assert.ok(sub.position);
+      });
+    });
+
+    it('generates planned in-game rolling subs when subTimingMode is in_game_rolling', () => {
+      const mockPlayers = [
+        createMockPlayer('p1', 'Player 1', ['Goalkeeper']),
+        createMockPlayer('p2', 'Player 2', ['Defence']),
+        createMockPlayer('p3', 'Player 3', ['Defence']),
+        createMockPlayer('p4', 'Player 4', ['Midfield']),
+        createMockPlayer('p5', 'Player 5', ['Midfield']),
+        createMockPlayer('p6', 'Player 6', ['Attack']),
+        createMockPlayer('p7', 'Player 7', ['Attack']),
+        createMockPlayer('p8', 'Player 8', ['Defence']),
+        createMockPlayer('p9', 'Player 9', ['Midfield']),
+        createMockPlayer('p10', 'Player 10', ['Attack']),
+      ];
+
+      const fixture = createMockFixture({
+        subTimingMode: 'in_game_rolling',
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+      });
+
+      const settings = createMockSettings({
+        pitchPlayerCount: 7,
+        matchdaySquadCap: 10,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+      });
+
+      const squad = generateFairRotation(fixture, mockPlayers, settings);
+      assert.ok(squad.plannedInGameSubs);
+      assert.ok(squad.plannedInGameSubs!.length >= 4);
+
+      // Verify that stats computed from this squad satisfy the 50% fair play threshold
+      const stats = calculateMatchStats(squad, mockPlayers, settings, undefined, fixture);
+      const belowTargetPlayers = stats.filter((s) => !s.meetsTarget);
+      assert.equal(belowTargetPlayers.length, 0, 'All players should meet fair play target with rolling subs');
+    });
+
+    it('formats WhatsApp announcement with planned rolling subs when rolling mode is active', () => {
+      const mockPlayers = [
+        createMockPlayer('p1', 'Player 1', ['Goalkeeper']),
+        createMockPlayer('p2', 'Player 2', ['Defence']),
+        createMockPlayer('p3', 'Player 3', ['Defence']),
+        createMockPlayer('p4', 'Player 4', ['Midfield']),
+        createMockPlayer('p5', 'Player 5', ['Midfield']),
+        createMockPlayer('p6', 'Player 6', ['Attack']),
+        createMockPlayer('p7', 'Player 7', ['Attack']),
+        createMockPlayer('p8', 'Player 8', ['Defence']),
+      ];
+
+      const fixture = createMockFixture({
+        subTimingMode: 'in_game_rolling',
+        preserveLineupAcrossBreaks: true,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+      });
+
+      const settings = createMockSettings({
+        pitchPlayerCount: 7,
+        matchdaySquadCap: 8,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+      });
+
+      const squad = generateFairRotation(fixture, mockPlayers, settings);
+      fixture.matchSquad = squad;
+
+      const announcement = generateWhatsAppAnnouncement(fixture, mockPlayers, settings);
+      assert.ok(announcement.includes('PLANNED IN-GAME ROLLING SUBS'));
+      assert.ok(announcement.includes('Half 1'));
+      assert.ok(announcement.includes('Half 2'));
     });
   });
 

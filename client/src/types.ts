@@ -42,6 +42,20 @@ export interface Formation {
   isCustom?: boolean;
 }
 
+export type SubstitutionTimingMode = 'at_breaks' | 'in_game_rolling' | 'hybrid';
+
+export interface PlannedInGameSub {
+  period: number;
+  targetMinute: number; // in-period minute, e.g. 12 or 12.5
+  matchMinute: number;  // cumulative match minute, e.g. 12 or 37
+  playerOutId: string;
+  playerOutName?: string;
+  playerInId: string;
+  playerInName?: string;
+  position: string;
+  reason?: string;
+}
+
 export interface TeamSettings {
   pitchPlayerCount: number; // default: 7 (5, 7, 9, 11)
   matchdaySquadCap: number; // default: 10
@@ -56,6 +70,9 @@ export interface TeamSettings {
   defaultSubIntervalMinutes?: number; // default rotation interval, e.g. 10
   kitPrimaryColor?: string; // Club primary kit colour (hex, e.g. '#1e3a8a')
   kitSecondaryColor?: string; // Club secondary/trim kit colour (hex, e.g. '#f59e0b')
+  subTimingMode?: SubstitutionTimingMode; // default: 'at_breaks'
+  preserveLineupAcrossBreaks?: boolean; // default: false
+  midPeriodSubIntervalMinutes?: number; // e.g. 12.5 (trigger sub prompts mid-half)
 }
 
 export interface TeamMember {
@@ -110,6 +127,7 @@ export interface MatchSquad {
   lineupsByPeriod: PeriodLineup[];
   manualOverrides: boolean;
   fixedPlayerPositions?: Record<string, string>; // playerId -> position code (e.g. { "p1": "GK" })
+  plannedInGameSubs?: PlannedInGameSub[];
 }
 
 export interface PostMatchRecording {
@@ -180,6 +198,9 @@ export interface Fixture {
   periodDurationMinutes?: number; // Override period duration (e.g. 15, 20, 25, 30) for this fixture
   formation?: string; // Optional formation override for this fixture
   fixedPlayerPositions?: Record<string, string>; // playerId -> position code (e.g. { "p1": "GK" })
+  subTimingMode?: SubstitutionTimingMode; // Optional override for fixture
+  preserveLineupAcrossBreaks?: boolean; // Optional override for fixture
+  midPeriodSubIntervalMinutes?: number; // Optional override for fixture
   matchSquad?: MatchSquad;
   postMatchRecording?: PostMatchRecording;
   homeScore?: number;

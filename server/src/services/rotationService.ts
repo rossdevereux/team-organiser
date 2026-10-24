@@ -11,6 +11,8 @@ import {
   SuggestedSubWindow,
   SingleSubChange,
   EarlyDeparture,
+  PlannedInGameSub,
+  SubstitutionTimingMode,
 } from '../types.js';
 import { findFormation } from '../db/formations.js';
 
@@ -235,19 +237,60 @@ export const calculateMatchStats = (
     const periodsPlayed: number[] = [];
     let playedAsGoalkeeper = false;
     const positionsPlayed: string[] = [];
+    let calculatedMinutes = 0;
 
-    matchSquad.lineupsByPeriod.forEach((lineup) => {
-      const pitchEntry = lineup.onPitch.find((item) => item.playerId === playerId);
-      if (pitchEntry) {
-        periodsPlayed.push(lineup.period);
-        positionsPlayed.push(pitchEntry.position);
-        if (pitchEntry.position === 'GK') {
-          playedAsGoalkeeper = true;
+    const hasPlannedSubs =
+      matchSquad.plannedInGameSubs && matchSquad.plannedInGameSubs.length > 0;
+
+    if (hasPlannedSubs) {
+      for (let p = 1; p <= periodCount; p++) {
+        const lineup = matchSquad.lineupsByPeriod.find((l) => l.period === p);
+        const pitchEntry = lineup?.onPitch.find((item) => item.playerId === playerId);
+        const subOut = matchSquad.plannedInGameSubs?.find(
+          (s) => s.period === p && s.playerOutId === playerId
+        );
+        const subIn = matchSquad.plannedInGameSubs?.find(
+          (s) => s.period === p && s.playerInId === playerId
+        );
+
+        if (subOut) {
+          if (!periodsPlayed.includes(p)) periodsPlayed.push(p);
+          if (pitchEntry && !positionsPlayed.includes(pitchEntry.position)) {
+            positionsPlayed.push(pitchEntry.position);
+            if (pitchEntry.position === 'GK') playedAsGoalkeeper = true;
+          }
+          calculatedMinutes += subOut.targetMinute;
+        } else if (subIn) {
+          if (!periodsPlayed.includes(p)) periodsPlayed.push(p);
+          if (subIn.position && !positionsPlayed.includes(subIn.position)) {
+            positionsPlayed.push(subIn.position);
+            if (subIn.position === 'GK') playedAsGoalkeeper = true;
+          }
+          calculatedMinutes += Math.max(0, duration - subIn.targetMinute);
+        } else if (pitchEntry) {
+          if (!periodsPlayed.includes(p)) periodsPlayed.push(p);
+          if (!positionsPlayed.includes(pitchEntry.position)) {
+            positionsPlayed.push(pitchEntry.position);
+            if (pitchEntry.position === 'GK') playedAsGoalkeeper = true;
+          }
+          calculatedMinutes += duration;
         }
       }
-    });
+    } else {
+      matchSquad.lineupsByPeriod.forEach((lineup) => {
+        const pitchEntry = lineup.onPitch.find((item) => item.playerId === playerId);
+        if (pitchEntry) {
+          periodsPlayed.push(lineup.period);
+          positionsPlayed.push(pitchEntry.position);
+          if (pitchEntry.position === 'GK') {
+            playedAsGoalkeeper = true;
+          }
+        }
+      });
+      calculatedMinutes = periodsPlayed.length * duration;
+    }
 
-    let minutesPlayed = periodsPlayed.length * duration;
+    let minutesPlayed = calculatedMinutes;
     let isPostMatchRecorded = false;
 
     // Check early departures to freeze departed player's logged minutes
@@ -519,7 +562,31 @@ export const generateFairRotation = (
   let previousBenchIds: string[] = [];
   const lineupsByPeriod: PeriodLineup[] = [];
 
+  const subTimingMode: SubstitutionTimingMode =
+    fixture.subTimingMode || settings.subTimingMode || 'at_breaks';
+  const shouldPreserveLineup =
+    fixture.preserveLineupAcrossBreaks ??
+    settings.preserveLineupAcrossBreaks ??
+    (subTimingMode === 'in_game_rolling');
+
   for (let period = 1; period <= periodCount; period++) {
+    // If lineup preservation across breaks is active and this is period 2+, carry forward previous period's lineup
+    if (shouldPreserveLineup && period > 1 && lineupsByPeriod.length > 0) {
+      const prevLineup = lineupsByPeriod[period - 2];
+      const onPitchAssignments = prevLineup.onPitch.map((op) => ({ ...op }));
+      const benchPlayerIds = [...prevLineup.subs];
+      onPitchAssignments.forEach((op) => {
+        periodsPlayedMap.set(op.playerId, (periodsPlayedMap.get(op.playerId) || 0) + 1);
+      });
+
+      lineupsByPeriod.push({
+        period,
+        onPitch: onPitchAssignments,
+        subs: benchPlayerIds,
+      });
+      continue;
+    }
+
     const onPitchAssignments: { playerId: string; position: string }[] = [];
     const assignedSlotCodes = new Set<string>();
 
@@ -673,6 +740,120 @@ export const generateFairRotation = (
     });
   }
 
+  // Generate scheduled in-game rolling substitutions when continuity or in-game rolling mode is active
+  const plannedInGameSubs: PlannedInGameSub[] = [];
+
+  if (shouldPreserveLineup || subTimingMode === 'in_game_rolling') {
+    const duration = fixture.periodDurationMinutes || settings.periodDurationMinutes || 25;
+    const targetInterval =
+      fixture.midPeriodSubIntervalMinutes ??
+      settings.midPeriodSubIntervalMinutes ??
+      (duration / 2);
+
+    const subbedOffCounts = new Map<string, number>();
+    selectedPlayers.forEach((p) => subbedOffCounts.set(p.id, 0));
+    const playerMap = new Map<string, Player>(players.map((p) => [p.id, p]));
+
+    for (let period = 1; period <= periodCount; period++) {
+      const lineup = lineupsByPeriod.find((l) => l.period === period);
+      if (!lineup || lineup.subs.length === 0) continue;
+
+      const benchSubIds = [...lineup.subs];
+      const availableOutfield = lineup.onPitch.filter(
+        (op) => !fixedMap.has(op.playerId)
+      );
+
+      if (availableOutfield.length === 0) continue;
+
+      // Sort outfield candidates to sub off:
+      // 1. Players subbed off fewest times this match (ensures bench time is rotated fairly)
+      // 2. Goalkeepers are last priority to sub off
+      // 3. Historical minutes tie-breaker
+      availableOutfield.sort((a, b) => {
+        const aCount = subbedOffCounts.get(a.playerId) || 0;
+        const bCount = subbedOffCounts.get(b.playerId) || 0;
+        if (aCount !== bCount) return aCount - bCount;
+
+        const aIsGk = positionToBroad(a.position) === 'Goalkeeper' ? 1 : 0;
+        const bIsGk = positionToBroad(b.position) === 'Goalkeeper' ? 1 : 0;
+        if (aIsGk !== bIsGk) return aIsGk - bIsGk;
+
+        const aPl = playerMap.get(a.playerId);
+        const bPl = playerMap.get(b.playerId);
+        return (bPl?.totalMinutesPlayed || 0) - (aPl?.totalMinutesPlayed || 0);
+      });
+
+      const subsToRotateCount = Math.min(benchSubIds.length, availableOutfield.length);
+      const chosenOutfield = availableOutfield.slice(0, subsToRotateCount);
+      const chosenSubs = benchSubIds
+        .slice(0, subsToRotateCount)
+        .map((id) => playerMap.get(id))
+        .filter((p): p is Player => Boolean(p));
+
+      const weights: number[][] = chosenSubs.map((subPl) =>
+        chosenOutfield.map((outfieldSlot) =>
+          getPositionPreferenceScore(
+            subPl,
+            positionToBroad(outfieldSlot.position),
+            outfieldSlot.position
+          )
+        )
+      );
+
+      const assignments = maxWeightBipartiteMatching(weights);
+      const assignedOutfieldIndices = new Set<number>();
+      const unassignedSubs: Player[] = [];
+
+      chosenSubs.forEach((subPl, subIdx) => {
+        const slotIdx = assignments[subIdx];
+        if (
+          slotIdx !== undefined &&
+          slotIdx >= 0 &&
+          slotIdx < chosenOutfield.length &&
+          !assignedOutfieldIndices.has(slotIdx)
+        ) {
+          assignedOutfieldIndices.add(slotIdx);
+          const outSlot = chosenOutfield[slotIdx];
+          const outPl = playerMap.get(outSlot.playerId);
+
+          plannedInGameSubs.push({
+            period,
+            targetMinute: targetInterval,
+            matchMinute: (period - 1) * duration + Math.round(targetInterval),
+            playerOutId: outSlot.playerId,
+            playerOutName: outPl?.name,
+            playerInId: subPl.id,
+            playerInName: subPl.name,
+            position: outSlot.position,
+            reason: 'Mid-period rolling substitution',
+          });
+          subbedOffCounts.set(outSlot.playerId, (subbedOffCounts.get(outSlot.playerId) || 0) + 1);
+        } else {
+          unassignedSubs.push(subPl);
+        }
+      });
+
+      chosenOutfield.forEach((outSlot, slotIdx) => {
+        if (!assignedOutfieldIndices.has(slotIdx) && unassignedSubs.length > 0) {
+          const subPl = unassignedSubs.shift()!;
+          const outPl = playerMap.get(outSlot.playerId);
+          plannedInGameSubs.push({
+            period,
+            targetMinute: targetInterval,
+            matchMinute: (period - 1) * duration + Math.round(targetInterval),
+            playerOutId: outSlot.playerId,
+            playerOutName: outPl?.name,
+            playerInId: subPl.id,
+            playerInName: subPl.name,
+            position: outSlot.position,
+            reason: 'Mid-period rolling substitution',
+          });
+          subbedOffCounts.set(outSlot.playerId, (subbedOffCounts.get(outSlot.playerId) || 0) + 1);
+        }
+      });
+    }
+  }
+
   const fixedPositionsRecord: Record<string, string> = {};
   if (fixture.fixedPlayerPositions) {
     Object.entries(fixture.fixedPlayerPositions).forEach(([id, val]) => {
@@ -691,6 +872,7 @@ export const generateFairRotation = (
     manualOverrides: false,
     fixedPlayerPositions:
       Object.keys(fixedPositionsRecord).length > 0 ? fixedPositionsRecord : undefined,
+    plannedInGameSubs: plannedInGameSubs.length > 0 ? plannedInGameSubs : undefined,
   };
 };
 
@@ -1641,6 +1823,24 @@ export const generateWhatsAppAnnouncement = (
   const groundText = fixture.groundAddress ? `\n🏟️ *Ground Address:* ${fixture.groundAddress}` : '';
   const mapsText = fixture.mapsUrl ? `\n🗺️ *Google Maps Link:* ${fixture.mapsUrl}` : '';
 
+  const isRolling =
+    fixture.subTimingMode === 'in_game_rolling' ||
+    fixture.preserveLineupAcrossBreaks ||
+    settings.subTimingMode === 'in_game_rolling' ||
+    settings.preserveLineupAcrossBreaks;
+
+  const plannedSubsText =
+    isRolling && squad?.plannedInGameSubs && squad.plannedInGameSubs.length > 0
+      ? `\n⏱️ *PLANNED IN-GAME ROLLING SUBS*\n` +
+        squad.plannedInGameSubs
+          .map(
+            (s) =>
+              `• Half ${s.period} (~${s.targetMinute}m / Min ${s.matchMinute}): ${s.playerInName || 'Sub'} ➔ ${s.playerOutName || 'Player'} (${s.position})`
+          )
+          .join('\n') +
+        '\n'
+      : '';
+
   return `⚽ *SUBSHUFFLE MATCHDAY ANNOUNCEMENT* ⚽
 
 🆚 *Opponent:* ${fixture.opponent}
@@ -1651,7 +1851,7 @@ ${timeText}
 
 📋 *MATCHDAY SQUAD (${squad?.selectedPlayerIds.length || 0})*
 ${selectedNames || 'Squad not finalised yet'}
-
+${plannedSubsText}
 🔄 *RESTED / ROTATION ROSTER (${squad?.restedPlayerIds.length || 0})*
 ${restedNames || 'None'}
 

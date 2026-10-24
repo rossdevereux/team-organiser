@@ -343,5 +343,13 @@ export const de = {
     defaultFormation: 'Standard-Formation',
     kitPrimary: 'Haupttrikotfarbe',
     kitSecondary: 'Ausweichtrikotfarbe',
+    subTimingMode: 'Wechselzeitpunkt-Strategie',
+    subTimingAtBreaks: 'In den Pausen (Standard)',
+    subTimingRolling: 'Laufende Wechsel im Spiel (Kader bleibt über Halbzeit)',
+    subTimingHybrid: 'Hybrid (Kontinuierlich mit flexiblen Wechseln)',
+    preserveLineupAcrossBreaks: 'Gleiche Aufstellung zur Halbzeit beibehalten',
+    preserveLineupAcrossBreaksDesc: 'Zweite Halbzeit mit denselben Spielern auf dem Platz starten',
+    midPeriodSubInterval: 'Wechsel-Intervall im Spiel (Minuten)',
+    midPeriodSubIntervalDesc: 'Zielzeit für geplante Wechsel (z. B. 12,5 Min bei 25-Min-Halbzeiten)',
   },
 };

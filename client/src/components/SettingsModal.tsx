@@ -109,7 +109,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 space-y-5"
+        className="relative w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2.5">
@@ -447,6 +447,123 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-indigo-500"
             />
             <span className="text-[10px] text-slate-500">Youth fair play target (50% for 2 halves)</span>
+          </div>
+
+          {/* Substitution & Rotation Timing Section */}
+          <div className="pt-2 border-t border-slate-800 space-y-3">
+            <div>
+              <label className="block text-slate-300 font-semibold flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                <span>{t('settings.subTimingMode')}</span>
+              </label>
+              <span className="text-[10px] text-slate-500">
+                Choose whether players rotate at period breaks or via mid-game rolling substitutions
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    subTimingMode: 'at_breaks',
+                    preserveLineupAcrossBreaks: false,
+                  })
+                }
+                className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                  (formData.subTimingMode || 'at_breaks') === 'at_breaks' && !formData.preserveLineupAcrossBreaks
+                    ? 'bg-indigo-600/20 border-indigo-500/60 text-white shadow-sm'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <div className="font-bold text-[11px] text-white">At Period Breaks</div>
+                <div className="text-[10px] text-slate-400 leading-tight mt-0.5">
+                  Lineups shuffle at half-time / quarter transitions
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData({
+                    ...formData,
+                    subTimingMode: 'in_game_rolling',
+                    preserveLineupAcrossBreaks: true,
+                    midPeriodSubIntervalMinutes:
+                      formData.midPeriodSubIntervalMinutes ||
+                      (formData.periodDurationMinutes ? formData.periodDurationMinutes / 2 : 12.5),
+                  })
+                }
+                className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                  formData.subTimingMode === 'in_game_rolling' || formData.preserveLineupAcrossBreaks
+                    ? 'bg-emerald-600/20 border-emerald-500/60 text-white shadow-sm'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <div className="font-bold text-[11px] text-emerald-300 flex items-center gap-1">
+                  <span>In-Game Rolling Subs</span>
+                  <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono">FA Rec</span>
+                </div>
+                <div className="text-[10px] text-slate-400 leading-tight mt-0.5">
+                  Carry over lineup across breaks; rotate bench mid-half
+                </div>
+              </button>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <label className="flex items-start gap-2.5 p-2 rounded-xl bg-slate-950/60 border border-slate-800 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={Boolean(formData.preserveLineupAcrossBreaks)}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      preserveLineupAcrossBreaks: e.target.checked,
+                    })
+                  }
+                  className="mt-0.5 rounded border-slate-700 bg-slate-900 text-indigo-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                />
+                <div className="text-left">
+                  <span className="block font-semibold text-slate-200 text-[11px]">
+                    {t('settings.preserveLineupAcrossBreaks')}
+                  </span>
+                  <span className="block text-[10px] text-slate-400 leading-normal">
+                    {t('settings.preserveLineupAcrossBreaksDesc')}
+                  </span>
+                </div>
+              </label>
+
+              {(formData.preserveLineupAcrossBreaks || formData.subTimingMode === 'in_game_rolling') && (
+                <div className="p-2.5 rounded-xl bg-slate-950/80 border border-emerald-900/40 space-y-1.5 animate-fade-in">
+                  <div className="flex items-center justify-between">
+                    <label className="text-slate-300 font-semibold text-[11px]">
+                      {t('settings.midPeriodSubInterval')}
+                    </label>
+                    <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                      ~{formData.midPeriodSubIntervalMinutes || 12.5} mins
+                    </span>
+                  </div>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="5"
+                    max={formData.periodDurationMinutes ? formData.periodDurationMinutes - 2 : 25}
+                    value={formData.midPeriodSubIntervalMinutes || 12.5}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        midPeriodSubIntervalMinutes: parseFloat(e.target.value) || 12.5,
+                      })
+                    }
+                    className="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-white font-medium focus:outline-none focus:border-emerald-500 text-xs"
+                  />
+                  <span className="block text-[10px] text-slate-500">
+                    {t('settings.midPeriodSubIntervalDesc')}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Club Kit Colours */}

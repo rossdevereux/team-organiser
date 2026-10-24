@@ -214,7 +214,18 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
                     className="border border-slate-300 rounded-xl overflow-hidden text-xs"
                   >
                     <div className="bg-slate-100 px-3 py-2 border-b border-slate-300 flex items-center justify-between font-bold">
-                      <span>{periodCount === 2 ? (periodNum === 1 ? '1st Half' : '2nd Half') : `Period ${periodNum}`}</span>
+                      <span>
+                        {periodCount === 2
+                          ? periodNum === 1
+                            ? '1st Half'
+                            : (activeFixture.preserveLineupAcrossBreaks ||
+                               settings.preserveLineupAcrossBreaks ||
+                               activeFixture.subTimingMode === 'in_game_rolling' ||
+                               settings.subTimingMode === 'in_game_rolling')
+                            ? '2nd Half (Continuous Lineup)'
+                            : '2nd Half'
+                          : `Period ${periodNum}`}
+                      </span>
                       <span className="font-mono text-[11px] text-slate-600">
                         {onPitchPlayers.length} Active / {subPlayers.length} Subs
                       </span>
@@ -277,6 +288,51 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
             </div>
           </div>
 
+          {/* Planned In-Game Rolling Substitutions Section */}
+          {squad.plannedInGameSubs && squad.plannedInGameSubs.length > 0 && (
+            <div className="pt-2">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1 mb-2 flex items-center justify-between">
+                <span>Planned Mid-Period Rolling Substitutions</span>
+                <span className="text-xs font-normal text-slate-500 lowercase">
+                  Continuous lineups across breaks • In-game rotation plan
+                </span>
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                {squad.plannedInGameSubs.map((ps, idx) => {
+                  const outP = playerMap.get(ps.playerOutId);
+                  const inP = playerMap.get(ps.playerInId);
+                  return (
+                    <div
+                      key={idx}
+                      className="p-2.5 rounded-lg border border-slate-300 bg-slate-50 flex items-center justify-between gap-2"
+                    >
+                      <div>
+                        <div className="font-bold text-slate-900">
+                          {periodCount === 2
+                            ? ps.period === 1
+                              ? '1st Half'
+                              : '2nd Half'
+                            : `Period ${ps.period}`}{' '}
+                          (~{ps.targetMinute}m / Match min {ps.matchMinute})
+                        </div>
+                        <div className="text-[11px] text-slate-700 mt-0.5">
+                          <span className="text-rose-700 font-bold">OFF:</span> #
+                          {outP?.squadNumber || '—'} {outP?.name || ps.playerOutName || 'Player'}{' '}
+                          ➔{' '}
+                          <span className="text-emerald-700 font-bold">ON:</span> #
+                          {inP?.squadNumber || '—'} {inP?.name || ps.playerInName || 'Player'}
+                        </div>
+                      </div>
+                      <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-800 font-bold text-[10px]">
+                        {ps.position}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Full Squad Attendance and Season Minutes Audit */}
           <div className="pt-2">
             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1 mb-2">
@@ -295,20 +351,25 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
               <tbody className="divide-y divide-slate-200 font-mono">
                 {squad.selectedPlayerIds.map((id) => {
                   const p = playerMap.get(id);
-                  let periodsPlayed = 0;
-                  squad.lineupsByPeriod.forEach((l) => {
-                    if (l.onPitch.some((item) => item.playerId === id)) {
-                      periodsPlayed++;
-                    }
-                  });
-                  const estMins = periodsPlayed * periodDuration;
+                  const playerStat = stats?.find((st) => st.playerId === id);
+                  let periodsPlayed = playerStat?.periodsPlayed?.length ?? 0;
+                  if (periodsPlayed === 0) {
+                    squad.lineupsByPeriod.forEach((l) => {
+                      if (l.onPitch.some((item) => item.playerId === id)) {
+                        periodsPlayed++;
+                      }
+                    });
+                  }
+                  const estMins = playerStat ? playerStat.minutesPlayed : periodsPlayed * periodDuration;
 
                   return (
                     <tr key={id}>
                       <td className="p-2 font-bold">{p?.squadNumber || '—'}</td>
                       <td className="p-2 font-sans font-semibold">{p?.name}</td>
                       <td className="p-2 text-slate-600">{p?.preferredPositions.join(', ')}</td>
-                      <td className="p-2 text-center font-bold">{periodsPlayed} / {periodCount}</td>
+                      <td className="p-2 text-center font-bold">
+                        {periodsPlayed} / {periodCount}
+                      </td>
                       <td className="p-2 text-right font-bold text-emerald-800">{estMins}m</td>
                     </tr>
                   );

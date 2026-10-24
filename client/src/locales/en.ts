@@ -343,5 +343,13 @@ export const en = {
     defaultFormation: 'Default Formation',
     kitPrimary: 'Kit Primary Colour',
     kitSecondary: 'Kit Secondary Colour',
+    subTimingMode: 'Substitution Timing Strategy',
+    subTimingAtBreaks: 'At Period Breaks (Standard)',
+    subTimingRolling: 'In-Game Rolling Substitutions (Carry Over Across Halves)',
+    subTimingHybrid: 'Hybrid (Continuous with Flexible Stints)',
+    preserveLineupAcrossBreaks: 'Keep Same Lineup at Half-Time',
+    preserveLineupAcrossBreaksDesc: 'Start subsequent periods with the identical on-pitch lineup to maintain momentum',
+    midPeriodSubInterval: 'In-Game Sub Interval (Minutes)',
+    midPeriodSubIntervalDesc: 'Target interval to schedule rolling substitutions (e.g. 12.5m for 25m halves)',
   },
 };

@@ -343,5 +343,13 @@ export const fr = {
     defaultFormation: 'Dispositif par Défaut',
     kitPrimary: 'Couleur Principale du Maillot',
     kitSecondary: 'Couleur Secondaire du Maillot',
+    subTimingMode: 'Stratégie des Remplacements',
+    subTimingAtBreaks: 'Aux pauses (Standard)',
+    subTimingRolling: 'Remplacements tournants en jeu (Maintien de la compo)',
+    subTimingHybrid: 'Hybride (Continu avec changements souples)',
+    preserveLineupAcrossBreaks: 'Conserver la composition à la mi-temps',
+    preserveLineupAcrossBreaksDesc: 'Démarrer la seconde mi-temps avec les mêmes joueurs sur le terrain',
+    midPeriodSubInterval: 'Intervalle des changements en jeu (Minutes)',
+    midPeriodSubIntervalDesc: 'Minute cible pour effectuer les rotations (ex. 12,5 min pour des mi-temps de 25 min)',
   },
 };

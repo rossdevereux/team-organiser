@@ -131,6 +131,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     position?: string;
   } | null>(null);
   const whistlePlayedWindow = useRef<number>(-1);
+  const plannedWhistlesPlayed = useRef<Set<string>>(new Set());
 
   const subLog = activeFixture?.liveMatchState?.subLog || [];
 
@@ -200,6 +201,21 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
       }
     }
   }, [elapsedSeconds, isRunning, intervalSeconds, soundEnabled]);
+
+  // Automatic whistle alert when a scheduled mid-game rolling substitution is due
+  useEffect(() => {
+    if (!soundEnabled || !isRunning || !activeFixture?.matchSquad?.plannedInGameSubs) return;
+    const currentMins = Math.floor(elapsedSeconds / 60);
+    activeFixture.matchSquad.plannedInGameSubs.forEach((s) => {
+      if (s.period === activePeriod && currentMins >= Math.floor(s.targetMinute)) {
+        const key = `${s.period}_${s.playerInId}_${s.targetMinute}`;
+        if (!plannedWhistlesPlayed.current.has(key)) {
+          plannedWhistlesPlayed.current.add(key);
+          playRefWhistle();
+        }
+      }
+    });
+  }, [elapsedSeconds, isRunning, activePeriod, activeFixture, soundEnabled]);
 
   if (!isOpen || !activeFixture) return null;
 
@@ -296,6 +312,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     };
 
     whistlePlayedWindow.current = -1;
+    plannedWhistlesPlayed.current.clear();
     await updateLiveMatchState(activeFixture.id, updatedLiveState);
   };
 
@@ -323,6 +340,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     };
 
     whistlePlayedWindow.current = -1;
+    plannedWhistlesPlayed.current.clear();
     await updateLiveMatchState(activeFixture.id, updatedLiveState);
   };
 
@@ -350,6 +368,18 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
   }));
 
   const currentSubs = (currentLineup?.subs || []).map((subId) => playerMap.get(subId)).filter(Boolean);
+
+  const periodPlannedSubs = (activeFixture.matchSquad?.plannedInGameSubs || []).filter(
+    (s) => s.period === activePeriod
+  );
+  const unexecutedPlannedSubs = periodPlannedSubs.filter((s) => {
+    return !subLog.some(
+      (log) =>
+        log.period === activePeriod &&
+        log.offPlayerId === s.playerOutId &&
+        log.onPlayerId === s.playerInId
+    );
+  });
 
   const effectivePeriodCount = activeFixture?.matchPeriodCount || settings.matchPeriodCount || 2;
 
@@ -535,6 +565,32 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
           </div>
         </div>
 
+        {/* Second-Half Restart Prompt / Continuity Banner */}
+        {activePeriod > 1 &&
+          (activeFixture.preserveLineupAcrossBreaks ||
+            activeFixture.subTimingMode === 'in_game_rolling' ||
+            settings.preserveLineupAcrossBreaks ||
+            settings.subTimingMode === 'in_game_rolling') && (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-sky-950/80 to-indigo-950/80 border border-sky-500/30 flex items-center justify-between gap-3 text-xs shadow-md">
+              <div className="flex items-center gap-2.5">
+                <span className="text-base">⚡</span>
+                <div>
+                  <span className="font-bold text-sky-200">
+                    {effectivePeriodCount === 2
+                      ? 'Starting Half 2 with the same lineup'
+                      : `Starting Period ${activePeriod} with continuous lineup`}
+                  </span>
+                  <p className="text-[11px] text-slate-400">
+                    Active on-pitch players carry forward from previous half. Rolling substitutions take place mid-period.
+                  </p>
+                </div>
+              </div>
+              <div className="text-[11px] font-mono font-bold text-sky-400 bg-sky-950/90 px-2.5 py-1 rounded-xl border border-sky-800/60 shrink-0">
+                Lineup Preserved
+              </div>
+            </div>
+          )}
+
         {/* Big Match Clock & Next Sub Window */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Pitchside Stopwatch Card */}
@@ -711,6 +767,64 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
             )}
           </div>
         </div>
+
+        {/* Scheduled Mid-Game Rolling Substitutions Cue */}
+        {unexecutedPlannedSubs.length > 0 && (
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-amber-500/40 space-y-2.5 shadow-lg animate-fade-in">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-amber-400" />
+                <span>Scheduled Mid-Game Rolling Substitutions</span>
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                {unexecutedPlannedSubs.length} Scheduled
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {unexecutedPlannedSubs.map((ps, idx) => {
+                const isDue = elapsedSeconds >= ps.targetMinute * 60;
+                return (
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-xl border flex items-center justify-between gap-2 text-xs transition ${
+                      isDue
+                        ? 'bg-amber-500/25 border-amber-400 text-white shadow-md'
+                        : 'bg-slate-900/90 border-slate-800 text-slate-300'
+                    }`}
+                  >
+                    <div>
+                      <div className="font-bold flex items-center gap-1.5">
+                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-amber-400 font-mono">
+                          ~Min {ps.targetMinute}
+                        </span>
+                        <span>{ps.position}</span>
+                      </div>
+                      <div className="text-[11px] text-slate-300 mt-1">
+                        <span className="text-rose-400 font-semibold">OFF:</span>{' '}
+                        {ps.playerOutName || playerMap.get(ps.playerOutId)?.name || 'Player'} ➔{' '}
+                        <span className="text-emerald-400 font-semibold">ON:</span>{' '}
+                        {ps.playerInName || playerMap.get(ps.playerInId)?.name || 'Player'}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleExecuteQuickSub(ps.playerOutId, ps.playerInId, ps.position)
+                      }
+                      className={`px-3 py-2 rounded-xl font-bold text-xs shadow-md transition cursor-pointer shrink-0 ${
+                        isDue
+                          ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-amber-400/30 ring-2 ring-amber-300 animate-pulse'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                      }`}
+                    >
+                      Execute Sub
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Sideline 1-Tap Substitution Controls */}
         <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">

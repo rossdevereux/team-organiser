@@ -53,6 +53,9 @@ export const DEFAULT_SETTINGS: TeamSettings = {
   currentSeason: '2026/2027',
   seasons: ['2025/2026', '2026/2027'],
   defaultSubIntervalMinutes: 10,
+  subTimingMode: 'at_breaks',
+  preserveLineupAcrossBreaks: false,
+  midPeriodSubIntervalMinutes: 12.5,
 };
 
 // Seed initial teams
@@ -76,6 +79,9 @@ export const SEED_TEAMS: Team[] = [
       currentSeason: '2026/2027',
       seasons: ['2025/2026', '2026/2027'],
       defaultSubIntervalMinutes: 10,
+      subTimingMode: 'at_breaks',
+      preserveLineupAcrossBreaks: false,
+      midPeriodSubIntervalMinutes: 12.5,
     },
     createdAt: new Date().toISOString(),
   },
@@ -98,6 +104,9 @@ export const SEED_TEAMS: Team[] = [
       currentSeason: '2026/2027',
       seasons: ['2025/2026', '2026/2027'],
       defaultSubIntervalMinutes: 10,
+      subTimingMode: 'at_breaks',
+      preserveLineupAcrossBreaks: false,
+      midPeriodSubIntervalMinutes: 15,
     },
     createdAt: new Date().toISOString(),
   },

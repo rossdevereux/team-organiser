@@ -343,5 +343,13 @@ export const es = {
     defaultFormation: 'Formación Predeterminada',
     kitPrimary: 'Color Principal de Equipación',
     kitSecondary: 'Color Secundario de Equipación',
+    subTimingMode: 'Estrategia de Cambios',
+    subTimingAtBreaks: 'En los descansos (Estándar)',
+    subTimingRolling: 'Cambios continuos en juego (Mantener alineación)',
+    subTimingHybrid: 'Híbrido (Continuo con cambios flexibles)',
+    preserveLineupAcrossBreaks: 'Mantener alineación en el descanso',
+    preserveLineupAcrossBreaksDesc: 'Iniciar la segunda parte con los mismos jugadores para mantener ritmo',
+    midPeriodSubInterval: 'Intervalo de cambios en juego (Minutos)',
+    midPeriodSubIntervalDesc: 'Minuto objetivo para realizar cambios (ej. 12.5m para partes de 25m)',
   },
 };

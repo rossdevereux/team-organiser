@@ -94,6 +94,9 @@ export const TeamManager: React.FC = () => {
         targetGameTimePercent: 50,
         defaultFormation,
         customFormations: [],
+        subTimingMode: 'at_breaks',
+        preserveLineupAcrossBreaks: false,
+        midPeriodSubIntervalMinutes: 12.5,
       },
     });
 

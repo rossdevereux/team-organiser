@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Continuous Lineups Across Period Breaks & In-Game Rolling Substitutions** ([#25](https://github.com/rossdevereux/team-organiser/issues/25)):
+  - Added `subTimingMode` (`'at_breaks' | 'in_game_rolling' | 'hybrid'`), `preserveLineupAcrossBreaks`, and `midPeriodSubIntervalMinutes` settings to `TeamSettings` and `Fixture`.
+  - Configurable rotation timing controls in [`SettingsModal.tsx`](client/src/components/SettingsModal.tsx) and [`TeamManager.tsx`](client/src/components/TeamManager.tsx) with multilingual translations.
+  - Lineup continuity algorithm in [`rotationService.ts`](server/src/services/rotationService.ts) ensuring that when `preserveLineupAcrossBreaks` is active, active pitch players are carried across period boundaries rather than shuffling players off the pitch at breaks.
+  - Automatic generation of `plannedInGameSubs` with Fair Play pro-rated playing time calculations for halves and rolling substitution matches.
+  - Formatted WhatsApp announcement additions highlighting planned mid-period rolling subs for parents and coaches.
+  - Touchline live match experience in [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx) with period continuity alerts, scheduled mid-game substitution prompts with 1-tap execution, and automated audio whistle notifications.
+  - Official printable referee match sheet update in [`PrintMatchSheet.tsx`](client/src/components/PrintMatchSheet.tsx) displaying a dedicated Planned Mid-Period Rolling Substitutions schedule with pro-rated playing times.
+
 ## [1.4.0] - 2026-10-24
 
 ### Added

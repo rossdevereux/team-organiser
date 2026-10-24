@@ -67,12 +67,17 @@ SubShuffle automatically pre-configures standard Football Association (FA) youth
 In the **Team & League Settings** dialog (accessible via the gear icon or your profile avatar menu):
 - **Match Period Count:** Choose between **2 Halves** (traditional) or **4 Quarters** (frequently used in U7–U10 leagues).
 - **Period Duration:** Set the length in minutes of each half or quarter (e.g. 25 minutes per half for a 50-minute U10 fixture).
-- **Default Substitution Interval:** Set an alert timer (e.g. every 10 or 12 minutes) if you prefer rolling sideline changes within each half.
+- **Substitution & Rotation Timing:**
+  - **At Period Breaks:** Standard quarter/half rotations where substitutes enter between periods.
+  - **In-Game Rolling Substitutions:** Keep the starting lineup on the pitch across half-time and schedule rolling changes mid-half (e.g. at minute 12.5 of each 25-minute half).
+  - **Hybrid:** Combines scheduled break changes with mid-period rolling substitution cues.
+- **Keep Lineup Across Half-Time:** Toggle this to prevent auto-rotation from scrambling your pitch players at the half-time break. The starting 7 will continue into the second half, with substitutes rotated in mid-game.
+- **Suggested Sub Interval:** Specify target minutes between rolling sideline changes (e.g. 10–12 minutes).
 
 ### Equal Playing Time Thresholds
 The FA Charter Standard and grassroots leagues mandate minimum playing time (typically at least **50% playing time across every match** for every attending player).
 - In your settings, set your **Target Playing Time Equity** (default is 50%).
-- SubShuffle's rotation algorithm uses this threshold to ensure no child sits on the bench for more than their fair share.
+- SubShuffle's rotation algorithm uses this threshold to ensure no child sits on the bench for more than their fair share. When in-game rolling substitutions are active, playing time is pro-rated down to the exact half-period mark (e.g. 12.5m for substitutes, 37.5m for starters).
 
 ---
 

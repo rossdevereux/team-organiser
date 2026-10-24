@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+- **Continuous Lineups & In-Game Rolling Substitutions** ([#25](https://github.com/rossdevereux/team-organiser/issues/25)):
+  - Coaches can now keep the starting 7 players on the pitch across half-time without auto-rotation scrambling the squad at the break.
+  - Set custom in-game substitution intervals (e.g. rolling changes every 12.5 minutes) with pro-rated playing time equity calculated automatically.
+  - Live match screen provides audio alerts and 1-tap touchline substitution prompts when your scheduled substitution window arrives.
+  - Printable team sheets and WhatsApp messages now clearly list planned in-game rolling substitutions and estimated player minutes.
+
 ## [1.4.0] - 2026-10-24
 
 ### Added
