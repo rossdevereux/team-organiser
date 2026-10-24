@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-24
+
 ### Added
 - **Comprehensive Team Dashboard, Season Leaderboards & Presentation Awards** ([#17](https://github.com/rossdevereux/team-organiser/issues/17)):
   - Built backend season aggregation service [`server/src/services/dashboardService.ts`](server/src/services/dashboardService.ts) calculating season KPIs (W/D/L record, win rate, goals for/against/diff, clean sheet rate, squad equity score, attendance rate), Golden Boot leaderboard, Player of the Match honors, defensive wall contributions, positional versatility distributions, designated GK coverage, and milestone badges.

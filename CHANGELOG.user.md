@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-24
+
 ### Added
 - **Team Dashboard, Season Leaderboards & Presentation Day Awards** ([#17](https://github.com/rossdevereux/team-organiser/issues/17)):
   - Added an all-in-one Team Dashboard tab to track season performance, achievements, and player development.
