@@ -22,14 +22,14 @@
           "2026/2027"
         ],
         "defaultSubIntervalMinutes": 10,
-        "subTimingMode": "at_breaks",
-        "preserveLineupAcrossBreaks": false,
+        "subTimingMode": "in_game_rolling",
+        "preserveLineupAcrossBreaks": true,
         "midPeriodSubIntervalMinutes": 12.5,
         "kitPrimaryColor": "#18181b",
         "kitSecondaryColor": "#f59e0b"
       },
       "createdAt": "2026-10-24T15:30:09.091Z",
-      "updatedAt": "2026-10-24T16:17:46.538Z"
+      "updatedAt": "2026-10-24T16:45:15.654Z"
     },
     {
       "id": "team-2",
