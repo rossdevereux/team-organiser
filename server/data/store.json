@@ -24,9 +24,12 @@
         "defaultSubIntervalMinutes": 10,
         "subTimingMode": "at_breaks",
         "preserveLineupAcrossBreaks": false,
-        "midPeriodSubIntervalMinutes": 12.5
+        "midPeriodSubIntervalMinutes": 12.5,
+        "kitPrimaryColor": "#18181b",
+        "kitSecondaryColor": "#f59e0b"
       },
-      "createdAt": "2026-10-24T15:30:09.091Z"
+      "createdAt": "2026-10-24T15:30:09.091Z",
+      "updatedAt": "2026-10-24T16:17:46.538Z"
     },
     {
       "id": "team-2",
@@ -462,6 +465,280 @@
         "midPeriodSubIntervalMinutes": 12.5
       },
       "createdAt": "2026-10-24T16:08:38.291Z"
+    },
+    {
+      "id": "team_1792858448859_ux8n",
+      "name": "Cold Ash Hawks U10",
+      "ageGroup": "U10",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1 (Standard)",
+        "customFormations": [],
+        "subTimingMode": "at_breaks",
+        "preserveLineupAcrossBreaks": false,
+        "midPeriodSubIntervalMinutes": 12.5
+      },
+      "createdAt": "2026-10-24T16:14:08.859Z",
+      "updatedAt": "2026-10-24T16:14:12.600Z"
+    },
+    {
+      "id": "team_1792858465842_jrxj",
+      "name": "Cold Ash Hawks U10",
+      "ageGroup": "U10",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1 (Standard)",
+        "customFormations": [],
+        "subTimingMode": "at_breaks",
+        "preserveLineupAcrossBreaks": false,
+        "midPeriodSubIntervalMinutes": 12.5
+      },
+      "createdAt": "2026-10-24T16:14:25.842Z",
+      "updatedAt": "2026-10-24T16:14:26.661Z"
+    },
+    {
+      "id": "team_1792858478440_4jdm",
+      "name": "Cold Ash Hawks U10",
+      "ageGroup": "U10",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1 (Standard)",
+        "customFormations": [],
+        "subTimingMode": "at_breaks",
+        "preserveLineupAcrossBreaks": false,
+        "midPeriodSubIntervalMinutes": 12.5
+      },
+      "createdAt": "2026-10-24T16:14:38.440Z",
+      "updatedAt": "2026-10-24T16:14:42.026Z"
+    },
+    {
+      "id": "team_1792858495224_t65i",
+      "name": "Cold Ash Hawks U10",
+      "ageGroup": "U10",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1 (Standard)",
+        "customFormations": [],
+        "subTimingMode": "at_breaks",
+        "preserveLineupAcrossBreaks": false,
+        "midPeriodSubIntervalMinutes": 12.5
+      },
+      "createdAt": "2026-10-24T16:14:55.224Z",
+      "updatedAt": "2026-10-24T16:14:58.820Z"
+    },
+    {
+      "id": "team_1792858505963_2xab",
+      "name": "Cold Ash Hawks U10-4576",
+      "ageGroup": "U10",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1 (Standard)",
+        "customFormations": [],
+        "subTimingMode": "at_breaks",
+        "preserveLineupAcrossBreaks": false,
+        "midPeriodSubIntervalMinutes": 12.5
+      },
+      "createdAt": "2026-10-24T16:15:05.963Z",
+      "updatedAt": "2026-10-24T16:15:09.515Z"
+    },
+    {
+      "id": "team_1792858516007_fgg2",
+      "name": "Cold Ash Hawks U9-4576",
+      "ageGroup": "U9",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": [],
+        "subTimingMode": "at_breaks",
+        "preserveLineupAcrossBreaks": false,
+        "midPeriodSubIntervalMinutes": 12.5
+      },
+      "createdAt": "2026-10-24T16:15:16.007Z"
+    },
+    {
+      "id": "team_1792858583054_6vnv",
+      "name": "Cold Ash Hawks U10",
+      "ageGroup": "U10",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1 (Standard)",
+        "customFormations": [],
+        "subTimingMode": "at_breaks",
+        "preserveLineupAcrossBreaks": false,
+        "midPeriodSubIntervalMinutes": 12.5
+      },
+      "createdAt": "2026-10-24T16:16:23.054Z",
+      "updatedAt": "2026-10-24T16:16:26.607Z"
+    },
+    {
+      "id": "team_1792858599705_5vjp",
+      "name": "Cold Ash Hawks U10",
+      "ageGroup": "U10",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1 (Standard)",
+        "customFormations": [],
+        "subTimingMode": "at_breaks",
+        "preserveLineupAcrossBreaks": false,
+        "midPeriodSubIntervalMinutes": 12.5
+      },
+      "createdAt": "2026-10-24T16:16:39.705Z",
+      "updatedAt": "2026-10-24T16:16:40.509Z"
+    },
+    {
+      "id": "team_1792858612252_zd7r",
+      "name": "Cold Ash Hawks U10",
+      "ageGroup": "U10",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1 (Standard)",
+        "customFormations": [],
+        "subTimingMode": "at_breaks",
+        "preserveLineupAcrossBreaks": false,
+        "midPeriodSubIntervalMinutes": 12.5
+      },
+      "createdAt": "2026-10-24T16:16:52.252Z",
+      "updatedAt": "2026-10-24T16:16:55.871Z"
+    },
+    {
+      "id": "team_1792858629726_473l",
+      "name": "Cold Ash Hawks U10",
+      "ageGroup": "U10",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1 (Standard)",
+        "customFormations": [],
+        "subTimingMode": "at_breaks",
+        "preserveLineupAcrossBreaks": false,
+        "midPeriodSubIntervalMinutes": 12.5
+      },
+      "createdAt": "2026-10-24T16:17:09.726Z",
+      "updatedAt": "2026-10-24T16:17:13.287Z"
+    },
+    {
+      "id": "team_1792858642101_i2oe",
+      "name": "Cold Ash Hawks U10-9220",
+      "ageGroup": "U10",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1 (Standard)",
+        "customFormations": [],
+        "subTimingMode": "at_breaks",
+        "preserveLineupAcrossBreaks": false,
+        "midPeriodSubIntervalMinutes": 12.5
+      },
+      "createdAt": "2026-10-24T16:17:22.101Z",
+      "updatedAt": "2026-10-24T16:17:25.648Z"
+    },
+    {
+      "id": "team_1792858652389_hjc2",
+      "name": "Cold Ash Hawks U9-9220",
+      "ageGroup": "U9",
+      "ownerId": "dev-user-123",
+      "ownerEmail": "coach@therovers.local",
+      "sharedWith": [],
+      "settings": {
+        "pitchPlayerCount": 7,
+        "matchdaySquadCap": 10,
+        "subCount": 3,
+        "matchPeriodCount": 2,
+        "periodDurationMinutes": 25,
+        "targetGameTimePercent": 50,
+        "defaultFormation": "2-3-1",
+        "customFormations": [],
+        "subTimingMode": "at_breaks",
+        "preserveLineupAcrossBreaks": false,
+        "midPeriodSubIntervalMinutes": 12.5
+      },
+      "createdAt": "2026-10-24T16:17:32.389Z"
     }
   ],
   "players": [
@@ -3024,6 +3301,1976 @@
       "totalMinutesPlayed": 0,
       "captainCount": 0,
       "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858453376_e67j",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "Oliver",
+      "squadNumber": 1,
+      "preferredPositions": [
+        "Goalkeeper"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": true,
+      "fixedPosition": "GK",
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 50
+    },
+    {
+      "id": "p_1792858453609_ce2a",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "Harry",
+      "squadNumber": 4,
+      "preferredPositions": [
+        "Midfield",
+        "Defence"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [
+        "2026-10-31"
+      ],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858453843_4vfx",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "Jack",
+      "squadNumber": 9,
+      "preferredPositions": [
+        "Midfield",
+        "Attack"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5
+    },
+    {
+      "id": "p_1792858458276_xilw1",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "George",
+      "squadNumber": 2,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858458276_l3osq",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "Arthur",
+      "squadNumber": 3,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858458276_vhnt8",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "Freddie",
+      "squadNumber": 5,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858458276_w0d5d",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "Charlie",
+      "squadNumber": 6,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858458276_yq91h",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "Leo",
+      "squadNumber": 7,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858458276_2dbz4",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "Oscar",
+      "squadNumber": 8,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 25,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858458276_blbrc",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "Alfie",
+      "squadNumber": 10,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 25,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858458276_gzgyn",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "Theo",
+      "squadNumber": 11,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 25,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858458276_x280j",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "Henry",
+      "squadNumber": 12,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858458276_6ejr5",
+      "teamId": "team_1792858448859_ux8n",
+      "name": "Thomas",
+      "squadNumber": 14,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858467308_5pzb",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "Oliver",
+      "squadNumber": 1,
+      "preferredPositions": [
+        "Goalkeeper"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": true,
+      "fixedPosition": "GK",
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5
+    },
+    {
+      "id": "p_1792858467542_h20k",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "Harry",
+      "squadNumber": 4,
+      "preferredPositions": [
+        "Midfield",
+        "Defence"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [
+        "2026-10-31"
+      ],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858467775_jt1x",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "Jack",
+      "squadNumber": 9,
+      "preferredPositions": [
+        "Midfield",
+        "Attack"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5
+    },
+    {
+      "id": "p_1792858472163_1htpo",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "George",
+      "squadNumber": 2,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858472163_ehfbc",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "Arthur",
+      "squadNumber": 3,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858472163_ozuyx",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "Freddie",
+      "squadNumber": 5,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858472163_7f0o3",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "Charlie",
+      "squadNumber": 6,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858472163_xpm2u",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "Leo",
+      "squadNumber": 7,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858472163_ttv5p",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "Oscar",
+      "squadNumber": 8,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 1,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858472163_9995f",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "Alfie",
+      "squadNumber": 10,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858472163_v8dz0",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "Theo",
+      "squadNumber": 11,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858472163_zbawd",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "Henry",
+      "squadNumber": 12,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858472163_38bdv",
+      "teamId": "team_1792858465842_jrxj",
+      "name": "Thomas",
+      "squadNumber": 14,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858482709_sj0h",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "Oliver",
+      "squadNumber": 1,
+      "preferredPositions": [
+        "Goalkeeper"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": true,
+      "fixedPosition": "GK",
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858482942_piis",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "Harry",
+      "squadNumber": 4,
+      "preferredPositions": [
+        "Midfield",
+        "Defence"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [
+        "2026-10-31"
+      ],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858483174_dro1",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "Jack",
+      "squadNumber": 9,
+      "preferredPositions": [
+        "Midfield",
+        "Attack"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858487599_zt4ss",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "George",
+      "squadNumber": 2,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858487599_m8b4m",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "Arthur",
+      "squadNumber": 3,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858487599_pk71u",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "Freddie",
+      "squadNumber": 5,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858487599_dngf8",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "Charlie",
+      "squadNumber": 6,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858487599_vbzx1",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "Leo",
+      "squadNumber": 7,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858487599_m8dky",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "Oscar",
+      "squadNumber": 8,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858487599_m1f4q",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "Alfie",
+      "squadNumber": 10,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858487599_0ia2p",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "Theo",
+      "squadNumber": 11,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858487599_22or3",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "Henry",
+      "squadNumber": 12,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858487599_6y2nl",
+      "teamId": "team_1792858478440_4jdm",
+      "name": "Thomas",
+      "squadNumber": 14,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858499491_bnsk",
+      "teamId": "team_1792858495224_t65i",
+      "name": "Oliver",
+      "squadNumber": 1,
+      "preferredPositions": [
+        "Goalkeeper"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": true,
+      "fixedPosition": "GK",
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858499723_dw8y",
+      "teamId": "team_1792858495224_t65i",
+      "name": "Harry",
+      "squadNumber": 4,
+      "preferredPositions": [
+        "Midfield",
+        "Defence"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [
+        "2026-10-31"
+      ],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858499941_6bm7",
+      "teamId": "team_1792858495224_t65i",
+      "name": "Jack",
+      "squadNumber": 9,
+      "preferredPositions": [
+        "Midfield",
+        "Attack"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858504333_1r5or",
+      "teamId": "team_1792858495224_t65i",
+      "name": "George",
+      "squadNumber": 2,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858504333_cknee",
+      "teamId": "team_1792858495224_t65i",
+      "name": "Arthur",
+      "squadNumber": 3,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858504333_0l569",
+      "teamId": "team_1792858495224_t65i",
+      "name": "Freddie",
+      "squadNumber": 5,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858504333_ecsbg",
+      "teamId": "team_1792858495224_t65i",
+      "name": "Charlie",
+      "squadNumber": 6,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858504333_gmy4i",
+      "teamId": "team_1792858495224_t65i",
+      "name": "Leo",
+      "squadNumber": 7,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858504333_7o0a2",
+      "teamId": "team_1792858495224_t65i",
+      "name": "Oscar",
+      "squadNumber": 8,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858504333_qjtbc",
+      "teamId": "team_1792858495224_t65i",
+      "name": "Alfie",
+      "squadNumber": 10,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858504333_qxsg0",
+      "teamId": "team_1792858495224_t65i",
+      "name": "Theo",
+      "squadNumber": 11,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858504333_sofjh",
+      "teamId": "team_1792858495224_t65i",
+      "name": "Henry",
+      "squadNumber": 12,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858504333_mrbqz",
+      "teamId": "team_1792858495224_t65i",
+      "name": "Thomas",
+      "squadNumber": 14,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858510141_k223",
+      "teamId": "team_1792858505963_2xab",
+      "name": "Oliver",
+      "squadNumber": 1,
+      "preferredPositions": [
+        "Goalkeeper"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": true,
+      "fixedPosition": "GK",
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858510373_bsrn",
+      "teamId": "team_1792858505963_2xab",
+      "name": "Harry",
+      "squadNumber": 4,
+      "preferredPositions": [
+        "Midfield",
+        "Defence"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [
+        "2026-10-31"
+      ],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858510606_vect",
+      "teamId": "team_1792858505963_2xab",
+      "name": "Jack",
+      "squadNumber": 9,
+      "preferredPositions": [
+        "Midfield",
+        "Attack"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858514862_9khrw",
+      "teamId": "team_1792858505963_2xab",
+      "name": "George",
+      "squadNumber": 2,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858514862_3i08h",
+      "teamId": "team_1792858505963_2xab",
+      "name": "Arthur",
+      "squadNumber": 3,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858514862_9g6ko",
+      "teamId": "team_1792858505963_2xab",
+      "name": "Freddie",
+      "squadNumber": 5,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858514862_z6ib7",
+      "teamId": "team_1792858505963_2xab",
+      "name": "Charlie",
+      "squadNumber": 6,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858514862_pgcng",
+      "teamId": "team_1792858505963_2xab",
+      "name": "Leo",
+      "squadNumber": 7,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858514862_klcbe",
+      "teamId": "team_1792858505963_2xab",
+      "name": "Oscar",
+      "squadNumber": 8,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858514862_gx674",
+      "teamId": "team_1792858505963_2xab",
+      "name": "Alfie",
+      "squadNumber": 10,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858514862_z7gsp",
+      "teamId": "team_1792858505963_2xab",
+      "name": "Theo",
+      "squadNumber": 11,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858514862_m3s18",
+      "teamId": "team_1792858505963_2xab",
+      "name": "Henry",
+      "squadNumber": 12,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858514862_de445",
+      "teamId": "team_1792858505963_2xab",
+      "name": "Thomas",
+      "squadNumber": 14,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858587272_rjb1",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "Oliver",
+      "squadNumber": 1,
+      "preferredPositions": [
+        "Goalkeeper"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": true,
+      "fixedPosition": "GK",
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 50
+    },
+    {
+      "id": "p_1792858587523_fe2s",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "Harry",
+      "squadNumber": 4,
+      "preferredPositions": [
+        "Midfield",
+        "Defence"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [
+        "2026-10-31"
+      ],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858587754_16qi",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "Jack",
+      "squadNumber": 9,
+      "preferredPositions": [
+        "Midfield",
+        "Attack"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5
+    },
+    {
+      "id": "p_1792858592250_lcd34",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "George",
+      "squadNumber": 2,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858592250_0nk2c",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "Arthur",
+      "squadNumber": 3,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858592250_5bfck",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "Freddie",
+      "squadNumber": 5,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858592250_4lrti",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "Charlie",
+      "squadNumber": 6,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858592250_5nhkh",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "Leo",
+      "squadNumber": 7,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858592250_92eqz",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "Oscar",
+      "squadNumber": 8,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 25,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858592250_tipe4",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "Alfie",
+      "squadNumber": 10,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 25,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858592250_0dsph",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "Theo",
+      "squadNumber": 11,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 25,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858592250_514dc",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "Henry",
+      "squadNumber": 12,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858592250_t9ggn",
+      "teamId": "team_1792858583054_6vnv",
+      "name": "Thomas",
+      "squadNumber": 14,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858601188_e2z0",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "Oliver",
+      "squadNumber": 1,
+      "preferredPositions": [
+        "Goalkeeper"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": true,
+      "fixedPosition": "GK",
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5
+    },
+    {
+      "id": "p_1792858601422_2xfv",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "Harry",
+      "squadNumber": 4,
+      "preferredPositions": [
+        "Midfield",
+        "Defence"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [
+        "2026-10-31"
+      ],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858601652_411y",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "Jack",
+      "squadNumber": 9,
+      "preferredPositions": [
+        "Midfield",
+        "Attack"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5
+    },
+    {
+      "id": "p_1792858606106_980xe",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "George",
+      "squadNumber": 2,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858606106_3yx75",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "Arthur",
+      "squadNumber": 3,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858606106_5kuvp",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "Freddie",
+      "squadNumber": 5,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858606106_2frfi",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "Charlie",
+      "squadNumber": 6,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858606106_49ff3",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "Leo",
+      "squadNumber": 7,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858606106_vnng1",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "Oscar",
+      "squadNumber": 8,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 1,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858606106_u5q52",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "Alfie",
+      "squadNumber": 10,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858606106_p9ykm",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "Theo",
+      "squadNumber": 11,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 1,
+      "totalMinutesPlayed": 37.5,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858606106_yx9q3",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "Henry",
+      "squadNumber": 12,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858606106_pglm7",
+      "teamId": "team_1792858599705_5vjp",
+      "name": "Thomas",
+      "squadNumber": 14,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858616572_vb9x",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "Oliver",
+      "squadNumber": 1,
+      "preferredPositions": [
+        "Goalkeeper"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": true,
+      "fixedPosition": "GK",
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858616825_g35u",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "Harry",
+      "squadNumber": 4,
+      "preferredPositions": [
+        "Midfield",
+        "Defence"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [
+        "2026-10-31"
+      ],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858617040_5f6n",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "Jack",
+      "squadNumber": 9,
+      "preferredPositions": [
+        "Midfield",
+        "Attack"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858621500_sny6c",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "George",
+      "squadNumber": 2,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858621500_l1p51",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "Arthur",
+      "squadNumber": 3,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858621500_kjel6",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "Freddie",
+      "squadNumber": 5,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858621500_kw1g6",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "Charlie",
+      "squadNumber": 6,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858621500_mq14n",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "Leo",
+      "squadNumber": 7,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858621500_hw0yl",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "Oscar",
+      "squadNumber": 8,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858621500_yk0n9",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "Alfie",
+      "squadNumber": 10,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858621500_syc89",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "Theo",
+      "squadNumber": 11,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858621500_yb9fk",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "Henry",
+      "squadNumber": 12,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858621500_t23zb",
+      "teamId": "team_1792858612252_zd7r",
+      "name": "Thomas",
+      "squadNumber": 14,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858633969_a3ly",
+      "teamId": "team_1792858629726_473l",
+      "name": "Oliver",
+      "squadNumber": 1,
+      "preferredPositions": [
+        "Goalkeeper"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": true,
+      "fixedPosition": "GK",
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858634202_iuju",
+      "teamId": "team_1792858629726_473l",
+      "name": "Harry",
+      "squadNumber": 4,
+      "preferredPositions": [
+        "Midfield",
+        "Defence"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [
+        "2026-10-31"
+      ],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858634451_numr",
+      "teamId": "team_1792858629726_473l",
+      "name": "Jack",
+      "squadNumber": 9,
+      "preferredPositions": [
+        "Midfield",
+        "Attack"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858638964_sb7sz",
+      "teamId": "team_1792858629726_473l",
+      "name": "George",
+      "squadNumber": 2,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858638964_o6bs5",
+      "teamId": "team_1792858629726_473l",
+      "name": "Arthur",
+      "squadNumber": 3,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858638964_gtx1p",
+      "teamId": "team_1792858629726_473l",
+      "name": "Freddie",
+      "squadNumber": 5,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858638964_ffiic",
+      "teamId": "team_1792858629726_473l",
+      "name": "Charlie",
+      "squadNumber": 6,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858638964_u4kxx",
+      "teamId": "team_1792858629726_473l",
+      "name": "Leo",
+      "squadNumber": 7,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858638964_ccfom",
+      "teamId": "team_1792858629726_473l",
+      "name": "Oscar",
+      "squadNumber": 8,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858638964_b92u2",
+      "teamId": "team_1792858629726_473l",
+      "name": "Alfie",
+      "squadNumber": 10,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858638964_wi57e",
+      "teamId": "team_1792858629726_473l",
+      "name": "Theo",
+      "squadNumber": 11,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858638964_l36uy",
+      "teamId": "team_1792858629726_473l",
+      "name": "Henry",
+      "squadNumber": 12,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858638964_9mvg2",
+      "teamId": "team_1792858629726_473l",
+      "name": "Thomas",
+      "squadNumber": 14,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858646386_o9pa",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "Oliver",
+      "squadNumber": 1,
+      "preferredPositions": [
+        "Goalkeeper"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": true,
+      "fixedPosition": "GK",
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858646636_yykg",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "Harry",
+      "squadNumber": 4,
+      "preferredPositions": [
+        "Midfield",
+        "Defence"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [
+        "2026-10-31"
+      ],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858646885_ewx1",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "Jack",
+      "squadNumber": 9,
+      "preferredPositions": [
+        "Midfield",
+        "Attack"
+      ],
+      "specificPositions": [],
+      "isFixedPosition": false,
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0
+    },
+    {
+      "id": "p_1792858651285_zo392",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "George",
+      "squadNumber": 2,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858651285_lf6p2",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "Arthur",
+      "squadNumber": 3,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858651285_7v5pd",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "Freddie",
+      "squadNumber": 5,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858651285_8evg8",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "Charlie",
+      "squadNumber": 6,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858651285_vbha1",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "Leo",
+      "squadNumber": 7,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858651285_g2ch3",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "Oscar",
+      "squadNumber": 8,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858651285_9224l",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "Alfie",
+      "squadNumber": 10,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858651285_jzi7o",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "Theo",
+      "squadNumber": 11,
+      "preferredPositions": [
+        "Attack"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858651285_lilzc",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "Henry",
+      "squadNumber": 12,
+      "preferredPositions": [
+        "Midfield"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
+    },
+    {
+      "id": "p_1792858651285_spvy8",
+      "teamId": "team_1792858642101_i2oe",
+      "name": "Thomas",
+      "squadNumber": 14,
+      "preferredPositions": [
+        "Defence"
+      ],
+      "specificPositions": [],
+      "unavailableDates": [],
+      "matchesPlayed": 0,
+      "totalMinutesPlayed": 0,
+      "captainCount": 0,
+      "playerOfTheMatchCount": 0
     }
   ],
   "settings": {
@@ -3046,6 +5293,1580 @@
     "midPeriodSubIntervalMinutes": 12.5
   },
   "fixtures": [
+    {
+      "id": "fix_1792858651936_g8el",
+      "teamId": "team_1792858642101_i2oe",
+      "season": "2026/2027",
+      "date": "2026-10-24",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Tadley Gladiators",
+      "venue": "Home",
+      "status": "Upcoming",
+      "version": 2,
+      "updatedAt": "2026-10-24T16:17:31.953Z",
+      "matchSquad": {
+        "fixtureId": "fix_1792858651936_g8el",
+        "selectedPlayerIds": [
+          "p_1792858646386_o9pa",
+          "p_1792858646636_yykg",
+          "p_1792858646885_ewx1",
+          "p_1792858651285_zo392",
+          "p_1792858651285_lf6p2",
+          "p_1792858651285_7v5pd",
+          "p_1792858651285_8evg8",
+          "p_1792858651285_vbha1",
+          "p_1792858651285_g2ch3",
+          "p_1792858651285_9224l"
+        ],
+        "restedPlayerIds": [
+          "p_1792858651285_jzi7o",
+          "p_1792858651285_lilzc",
+          "p_1792858651285_spvy8"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p_1792858646386_o9pa",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858646636_yykg",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858646885_ewx1",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858651285_zo392",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858651285_lf6p2",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858651285_7v5pd",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858651285_8evg8",
+                "position": "MID_R"
+              }
+            ],
+            "subs": [
+              "p_1792858651285_vbha1",
+              "p_1792858651285_g2ch3",
+              "p_1792858651285_9224l"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p_1792858646386_o9pa",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858651285_vbha1",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858651285_g2ch3",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858651285_9224l",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858646636_yykg",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858646885_ewx1",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858651285_zo392",
+                "position": "DEF_R"
+              }
+            ],
+            "subs": [
+              "p_1792858651285_lf6p2",
+              "p_1792858651285_7v5pd",
+              "p_1792858651285_8evg8"
+            ]
+          }
+        ],
+        "manualOverrides": false,
+        "fixedPlayerPositions": {
+          "p_1792858646386_o9pa": "GK"
+        }
+      }
+    },
+    {
+      "id": "fix_1792858622169_ck2x",
+      "teamId": "team_1792858612252_zd7r",
+      "season": "2026/2027",
+      "date": "2026-10-31",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Tadley Gladiators",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchPeriodCount": 4,
+      "periodDurationMinutes": 12.5,
+      "version": 5,
+      "updatedAt": "2026-10-24T16:17:08.243Z",
+      "matchSquad": {
+        "fixtureId": "fix_1792858622169_ck2x",
+        "selectedPlayerIds": [
+          "p_1792858616572_vb9x",
+          "p_1792858617040_5f6n",
+          "p_1792858621500_sny6c",
+          "p_1792858621500_l1p51",
+          "p_1792858621500_kjel6",
+          "p_1792858621500_kw1g6",
+          "p_1792858621500_mq14n",
+          "p_1792858621500_hw0yl",
+          "p_1792858621500_yk0n9",
+          "p_1792858621500_syc89"
+        ],
+        "restedPlayerIds": [
+          "p_1792858621500_yb9fk",
+          "p_1792858621500_t23zb"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p_1792858616572_vb9x",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858617040_5f6n",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858621500_sny6c",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858621500_l1p51",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858621500_kjel6",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858621500_kw1g6",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858621500_mq14n",
+                "position": "MID_C"
+              }
+            ],
+            "subs": [
+              "p_1792858621500_hw0yl",
+              "p_1792858621500_yk0n9",
+              "p_1792858621500_syc89"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p_1792858621500_kjel6",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858621500_hw0yl",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858621500_yk0n9",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858621500_syc89",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858617040_5f6n",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858621500_sny6c",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858621500_l1p51",
+                "position": "DEF_L"
+              }
+            ],
+            "subs": [
+              "p_1792858616572_vb9x",
+              "p_1792858621500_kw1g6",
+              "p_1792858621500_mq14n"
+            ]
+          },
+          {
+            "period": 3,
+            "onPitch": [
+              {
+                "playerId": "p_1792858616572_vb9x",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858621500_kjel6",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858621500_kw1g6",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858621500_mq14n",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858617040_5f6n",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858621500_sny6c",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858621500_l1p51",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1792858621500_hw0yl",
+              "p_1792858621500_yk0n9",
+              "p_1792858621500_syc89"
+            ]
+          },
+          {
+            "period": 4,
+            "onPitch": [
+              {
+                "playerId": "p_1792858616572_vb9x",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858621500_hw0yl",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858621500_yk0n9",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858621500_syc89",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858621500_kjel6",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858621500_kw1g6",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858621500_mq14n",
+                "position": "MID_R"
+              }
+            ],
+            "subs": [
+              "p_1792858617040_5f6n",
+              "p_1792858621500_sny6c",
+              "p_1792858621500_l1p51"
+            ]
+          }
+        ],
+        "manualOverrides": true,
+        "fixedPlayerPositions": {
+          "p_1792858616572_vb9x": "GK"
+        }
+      }
+    },
+    {
+      "id": "fix_1792858606793_rgcg",
+      "teamId": "team_1792858599705_5vjp",
+      "season": "2026/2027",
+      "date": "2026-10-31",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Tadley Gladiators",
+      "venue": "Home",
+      "status": "Completed",
+      "matchPeriodCount": 4,
+      "periodDurationMinutes": 12.5,
+      "version": 9,
+      "updatedAt": "2026-10-24T16:16:50.590Z",
+      "matchSquad": {
+        "fixtureId": "fix_1792858606793_rgcg",
+        "selectedPlayerIds": [
+          "p_1792858601188_e2z0",
+          "p_1792858601652_411y",
+          "p_1792858606106_980xe",
+          "p_1792858606106_3yx75",
+          "p_1792858606106_5kuvp",
+          "p_1792858606106_2frfi",
+          "p_1792858606106_49ff3",
+          "p_1792858606106_vnng1",
+          "p_1792858606106_u5q52",
+          "p_1792858606106_p9ykm"
+        ],
+        "restedPlayerIds": [
+          "p_1792858606106_yx9q3",
+          "p_1792858606106_pglm7"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p_1792858601652_411y",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858606106_980xe",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858606106_3yx75",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858606106_5kuvp",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858606106_2frfi",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858606106_49ff3",
+                "position": "MID_C"
+              }
+            ],
+            "subs": [
+              "p_1792858601188_e2z0",
+              "p_1792858606106_u5q52",
+              "p_1792858606106_p9ykm"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p_1792858601188_e2z0",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858606106_u5q52",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858606106_p9ykm",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858601652_411y",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858606106_980xe",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858606106_3yx75",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858606106_5kuvp",
+                "position": "MID_R"
+              }
+            ],
+            "subs": [
+              "p_1792858606106_2frfi",
+              "p_1792858606106_49ff3"
+            ]
+          },
+          {
+            "period": 3,
+            "onPitch": [
+              {
+                "playerId": "p_1792858601188_e2z0",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858606106_2frfi",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858606106_49ff3",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858606106_u5q52",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858606106_p9ykm",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858601652_411y",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858606106_980xe",
+                "position": "DEF_R"
+              }
+            ],
+            "subs": [
+              "p_1792858606106_3yx75",
+              "p_1792858606106_5kuvp"
+            ]
+          },
+          {
+            "period": 4,
+            "onPitch": [
+              {
+                "playerId": "p_1792858601188_e2z0",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858606106_3yx75",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858606106_5kuvp",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858606106_2frfi",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858606106_49ff3",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858606106_u5q52",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858606106_p9ykm",
+                "position": "MID_R"
+              }
+            ],
+            "subs": [
+              "p_1792858601652_411y",
+              "p_1792858606106_980xe"
+            ]
+          }
+        ],
+        "manualOverrides": true,
+        "fixedPlayerPositions": {
+          "p_1792858601188_e2z0": "GK"
+        }
+      },
+      "liveMatchState": {
+        "isRunning": true,
+        "currentPeriod": 1,
+        "startedAt": "2026-10-24T16:16:47.702Z",
+        "elapsedSeconds": 0,
+        "periodTimers": {
+          "1": {
+            "isRunning": true,
+            "startedAt": "2026-10-24T16:16:47.702Z",
+            "elapsedSeconds": 0
+          }
+        },
+        "subLog": [
+          {
+            "id": "dep_1792858609902_7v5s",
+            "minute": 1,
+            "time": "01:00",
+            "period": 1,
+            "offPlayerId": "p_1792858606106_vnng1",
+            "offPlayerName": "Oscar",
+            "onPlayerId": "p_1792858606106_vnng1",
+            "onPlayerName": "Oscar",
+            "text": "🚨 INJURY / DEPARTURE: Oscar off (injured) ➡️ ON: Oscar",
+            "timestamp": "2026-10-24T16:16:49.902Z"
+          },
+          {
+            "id": "sub_1792858609548_wsto",
+            "minute": 1,
+            "time": "00:01",
+            "period": 1,
+            "offPlayerId": "p_1792858601188_e2z0",
+            "offPlayerName": "Oliver",
+            "onPlayerId": "p_1792858606106_vnng1",
+            "onPlayerName": "Oscar",
+            "position": "GK",
+            "text": "OFF: Oliver ➡️ ON: Oscar (GK)",
+            "timestamp": "2026-10-24T16:16:49.548Z"
+          }
+        ],
+        "updatedAt": "2026-10-24T16:16:49.585Z"
+      },
+      "isLive": false,
+      "earlyDepartures": [
+        {
+          "playerId": "p_1792858606106_vnng1",
+          "playerName": "Oscar",
+          "period": 1,
+          "minute": 1,
+          "matchMinute": 1,
+          "reason": "injured",
+          "replacedByPlayerId": "p_1792858606106_vnng1",
+          "replacedByPlayerName": "Oscar",
+          "departedAt": "2026-10-24T16:16:49.902Z",
+          "proRatedMinutes": 1
+        }
+      ],
+      "homeScore": 1,
+      "awayScore": 0,
+      "scorers": [
+        {
+          "id": "scorer_1792858610222_nhpa",
+          "playerId": "p_1792858601652_411y",
+          "playerName": "Jack",
+          "team": "home",
+          "isOwnGoal": false
+        }
+      ],
+      "creditedMinutes": {
+        "p_1792858601652_411y": 37.5,
+        "p_1792858606106_980xe": 37.5,
+        "p_1792858606106_3yx75": 37.5,
+        "p_1792858606106_5kuvp": 37.5,
+        "p_1792858606106_2frfi": 37.5,
+        "p_1792858606106_49ff3": 37.5,
+        "p_1792858601188_e2z0": 37.5,
+        "p_1792858606106_u5q52": 37.5,
+        "p_1792858606106_p9ykm": 37.5,
+        "p_1792858606106_vnng1": 1
+      }
+    },
+    {
+      "id": "fix_1792858592939_rf5b",
+      "teamId": "team_1792858583054_6vnv",
+      "season": "2026/2027",
+      "date": "2026-10-31",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Tadley Gladiators",
+      "venue": "Home",
+      "status": "Completed",
+      "matchPeriodCount": 4,
+      "periodDurationMinutes": 12.5,
+      "version": 4,
+      "updatedAt": "2026-10-24T16:16:37.343Z",
+      "matchSquad": {
+        "fixtureId": "fix_1792858592939_rf5b",
+        "selectedPlayerIds": [
+          "p_1792858587272_rjb1",
+          "p_1792858587754_16qi",
+          "p_1792858592250_lcd34",
+          "p_1792858592250_0nk2c",
+          "p_1792858592250_5bfck",
+          "p_1792858592250_4lrti",
+          "p_1792858592250_5nhkh",
+          "p_1792858592250_92eqz",
+          "p_1792858592250_tipe4",
+          "p_1792858592250_0dsph"
+        ],
+        "restedPlayerIds": [
+          "p_1792858592250_514dc",
+          "p_1792858592250_t9ggn"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p_1792858587272_rjb1",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858587754_16qi",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858592250_lcd34",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858592250_0nk2c",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858592250_5bfck",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858592250_4lrti",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858592250_5nhkh",
+                "position": "MID_C"
+              }
+            ],
+            "subs": [
+              "p_1792858592250_92eqz",
+              "p_1792858592250_tipe4",
+              "p_1792858592250_0dsph"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p_1792858587272_rjb1",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858592250_92eqz",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858592250_tipe4",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858592250_0dsph",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858587754_16qi",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858592250_lcd34",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858592250_0nk2c",
+                "position": "DEF_L"
+              }
+            ],
+            "subs": [
+              "p_1792858592250_5bfck",
+              "p_1792858592250_4lrti",
+              "p_1792858592250_5nhkh"
+            ]
+          },
+          {
+            "period": 3,
+            "onPitch": [
+              {
+                "playerId": "p_1792858587272_rjb1",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858592250_5bfck",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858592250_4lrti",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858592250_5nhkh",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858587754_16qi",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858592250_lcd34",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858592250_0nk2c",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1792858592250_92eqz",
+              "p_1792858592250_tipe4",
+              "p_1792858592250_0dsph"
+            ]
+          },
+          {
+            "period": 4,
+            "onPitch": [
+              {
+                "playerId": "p_1792858587272_rjb1",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858592250_92eqz",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858592250_tipe4",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858592250_0dsph",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858592250_5bfck",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858592250_4lrti",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858592250_5nhkh",
+                "position": "MID_R"
+              }
+            ],
+            "subs": [
+              "p_1792858587754_16qi",
+              "p_1792858592250_lcd34",
+              "p_1792858592250_0nk2c"
+            ]
+          }
+        ],
+        "manualOverrides": false,
+        "fixedPlayerPositions": {
+          "p_1792858587272_rjb1": "GK"
+        }
+      },
+      "homeScore": 1,
+      "awayScore": 0,
+      "scorers": [
+        {
+          "id": "scorer_1792858593533_m3yx",
+          "playerId": "p_1792858587754_16qi",
+          "playerName": "Jack",
+          "team": "home",
+          "isOwnGoal": false
+        }
+      ],
+      "isLive": false,
+      "creditedMinutes": {
+        "p_1792858587272_rjb1": 50,
+        "p_1792858587754_16qi": 37.5,
+        "p_1792858592250_lcd34": 37.5,
+        "p_1792858592250_0nk2c": 37.5,
+        "p_1792858592250_5bfck": 37.5,
+        "p_1792858592250_4lrti": 37.5,
+        "p_1792858592250_5nhkh": 37.5,
+        "p_1792858592250_92eqz": 25,
+        "p_1792858592250_tipe4": 25,
+        "p_1792858592250_0dsph": 25
+      }
+    },
+    {
+      "id": "fix_1792858515491_wn9o",
+      "teamId": "team_1792858505963_2xab",
+      "season": "2026/2027",
+      "date": "2026-10-24",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Tadley Gladiators",
+      "venue": "Home",
+      "status": "Upcoming",
+      "version": 2,
+      "updatedAt": "2026-10-24T16:15:15.508Z",
+      "matchSquad": {
+        "fixtureId": "fix_1792858515491_wn9o",
+        "selectedPlayerIds": [
+          "p_1792858510141_k223",
+          "p_1792858510373_bsrn",
+          "p_1792858510606_vect",
+          "p_1792858514862_9khrw",
+          "p_1792858514862_3i08h",
+          "p_1792858514862_9g6ko",
+          "p_1792858514862_z6ib7",
+          "p_1792858514862_pgcng",
+          "p_1792858514862_klcbe",
+          "p_1792858514862_gx674"
+        ],
+        "restedPlayerIds": [
+          "p_1792858514862_z7gsp",
+          "p_1792858514862_m3s18",
+          "p_1792858514862_de445"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p_1792858510141_k223",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858510373_bsrn",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858510606_vect",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858514862_9khrw",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858514862_3i08h",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858514862_9g6ko",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858514862_z6ib7",
+                "position": "MID_R"
+              }
+            ],
+            "subs": [
+              "p_1792858514862_pgcng",
+              "p_1792858514862_klcbe",
+              "p_1792858514862_gx674"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p_1792858510141_k223",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858514862_pgcng",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858514862_klcbe",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858514862_gx674",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858510373_bsrn",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858510606_vect",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858514862_9khrw",
+                "position": "DEF_R"
+              }
+            ],
+            "subs": [
+              "p_1792858514862_3i08h",
+              "p_1792858514862_9g6ko",
+              "p_1792858514862_z6ib7"
+            ]
+          }
+        ],
+        "manualOverrides": false,
+        "fixedPlayerPositions": {
+          "p_1792858510141_k223": "GK"
+        }
+      }
+    },
+    {
+      "id": "fix_1792858488283_xmaz",
+      "teamId": "team_1792858478440_4jdm",
+      "season": "2026/2027",
+      "date": "2026-10-31",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Tadley Gladiators",
+      "venue": "Home",
+      "status": "Upcoming",
+      "matchPeriodCount": 4,
+      "periodDurationMinutes": 12.5,
+      "version": 4,
+      "updatedAt": "2026-10-24T16:14:52.654Z",
+      "matchSquad": {
+        "fixtureId": "fix_1792858488283_xmaz",
+        "selectedPlayerIds": [
+          "p_1792858482709_sj0h",
+          "p_1792858483174_dro1",
+          "p_1792858487599_zt4ss",
+          "p_1792858487599_m8b4m",
+          "p_1792858487599_pk71u",
+          "p_1792858487599_dngf8",
+          "p_1792858487599_vbzx1",
+          "p_1792858487599_m8dky",
+          "p_1792858487599_m1f4q",
+          "p_1792858487599_0ia2p"
+        ],
+        "restedPlayerIds": [
+          "p_1792858487599_22or3",
+          "p_1792858487599_6y2nl"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p_1792858482709_sj0h",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858483174_dro1",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858487599_zt4ss",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858487599_m8b4m",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858487599_pk71u",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858487599_dngf8",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858487599_vbzx1",
+                "position": "MID_C"
+              }
+            ],
+            "subs": [
+              "p_1792858487599_m8dky",
+              "p_1792858487599_m1f4q",
+              "p_1792858487599_0ia2p"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p_1792858482709_sj0h",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858487599_m8dky",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858487599_m1f4q",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858487599_0ia2p",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858483174_dro1",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858487599_zt4ss",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858487599_m8b4m",
+                "position": "DEF_L"
+              }
+            ],
+            "subs": [
+              "p_1792858487599_pk71u",
+              "p_1792858487599_dngf8",
+              "p_1792858487599_vbzx1"
+            ]
+          },
+          {
+            "period": 3,
+            "onPitch": [
+              {
+                "playerId": "p_1792858482709_sj0h",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858487599_pk71u",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858487599_dngf8",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858487599_vbzx1",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858483174_dro1",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858487599_zt4ss",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858487599_m8b4m",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1792858487599_m8dky",
+              "p_1792858487599_m1f4q",
+              "p_1792858487599_0ia2p"
+            ]
+          },
+          {
+            "period": 4,
+            "onPitch": [
+              {
+                "playerId": "p_1792858482709_sj0h",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858487599_m8dky",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858487599_m1f4q",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858487599_0ia2p",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858487599_pk71u",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858487599_dngf8",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858487599_vbzx1",
+                "position": "MID_R"
+              }
+            ],
+            "subs": [
+              "p_1792858483174_dro1",
+              "p_1792858487599_zt4ss",
+              "p_1792858487599_m8b4m"
+            ]
+          }
+        ],
+        "manualOverrides": false,
+        "fixedPlayerPositions": {
+          "p_1792858482709_sj0h": "GK"
+        }
+      }
+    },
+    {
+      "id": "fix_1792858472875_t81y",
+      "teamId": "team_1792858465842_jrxj",
+      "season": "2026/2027",
+      "date": "2026-10-31",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Tadley Gladiators",
+      "venue": "Home",
+      "status": "Completed",
+      "matchPeriodCount": 4,
+      "periodDurationMinutes": 12.5,
+      "version": 9,
+      "updatedAt": "2026-10-24T16:14:36.768Z",
+      "matchSquad": {
+        "fixtureId": "fix_1792858472875_t81y",
+        "selectedPlayerIds": [
+          "p_1792858467308_5pzb",
+          "p_1792858467775_jt1x",
+          "p_1792858472163_1htpo",
+          "p_1792858472163_ehfbc",
+          "p_1792858472163_ozuyx",
+          "p_1792858472163_7f0o3",
+          "p_1792858472163_xpm2u",
+          "p_1792858472163_ttv5p",
+          "p_1792858472163_9995f",
+          "p_1792858472163_v8dz0"
+        ],
+        "restedPlayerIds": [
+          "p_1792858472163_zbawd",
+          "p_1792858472163_38bdv"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p_1792858467775_jt1x",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858472163_1htpo",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858472163_ehfbc",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858472163_ozuyx",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858472163_7f0o3",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858472163_xpm2u",
+                "position": "MID_C"
+              }
+            ],
+            "subs": [
+              "p_1792858467308_5pzb",
+              "p_1792858472163_9995f",
+              "p_1792858472163_v8dz0"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p_1792858467308_5pzb",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858472163_9995f",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858472163_v8dz0",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858467775_jt1x",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858472163_1htpo",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858472163_ehfbc",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858472163_ozuyx",
+                "position": "MID_R"
+              }
+            ],
+            "subs": [
+              "p_1792858472163_7f0o3",
+              "p_1792858472163_xpm2u"
+            ]
+          },
+          {
+            "period": 3,
+            "onPitch": [
+              {
+                "playerId": "p_1792858467308_5pzb",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858472163_7f0o3",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858472163_xpm2u",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858472163_9995f",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858472163_v8dz0",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858467775_jt1x",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858472163_1htpo",
+                "position": "DEF_R"
+              }
+            ],
+            "subs": [
+              "p_1792858472163_ehfbc",
+              "p_1792858472163_ozuyx"
+            ]
+          },
+          {
+            "period": 4,
+            "onPitch": [
+              {
+                "playerId": "p_1792858467308_5pzb",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858472163_ehfbc",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858472163_ozuyx",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858472163_7f0o3",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858472163_xpm2u",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858472163_9995f",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858472163_v8dz0",
+                "position": "MID_R"
+              }
+            ],
+            "subs": [
+              "p_1792858467775_jt1x",
+              "p_1792858472163_1htpo"
+            ]
+          }
+        ],
+        "manualOverrides": true,
+        "fixedPlayerPositions": {
+          "p_1792858467308_5pzb": "GK"
+        }
+      },
+      "liveMatchState": {
+        "isRunning": true,
+        "currentPeriod": 1,
+        "startedAt": "2026-10-24T16:14:33.874Z",
+        "elapsedSeconds": 0,
+        "periodTimers": {
+          "1": {
+            "isRunning": true,
+            "startedAt": "2026-10-24T16:14:33.874Z",
+            "elapsedSeconds": 0
+          }
+        },
+        "subLog": [
+          {
+            "id": "dep_1792858476106_iwmh",
+            "minute": 1,
+            "time": "01:00",
+            "period": 1,
+            "offPlayerId": "p_1792858472163_ttv5p",
+            "offPlayerName": "Oscar",
+            "onPlayerId": "p_1792858472163_ttv5p",
+            "onPlayerName": "Oscar",
+            "text": "🚨 INJURY / DEPARTURE: Oscar off (injured) ➡️ ON: Oscar",
+            "timestamp": "2026-10-24T16:14:36.106Z"
+          },
+          {
+            "id": "sub_1792858475703_1fqj",
+            "minute": 1,
+            "time": "00:01",
+            "period": 1,
+            "offPlayerId": "p_1792858467308_5pzb",
+            "offPlayerName": "Oliver",
+            "onPlayerId": "p_1792858472163_ttv5p",
+            "onPlayerName": "Oscar",
+            "position": "GK",
+            "text": "OFF: Oliver ➡️ ON: Oscar (GK)",
+            "timestamp": "2026-10-24T16:14:35.703Z"
+          }
+        ],
+        "updatedAt": "2026-10-24T16:14:35.740Z"
+      },
+      "isLive": false,
+      "earlyDepartures": [
+        {
+          "playerId": "p_1792858472163_ttv5p",
+          "playerName": "Oscar",
+          "period": 1,
+          "minute": 1,
+          "matchMinute": 1,
+          "reason": "injured",
+          "replacedByPlayerId": "p_1792858472163_ttv5p",
+          "replacedByPlayerName": "Oscar",
+          "departedAt": "2026-10-24T16:14:36.105Z",
+          "proRatedMinutes": 1
+        }
+      ],
+      "homeScore": 1,
+      "awayScore": 0,
+      "scorers": [
+        {
+          "id": "scorer_1792858476437_of55",
+          "playerId": "p_1792858467775_jt1x",
+          "playerName": "Jack",
+          "team": "home",
+          "isOwnGoal": false
+        }
+      ],
+      "creditedMinutes": {
+        "p_1792858467775_jt1x": 37.5,
+        "p_1792858472163_1htpo": 37.5,
+        "p_1792858472163_ehfbc": 37.5,
+        "p_1792858472163_ozuyx": 37.5,
+        "p_1792858472163_7f0o3": 37.5,
+        "p_1792858472163_xpm2u": 37.5,
+        "p_1792858467308_5pzb": 37.5,
+        "p_1792858472163_9995f": 37.5,
+        "p_1792858472163_v8dz0": 37.5,
+        "p_1792858472163_ttv5p": 1
+      }
+    },
+    {
+      "id": "fix_1792858459028_1pzo",
+      "teamId": "team_1792858448859_ux8n",
+      "season": "2026/2027",
+      "date": "2026-10-31",
+      "kickOffTime": "10:00",
+      "meetTime": "09:30",
+      "opponent": "Tadley Gladiators",
+      "venue": "Home",
+      "status": "Completed",
+      "matchPeriodCount": 4,
+      "periodDurationMinutes": 12.5,
+      "version": 4,
+      "updatedAt": "2026-10-24T16:14:23.486Z",
+      "matchSquad": {
+        "fixtureId": "fix_1792858459028_1pzo",
+        "selectedPlayerIds": [
+          "p_1792858453376_e67j",
+          "p_1792858453843_4vfx",
+          "p_1792858458276_xilw1",
+          "p_1792858458276_l3osq",
+          "p_1792858458276_vhnt8",
+          "p_1792858458276_w0d5d",
+          "p_1792858458276_yq91h",
+          "p_1792858458276_2dbz4",
+          "p_1792858458276_blbrc",
+          "p_1792858458276_gzgyn"
+        ],
+        "restedPlayerIds": [
+          "p_1792858458276_x280j",
+          "p_1792858458276_6ejr5"
+        ],
+        "lineupsByPeriod": [
+          {
+            "period": 1,
+            "onPitch": [
+              {
+                "playerId": "p_1792858453376_e67j",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858453843_4vfx",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858458276_xilw1",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858458276_l3osq",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858458276_vhnt8",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858458276_w0d5d",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858458276_yq91h",
+                "position": "MID_C"
+              }
+            ],
+            "subs": [
+              "p_1792858458276_2dbz4",
+              "p_1792858458276_blbrc",
+              "p_1792858458276_gzgyn"
+            ]
+          },
+          {
+            "period": 2,
+            "onPitch": [
+              {
+                "playerId": "p_1792858453376_e67j",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858458276_2dbz4",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858458276_blbrc",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858458276_gzgyn",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858453843_4vfx",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858458276_xilw1",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858458276_l3osq",
+                "position": "DEF_L"
+              }
+            ],
+            "subs": [
+              "p_1792858458276_vhnt8",
+              "p_1792858458276_w0d5d",
+              "p_1792858458276_yq91h"
+            ]
+          },
+          {
+            "period": 3,
+            "onPitch": [
+              {
+                "playerId": "p_1792858453376_e67j",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858458276_vhnt8",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858458276_w0d5d",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858458276_yq91h",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858453843_4vfx",
+                "position": "MID_R"
+              },
+              {
+                "playerId": "p_1792858458276_xilw1",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858458276_l3osq",
+                "position": "ATT"
+              }
+            ],
+            "subs": [
+              "p_1792858458276_2dbz4",
+              "p_1792858458276_blbrc",
+              "p_1792858458276_gzgyn"
+            ]
+          },
+          {
+            "period": 4,
+            "onPitch": [
+              {
+                "playerId": "p_1792858453376_e67j",
+                "position": "GK"
+              },
+              {
+                "playerId": "p_1792858458276_2dbz4",
+                "position": "MID_L"
+              },
+              {
+                "playerId": "p_1792858458276_blbrc",
+                "position": "ATT"
+              },
+              {
+                "playerId": "p_1792858458276_gzgyn",
+                "position": "DEF_L"
+              },
+              {
+                "playerId": "p_1792858458276_vhnt8",
+                "position": "DEF_R"
+              },
+              {
+                "playerId": "p_1792858458276_w0d5d",
+                "position": "MID_C"
+              },
+              {
+                "playerId": "p_1792858458276_yq91h",
+                "position": "MID_R"
+              }
+            ],
+            "subs": [
+              "p_1792858453843_4vfx",
+              "p_1792858458276_xilw1",
+              "p_1792858458276_l3osq"
+            ]
+          }
+        ],
+        "manualOverrides": false,
+        "fixedPlayerPositions": {
+          "p_1792858453376_e67j": "GK"
+        }
+      },
+      "homeScore": 1,
+      "awayScore": 0,
+      "scorers": [
+        {
+          "id": "scorer_1792858459674_da43",
+          "playerId": "p_1792858453843_4vfx",
+          "playerName": "Jack",
+          "team": "home",
+          "isOwnGoal": false
+        }
+      ],
+      "isLive": false,
+      "creditedMinutes": {
+        "p_1792858453376_e67j": 50,
+        "p_1792858453843_4vfx": 37.5,
+        "p_1792858458276_xilw1": 37.5,
+        "p_1792858458276_l3osq": 37.5,
+        "p_1792858458276_vhnt8": 37.5,
+        "p_1792858458276_w0d5d": 37.5,
+        "p_1792858458276_yq91h": 37.5,
+        "p_1792858458276_2dbz4": 25,
+        "p_1792858458276_blbrc": 25,
+        "p_1792858458276_gzgyn": 25
+      }
+    },
     {
       "id": "fix_1792858117840_jppn",
       "teamId": "team_1792858108213_40gs",

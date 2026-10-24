@@ -12,7 +12,9 @@
 ### Fixed
 - **Season Presentation Day Awards Sheet Printing** ([#26](https://github.com/rossdevereux/team-organiser/issues/26)):
   - Resolved an issue where clicking "Print / Save PDF" in the Season Presentation & Awards Sheet dialog rendered a blank or solid dark sheet in browser print previews.
-  - The printed presentation sheet now renders cleanly on white paper with high-contrast text, crisp award cards, and coach signature blocks ready for awards night or framing.
+- **Team Settings Modal Scrolling & Save Button Visibility** ([#29](https://github.com/rossdevereux/team-organiser/issues/29)):
+  - Redesigned the Team & Match Settings dialog with a scrollable settings window and pinned footer buttons.
+  - The "Save Changes" and "Cancel" buttons are now always visible and accessible on laptops, tablets, and phones without needing to scroll past the bottom of the page.
 
 ## [1.4.0] - 2026-10-24
 

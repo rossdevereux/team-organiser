@@ -25,7 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Portalled [`PrintPresentationCard.tsx`](client/src/components/PrintPresentationCard.tsx) directly to `document.body` with `id="awards-sheet-modal"` to prevent ancestor overflow and layout clipping during print.
   - Implemented print-specific `@media print` rules in [`index.css`](client/src/index.css) forcing pure white background, dark high-contrast slate typography (`#0f172a`), hairline card borders (`#cbd5e1`), and page break avoidance.
   - Hid screen action buttons (`Print / Save PDF` and close `✕`) via `print:hidden` and `no-print` classes.
-  - Ensured clear legibility of Golden Boot, Player of the Season, The Wall, Season Milestones, and Head Coach / Date sign-off lines.
+- **Team & Match Settings Viewport Overflow & Sticky Action Footer** ([#29](https://github.com/rossdevereux/team-organiser/issues/29)):
+  - Refactored [`SettingsModal.tsx`](client/src/components/SettingsModal.tsx) into a 3-part flexbox layout with fixed header, scrollable body (`overflow-y-auto`, `overscroll-contain`), and sticky action footer (`bg-slate-900/95`, `backdrop-blur-sm`).
+  - Added `max-h-[90vh]` and `flex flex-col` constraints to ensure the modal never overflows past the screen fold on smaller screens or mobile viewports.
+  - Pinned "Save Changes" and "Cancel" buttons in the sticky footer connected to the settings form via HTML5 `form="settings-form"`, ensuring save actions are always accessible without scrolling.
+  - Added automated Playwright test suite `e2e/settings-modal-overflow.spec.ts` verifying layout behavior across mobile ($390 \times 844$), laptop ($1366 \times 768$), and desktop ($1920 \times 1080$) viewports.
 
 ## [1.4.0] - 2026-10-24
 

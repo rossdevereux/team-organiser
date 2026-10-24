@@ -105,69 +105,74 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-fade-in"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 space-y-5 max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-lg max-h-[90vh] flex flex-col rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden"
       >
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <img src="/logo-icon.png" alt="SubShuffle" className="w-8 h-8 object-contain drop-shadow-md" />
-            <div>
-              <h3 className="text-base font-bold text-white">{t('settings.title')}</h3>
-              <p className="text-xs text-slate-400">
-                {t('nav.brandSubtitle')}
-              </p>
+        {/* Fixed Header: Title, Brand, Close button & Navigation Tabs */}
+        <div className="shrink-0 p-5 sm:p-6 pb-3 border-b border-slate-800 space-y-3 bg-slate-900/95 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <img src="/logo-icon.png" alt="SubShuffle" className="w-8 h-8 object-contain drop-shadow-md" />
+              <div>
+                <h3 className="text-base font-bold text-white">{t('settings.title')}</h3>
+                <p className="text-xs text-slate-400">
+                  {t('nav.brandSubtitle')}
+                </p>
+              </div>
             </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
-          >
-            <X className="w-4 h-4" />
-          </button>
+
+          {/* Navigation Tabs */}
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setActiveModalTab('rules')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                activeModalTab === 'rules'
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Sliders className="w-3.5 h-3.5 text-sky-400" />
+              <span>Match Rules</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveModalTab('billing')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+                activeModalTab === 'billing'
+                  ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              data-testid="billing-settings-tab"
+            >
+              <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Billing & Plan</span>
+              {isLifetime ? (
+                <span className="text-[9px] px-1 rounded bg-amber-500/30 text-amber-200 font-mono">LIFETIME</span>
+              ) : isPro && (
+                <span className="text-[9px] px-1 rounded bg-emerald-500/30 text-emerald-200 font-mono">PRO</span>
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-          <button
-            type="button"
-            onClick={() => setActiveModalTab('rules')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
-              activeModalTab === 'rules'
-                ? 'bg-slate-800 text-white shadow-sm'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Sliders className="w-3.5 h-3.5 text-sky-400" />
-            <span>Match Rules</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveModalTab('billing')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
-              activeModalTab === 'billing'
-                ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 shadow-sm'
-                : 'text-slate-400 hover:text-white'
-            }`}
-            data-testid="billing-settings-tab"
-          >
-            <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Billing & Plan</span>
-            {isLifetime ? (
-              <span className="text-[9px] px-1 rounded bg-amber-500/30 text-amber-200 font-mono">LIFETIME</span>
-            ) : isPro && (
-              <span className="text-[9px] px-1 rounded bg-emerald-500/30 text-emerald-200 font-mono">PRO</span>
-            )}
-          </button>
-        </div>
-
-        {activeModalTab === 'billing' ? (
-          /* Billing & Plan Content */
-          <div className="space-y-4 text-xs animate-in fade-in duration-150">
-            <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-3">
-              <div className="flex items-center justify-between">
+        {/* Scrollable Modal Body */}
+        <div className="flex-1 overflow-y-auto overscroll-contain p-5 sm:p-6 space-y-4">
+          {activeModalTab === 'billing' ? (
+            /* Billing & Plan Content */
+            <div className="space-y-4 text-xs animate-in fade-in duration-150">
+              <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
                 <div>
                   <div className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider">Current Plan</div>
                   <div className="text-base font-bold text-white flex items-center gap-2 mt-0.5">
@@ -319,7 +324,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <LanguageSelector />
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <form id="settings-form" onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-slate-400 font-semibold mb-1">
@@ -657,26 +662,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               ))}
             </div>
           </div>
-
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
-            >
-              {t('common.cancel')}
-            </button>
-            <button
-              type="submit"
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-600/20 transition cursor-pointer"
-            >
-              <Check className="w-4 h-4" />
-              <span>{t('common.save')}</span>
-            </button>
-          </div>
         </form>
       </>
     )}
+        </div>
+
+        {/* Fixed Sticky Footer (Always pinned at bottom) */}
+        <div className="shrink-0 flex items-center justify-end gap-2 p-4 px-6 border-t border-slate-800 bg-slate-900/95 backdrop-blur-sm">
+          {activeModalTab === 'rules' ? (
+            <>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition cursor-pointer"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="submit"
+                form="settings-form"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/20 transition cursor-pointer"
+              >
+                <Check className="w-4 h-4" />
+                <span>{t('common.save')}</span>
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white text-xs font-semibold transition cursor-pointer"
+            >
+              {t('common.close')}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
