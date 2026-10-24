@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-24
+
 ### Added
 - **Continuous Lineups & In-Game Rolling Substitutions** ([#25](https://github.com/rossdevereux/team-organiser/issues/25)):
   - Coaches can now keep the starting 7 players on the pitch across half-time without auto-rotation scrambling the squad at the break.
