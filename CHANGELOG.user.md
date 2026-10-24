@@ -9,6 +9,11 @@
   - Live match screen provides audio alerts and 1-tap touchline substitution prompts when your scheduled substitution window arrives.
   - Printable team sheets and WhatsApp messages now clearly list planned in-game rolling substitutions and estimated player minutes.
 
+### Fixed
+- **Season Presentation Day Awards Sheet Printing** ([#26](https://github.com/rossdevereux/team-organiser/issues/26)):
+  - Resolved an issue where clicking "Print / Save PDF" in the Season Presentation & Awards Sheet dialog rendered a blank or solid dark sheet in browser print previews.
+  - The printed presentation sheet now renders cleanly on white paper with high-contrast text, crisp award cards, and coach signature blocks ready for awards night or framing.
+
 ## [1.4.0] - 2026-10-24
 
 ### Added

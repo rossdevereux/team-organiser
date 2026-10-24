@@ -238,8 +238,8 @@ Need to submit team sheets to the league secretary or referee before kick-off?
 ### Presentation Day Awards Cards
 At the end of your season or for club presentation nights:
 1. Open the **Team Dashboard** and tap **Print Awards Sheet**.
-2. SubShuffle automatically formats an official, high-contrast Presentation Day Certificate and Season Summary including full win-loss record, Golden Boot winner, Player of the Season, The Wall defensive honors, milestone achievements, and an official coach verification line.
-3. Print on A4 cardstock or save as a clean PDF record for players and parents.
+2. SubShuffle automatically formats an official, high-contrast Presentation Day Certificate and Season Summary including full win-loss record, Golden Boot winner, Player of the Season, The Wall defensive honors, milestone achievements, and official Head Coach / Date verification lines.
+3. Print directly to A4 cardstock or save as an ink-efficient PDF for framing and family keepsakes (formatted with a crisp white background and high-contrast slate typography, with action buttons hidden automatically during print).
 
 ### WhatsApp Post-Match Debrief
 Share match highlights with parents:

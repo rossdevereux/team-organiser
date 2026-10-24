@@ -51,6 +51,8 @@
   *::after {
     box-shadow: none !important;
     text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   /* Force pure white background and pitch-black text */
@@ -71,7 +73,7 @@
 
   /* Strictly hide all normal application UI: headers, main dashboard, footers, sidebars, buttons, mobile bars, toasts, and non-print modals */
   header,
-  main,
+  main:not(:has(#awards-sheet-modal)),
   footer,
   nav,
   aside,
@@ -80,16 +82,17 @@
   .print-hidden,
   .mobile-pitchside-bar,
   [role="status"],
-  [role="dialog"]:not(.official-print-modal) {
+  [role="dialog"]:not(.official-print-modal):not(#awards-sheet-modal) {
     display: none !important;
   }
 
   /* Flatten official print modal container into the page */
-  .official-print-modal {
+  .official-print-modal,
+  #awards-sheet-modal {
     display: block !important;
     position: static !important;
     inset: auto !important;
-    background: transparent !important;
+    background: #ffffff !important;
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
@@ -193,4 +196,38 @@
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
+
+  /* Dedicated Season Presentation & Awards Sheet High-Contrast Styles */
+  #awards-sheet-modal,
+  #awards-sheet-modal div,
+  #awards-sheet-modal section,
+  #awards-sheet-modal span,
+  #awards-sheet-modal p,
+  #awards-sheet-modal h1,
+  #awards-sheet-modal h2,
+  #awards-sheet-modal h3,
+  #awards-sheet-modal strong {
+    color: #0f172a !important;
+  }
+
+  #awards-sheet-modal .award-card,
+  #awards-sheet-modal .kpi-card,
+  #awards-sheet-modal .milestone-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    box-shadow: none !important;
+  }
+
+  #awards-sheet-modal .border-b,
+  #awards-sheet-modal .border-b-2 {
+    border-bottom: 1.5px solid #0f172a !important;
+  }
+
+  #awards-sheet-modal .border-t {
+    border-top: 1px solid #cbd5e1 !important;
+  }
 }
+

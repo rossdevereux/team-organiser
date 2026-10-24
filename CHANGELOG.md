@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Touchline live match experience in [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx) with period continuity alerts, scheduled mid-game substitution prompts with 1-tap execution, and automated audio whistle notifications.
   - Official printable referee match sheet update in [`PrintMatchSheet.tsx`](client/src/components/PrintMatchSheet.tsx) displaying a dedicated Planned Mid-Period Rolling Substitutions schedule with pro-rated playing times.
 
+### Fixed
+- **Season Presentation & Awards Sheet Print & PDF Export** ([#26](https://github.com/rossdevereux/team-organiser/issues/26)):
+  - Fixed blank/black page rendering when clicking "Print / Save PDF" on the Season Presentation & Awards Sheet dialog.
+  - Portalled [`PrintPresentationCard.tsx`](client/src/components/PrintPresentationCard.tsx) directly to `document.body` with `id="awards-sheet-modal"` to prevent ancestor overflow and layout clipping during print.
+  - Implemented print-specific `@media print` rules in [`index.css`](client/src/index.css) forcing pure white background, dark high-contrast slate typography (`#0f172a`), hairline card borders (`#cbd5e1`), and page break avoidance.
+  - Hid screen action buttons (`Print / Save PDF` and close `✕`) via `print:hidden` and `no-print` classes.
+  - Ensured clear legibility of Golden Boot, Player of the Season, The Wall, Season Milestones, and Head Coach / Date sign-off lines.
+
 ## [1.4.0] - 2026-10-24
 
 ### Added
