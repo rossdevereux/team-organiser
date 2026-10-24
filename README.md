@@ -299,9 +299,11 @@ If `STRIPE_SECRET_KEY` is not defined in `server/.env`, SubShuffle automatically
 #### 1. Retrieve Your Stripe API Key
 1. Log into your [Stripe Dashboard](https://dashboard.stripe.com/).
 2. Navigate to **Developers -> API keys**.
-3. Copy your **Secret key**:
-   - For local development and staging: use your test key (`sk_test_...`).
-   - For production: use your live key (`sk_live_...`).
+3. Under the **Standard keys** table (do not use "Restricted keys"):
+   - For local development and staging: copy your test key (**`sk_test_...`**).
+   - For production: copy your live key (**`sk_live_...`**).
+   > [!IMPORTANT]
+   > Ensure you copy the **Secret key** (prefix `sk_live_` or `sk_test_`). Do not use a **Restricted key** (`rk_live_...`) or a **Publishable key** (`pk_live_...`), as Stripe Checkout requires standard secret key permissions.
 
 #### 2. Set Up the Webhook Endpoint in Stripe
 1. In the Stripe Dashboard, navigate to **Developers -> Webhooks**.

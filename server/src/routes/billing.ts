@@ -36,14 +36,14 @@ export const PRICING_PLANS = {
 };
 
 // Initialize Stripe client if secret key is configured
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
 export const stripe = stripeSecretKey
   ? new Stripe(stripeSecretKey, {
       apiVersion: '2024-12-18.acacia' as any,
     })
   : null;
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
 
 if (!stripe) {
   console.log('💳 Stripe: No STRIPE_SECRET_KEY found. Running in offline/simulated mode.');
