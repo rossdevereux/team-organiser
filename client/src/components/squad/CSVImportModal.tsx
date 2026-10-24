@@ -3,6 +3,7 @@ import { Player, BroadPosition } from '../../types';
 import { Upload, X, FileSpreadsheet } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { trackCsvImport } from '../../utils/analytics';
+import { startTrace } from '../../utils/performance';
 
 interface CSVImportModalProps {
   isOpen: boolean;
@@ -23,55 +24,61 @@ export const CSVImportModal: React.FC<CSVImportModalProps> = ({
   if (!isOpen) return null;
 
   const parseCSVText = (text: string) => {
-    setCsvRawText(text);
-    const lines = text
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean);
-    if (lines.length === 0) {
-      setParsedImportPlayers([]);
-      return;
+    const trace = startTrace('roster_csv_parse');
+    try {
+      setCsvRawText(text);
+      const lines = text
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
+      if (lines.length === 0) {
+        setParsedImportPlayers([]);
+        return;
+      }
+
+      const first = lines[0].toLowerCase();
+      const hasHeader = first.includes('name') || first.includes('player');
+      const dataLines = hasHeader ? lines.slice(1) : lines;
+
+      const parsed: Partial<Player>[] = [];
+      dataLines.forEach((line) => {
+        const delimiter = line.includes('\t') ? '\t' : ',';
+        const parts = line.split(delimiter).map((c) => c.replace(/^"|"$/g, '').trim());
+        if (parts.length === 0 || !parts[0]) return;
+
+        const pName = parts[0];
+        const pNum = parts[1] && !isNaN(Number(parts[1])) ? parseInt(parts[1], 10) : undefined;
+        const rawPref = parts[2] ? parts[2].split(/[;,|]/).map((s) => s.trim()).filter(Boolean) : [];
+        const validBroad: BroadPosition[] = ['Goalkeeper', 'Defence', 'Midfield', 'Attack'];
+        const preferred: BroadPosition[] = [];
+        rawPref.forEach((rp) => {
+          const found = validBroad.find((b) => b.toLowerCase() === rp.toLowerCase());
+          if (found && !preferred.includes(found)) preferred.push(found);
+        });
+        if (preferred.length === 0) preferred.push('Midfield');
+
+        const specific = parts[3] ? parts[3].split(/[;,|]/).map((s) => s.trim()).filter(Boolean) : [];
+        const signOnDate = parts[4] || undefined;
+        const leaveDate = parts[5] || undefined;
+
+        parsed.push({
+          name: pName,
+          squadNumber: pNum,
+          preferredPositions: preferred,
+          specificPositions: specific,
+          signOnDate,
+          leaveDate,
+          unavailableDates: [],
+          matchesPlayed: 0,
+          totalMinutesPlayed: 0,
+        });
+      });
+
+      trace.putMetric('parsed_player_count', parsed.length);
+      setParsedImportPlayers(parsed);
+    } finally {
+      trace.stop();
     }
-
-    const first = lines[0].toLowerCase();
-    const hasHeader = first.includes('name') || first.includes('player');
-    const dataLines = hasHeader ? lines.slice(1) : lines;
-
-    const parsed: Partial<Player>[] = [];
-    dataLines.forEach((line) => {
-      const delimiter = line.includes('\t') ? '\t' : ',';
-      const parts = line.split(delimiter).map((c) => c.replace(/^"|"$/g, '').trim());
-      if (parts.length === 0 || !parts[0]) return;
-
-      const pName = parts[0];
-      const pNum = parts[1] && !isNaN(Number(parts[1])) ? parseInt(parts[1], 10) : undefined;
-      const rawPref = parts[2] ? parts[2].split(/[;,|]/).map((s) => s.trim()).filter(Boolean) : [];
-      const validBroad: BroadPosition[] = ['Goalkeeper', 'Defence', 'Midfield', 'Attack'];
-      const preferred: BroadPosition[] = [];
-      rawPref.forEach((rp) => {
-        const found = validBroad.find((b) => b.toLowerCase() === rp.toLowerCase());
-        if (found && !preferred.includes(found)) preferred.push(found);
-      });
-      if (preferred.length === 0) preferred.push('Midfield');
-
-      const specific = parts[3] ? parts[3].split(/[;,|]/).map((s) => s.trim()).filter(Boolean) : [];
-      const signOnDate = parts[4] || undefined;
-      const leaveDate = parts[5] || undefined;
-
-      parsed.push({
-        name: pName,
-        squadNumber: pNum,
-        preferredPositions: preferred,
-        specificPositions: specific,
-        signOnDate,
-        leaveDate,
-        unavailableDates: [],
-        matchesPlayed: 0,
-        totalMinutesPlayed: 0,
-      });
-    });
-
-    setParsedImportPlayers(parsed);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

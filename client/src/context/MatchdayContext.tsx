@@ -30,6 +30,7 @@ import {
 import { getFormationsForTeamSize, findFormation, DEFAULT_FORMATIONS } from '../utils/formations';
 import { DEMO_TEAMS, DEMO_PLAYERS, DEMO_FIXTURES, isDemoTeamId } from '../utils/demoData';
 import { useLiveMatchStatus } from '../hooks/useLiveMatchStatus';
+import { runWithTrace } from '../utils/performance';
 
 export interface SwapSource {
   type: 'pitch' | 'sub' | 'rested';
@@ -962,44 +963,46 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Auto rotate current fixture with undo snapshot history
   const autoRotateCurrentFixture = async (selectedPlayerIds?: string[]) => {
-    if (!activeFixture) return;
-    if (subscription && !isSubscriptionActive) {
-      setPaywallOpen(true);
-      return;
-    }
-    try {
-      if (activeFixture.matchSquad) {
-        setPreviousLineupsMap((prev) => ({
-          ...prev,
-          [activeFixture.id]: JSON.parse(JSON.stringify(activeFixture.matchSquad)),
-        }));
-      }
-      setLoading(true);
-      const headers = await getAuthHeaders();
-      const res = await fetch(`/api/fixtures/${activeFixture.id}/auto-rotate`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ selectedPlayerIds }),
-      });
-
-      if (res.status === 402) {
+    return runWithTrace('auto_rotation_calc', async () => {
+      if (!activeFixture) return;
+      if (subscription && !isSubscriptionActive) {
         setPaywallOpen(true);
         return;
       }
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.fixture) {
-          setFixtures((prev) =>
-            prev.map((f) => (f.id === activeFixture.id ? data.fixture : f))
-          );
+      try {
+        if (activeFixture.matchSquad) {
+          setPreviousLineupsMap((prev) => ({
+            ...prev,
+            [activeFixture.id]: JSON.parse(JSON.stringify(activeFixture.matchSquad)),
+          }));
         }
+        setLoading(true);
+        const headers = await getAuthHeaders();
+        const res = await fetch(`/api/fixtures/${activeFixture.id}/auto-rotate`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ selectedPlayerIds }),
+        });
+
+        if (res.status === 402) {
+          setPaywallOpen(true);
+          return;
+        }
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.fixture) {
+            setFixtures((prev) =>
+              prev.map((f) => (f.id === activeFixture.id ? data.fixture : f))
+            );
+          }
+        }
+      } catch (err) {
+        console.error('Error running auto-rotate:', err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error running auto-rotate:', err);
-    } finally {
-      setLoading(false);
-    }
+    }, { fixtureId: activeFixture?.id || '' });
   };
 
   const undoAutoRotate = async () => {
@@ -1762,79 +1765,81 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const executeLiveSubstitution = useCallback(
     async (offPlayerId: string, onPlayerId: string, targetPosition?: string) => {
-      if (!activeFixture || !activeFixture.matchSquad) return;
-      const currentSquad = activeFixture.matchSquad;
-      const periodIdx = currentSquad.lineupsByPeriod.findIndex((l) => l.period === activePeriod);
-      if (periodIdx === -1) return;
+      return runWithTrace('live_sub_execution', async () => {
+        if (!activeFixture || !activeFixture.matchSquad) return;
+        const currentSquad = activeFixture.matchSquad;
+        const periodIdx = currentSquad.lineupsByPeriod.findIndex((l) => l.period === activePeriod);
+        if (periodIdx === -1) return;
 
-      const currentLineup = currentSquad.lineupsByPeriod[periodIdx];
-      const pitchIdx = currentLineup.onPitch.findIndex((p) => p.playerId === offPlayerId);
-      const subIdx = currentLineup.subs.findIndex((id) => id === onPlayerId);
+        const currentLineup = currentSquad.lineupsByPeriod[periodIdx];
+        const pitchIdx = currentLineup.onPitch.findIndex((p) => p.playerId === offPlayerId);
+        const subIdx = currentLineup.subs.findIndex((id) => id === onPlayerId);
 
-      if (pitchIdx === -1 || subIdx === -1) {
-        console.warn('executeLiveSubstitution: offPlayer or onPlayer not found in active period');
-        return;
-      }
+        if (pitchIdx === -1 || subIdx === -1) {
+          console.warn('executeLiveSubstitution: offPlayer or onPlayer not found in active period');
+          return;
+        }
 
-      const assignedPos = targetPosition || currentLineup.onPitch[pitchIdx].position;
-      const newOnPitch = [...currentLineup.onPitch];
-      newOnPitch[pitchIdx] = { playerId: onPlayerId, position: assignedPos };
+        const assignedPos = targetPosition || currentLineup.onPitch[pitchIdx].position;
+        const newOnPitch = [...currentLineup.onPitch];
+        newOnPitch[pitchIdx] = { playerId: onPlayerId, position: assignedPos };
 
-      const newSubs = [...currentLineup.subs];
-      newSubs[subIdx] = offPlayerId;
+        const newSubs = [...currentLineup.subs];
+        newSubs[subIdx] = offPlayerId;
 
-      const updatedLineups = [...currentSquad.lineupsByPeriod];
-      updatedLineups[periodIdx] = {
-        period: activePeriod,
-        onPitch: newOnPitch,
-        subs: newSubs,
-      };
+        const updatedLineups = [...currentSquad.lineupsByPeriod];
+        updatedLineups[periodIdx] = {
+          period: activePeriod,
+          onPitch: newOnPitch,
+          subs: newSubs,
+        };
 
-      const updatedSquad: MatchSquad = {
-        ...currentSquad,
-        manualOverrides: true,
-        lineupsByPeriod: updatedLineups,
-      };
+        const updatedSquad: MatchSquad = {
+          ...currentSquad,
+          manualOverrides: true,
+          lineupsByPeriod: updatedLineups,
+        };
 
-      const offPlayer = players.find((p) => p.id === offPlayerId);
-      const onPlayer = players.find((p) => p.id === onPlayerId);
-      const offName = offPlayer?.name || 'Player';
-      const onName = onPlayer?.name || 'Player';
+        const offPlayer = players.find((p) => p.id === offPlayerId);
+        const onPlayer = players.find((p) => p.id === onPlayerId);
+        const offName = offPlayer?.name || 'Player';
+        const onName = onPlayer?.name || 'Player';
 
-      const currentLive = activeFixture.liveMatchState;
-      let currentElapsed = currentLive?.elapsedSeconds || 0;
-      if (currentLive?.isRunning && currentLive.startedAt) {
-        currentElapsed += Math.max(0, Math.floor((Date.now() - new Date(currentLive.startedAt).getTime()) / 1000));
-      }
+        const currentLive = activeFixture.liveMatchState;
+        let currentElapsed = currentLive?.elapsedSeconds || 0;
+        if (currentLive?.isRunning && currentLive.startedAt) {
+          currentElapsed += Math.max(0, Math.floor((Date.now() - new Date(currentLive.startedAt).getTime()) / 1000));
+        }
 
-      const min = Math.floor(currentElapsed / 60);
-      const sec = currentElapsed % 60;
-      const formattedTime = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+        const min = Math.floor(currentElapsed / 60);
+        const sec = currentElapsed % 60;
+        const formattedTime = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 
-      const newLogEntry: LiveMatchSubLogEntry = {
-        id: `sub_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        minute: min + 1,
-        time: formattedTime,
-        period: activePeriod,
-        offPlayerId,
-        offPlayerName: offName,
-        onPlayerId,
-        onPlayerName: onName,
-        position: assignedPos,
-        text: `OFF: ${offName} ➡️ ON: ${onName}${assignedPos ? ` (${assignedPos})` : ''}`,
-        timestamp: new Date().toISOString(),
-      };
+        const newLogEntry: LiveMatchSubLogEntry = {
+          id: `sub_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          minute: min + 1,
+          time: formattedTime,
+          period: activePeriod,
+          offPlayerId,
+          offPlayerName: offName,
+          onPlayerId,
+          onPlayerName: onName,
+          position: assignedPos,
+          text: `OFF: ${offName} ➡️ ON: ${onName}${assignedPos ? ` (${assignedPos})` : ''}`,
+          timestamp: new Date().toISOString(),
+        };
 
-      const updatedLiveState: LiveMatchState = {
-        isRunning: currentLive?.isRunning ?? false,
-        currentPeriod: activePeriod,
-        startedAt: currentLive?.startedAt,
-        elapsedSeconds: currentLive?.elapsedSeconds || 0,
-        periodTimers: currentLive?.periodTimers || {},
-        subLog: [newLogEntry, ...(currentLive?.subLog || [])],
-      };
+        const updatedLiveState: LiveMatchState = {
+          isRunning: currentLive?.isRunning ?? false,
+          currentPeriod: activePeriod,
+          startedAt: currentLive?.startedAt,
+          elapsedSeconds: currentLive?.elapsedSeconds || 0,
+          periodTimers: currentLive?.periodTimers || {},
+          subLog: [newLogEntry, ...(currentLive?.subLog || [])],
+        };
 
-      await updateLiveMatchState(activeFixture.id, updatedLiveState, updatedSquad, true);
+        await updateLiveMatchState(activeFixture.id, updatedLiveState, updatedSquad, true);
+      }, { fixtureId: activeFixture?.id || '' });
     },
     [activeFixture, activePeriod, players, updateLiveMatchState]
   );
@@ -1848,40 +1853,42 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       minute?: number,
       matchMinute?: number
     ): Promise<{ success: boolean; earlyDeparture?: EarlyDeparture }> => {
-      if (!activeFixture || !activeFixture.matchSquad) return { success: false };
+      return runWithTrace('live_emergency_rebalance', async () => {
+        if (!activeFixture || !activeFixture.matchSquad) return { success: false };
 
-      try {
-        setLoading(true);
-        const headers = await getAuthHeaders();
-        const res = await fetch(`/api/fixtures/${activeFixture.id}/early-departure`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            departedPlayerId,
-            departurePeriod,
-            replacementPlayerId,
-            reason,
-            minute,
-            matchMinute,
-          }),
-        });
+        try {
+          setLoading(true);
+          const headers = await getAuthHeaders();
+          const res = await fetch(`/api/fixtures/${activeFixture.id}/early-departure`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              departedPlayerId,
+              departurePeriod,
+              replacementPlayerId,
+              reason,
+              minute,
+              matchMinute,
+            }),
+          });
 
-        if (res.ok) {
-          const data = await res.json();
-          if (data.fixture) {
-            setFixtures((prev) =>
-              prev.map((f) => (f.id === activeFixture.id ? data.fixture : f))
-            );
-            return { success: true, earlyDeparture: data.earlyDeparture };
+          if (res.ok) {
+            const data = await res.json();
+            if (data.fixture) {
+              setFixtures((prev) =>
+                prev.map((f) => (f.id === activeFixture.id ? data.fixture : f))
+              );
+              return { success: true, earlyDeparture: data.earlyDeparture };
+            }
           }
+          return { success: false };
+        } catch (err) {
+          console.error('Error executing early departure:', err);
+          return { success: false };
+        } finally {
+          setLoading(false);
         }
-        return { success: false };
-      } catch (err) {
-        console.error('Error executing early departure:', err);
-        return { success: false };
-      } finally {
-        setLoading(false);
-      }
+      }, { fixtureId: activeFixture?.id || '', reason });
     },
     [activeFixture]
   );

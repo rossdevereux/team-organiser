@@ -286,6 +286,9 @@ In the **Admin Portal** under **Backups & Disaster Recovery**:
 **Q: How does SubShuffle protect club and player privacy?**  
 *A: SubShuffle uses role-based access tokens to ensure only authorized coaches have access to team squads. Matchday telemetry (such as anonymous feature adoption metrics like auto-rotations run and live stopwatch activations) uses Google Analytics (GA4) with zero personally identifiable child player information transmitted.*
 
+**Q: How does SubShuffle ensure fast pitchside responsiveness on mobile devices?**  
+*A: SubShuffle monitors network latency and client operations in real-time using Firebase Performance Monitoring. Core workflows like rotation calculations and live touchline substitutions are benchmarked continuously to ensure smooth performance even on low-end mobile devices and flaky touchline connections.*
+
 ---
 
 *SubShuffle — Grassroots Football Rotations Made Fair & Stress-Free.*

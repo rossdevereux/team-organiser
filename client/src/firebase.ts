@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, FacebookAuthProvider } from 'firebase/auth';
 import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
+import { getPerformance, type FirebasePerformance } from 'firebase/performance';
 
 // Environment variables configured via .env.local or GitHub Actions secrets
 const firebaseConfig = {
@@ -22,6 +23,7 @@ facebookProvider.addScope('email');
 facebookProvider.addScope('public_profile');
 
 export let analytics: Analytics | null = null;
+export let perf: FirebasePerformance | null = null;
 
 if (typeof window !== 'undefined') {
   isSupported().then((supported) => {
@@ -35,6 +37,14 @@ if (typeof window !== 'undefined') {
   }).catch((err) => {
     console.warn('Firebase Analytics support check failed:', err);
   });
+
+  if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_PERF === 'true') {
+    try {
+      perf = getPerformance(app);
+    } catch (err) {
+      console.warn('Firebase Performance Monitoring failed to initialize:', err);
+    }
+  }
 }
 
 // Check if credentials are production/configured or default placeholders

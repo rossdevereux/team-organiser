@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Firebase Performance Monitoring & Custom Matchday Workflows Traces** ([#24](https://github.com/rossdevereux/team-organiser/issues/24)):
+  - Initialized Firebase Performance SDK (`getPerformance`, `trace`) safely in [`firebase.ts`](client/src/firebase.ts) with environment gating (`PROD || VITE_ENABLE_PERF === 'true'`) ensuring zero overhead in test, SSR, and development environments.
+  - Automatic collection of Core Web Vitals (FCP, FID, LCP, CLS, INP) and `/api/**` network request durations via Firebase Performance browser instrumentation.
+  - Created performance utility [`performance.ts`](client/src/utils/performance.ts) providing `startTrace` and `runWithTrace` helpers with custom attributes, metrics, and developer console benchmarking when `VITE_DEBUG_PERF` is active.
+  - Implemented custom matchday benchmark traces:
+    - `auto_rotation_calc`: Benchmarks auto-rotation computation and fixture update durations in [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx).
+    - `team_dashboard_fetch`: Benchmarks season statistics summary fetching and local storage caching with `scorers_count` and `potm_count` metrics in [`dashboardApi.ts`](client/src/utils/dashboardApi.ts).
+    - `roster_csv_parse`: Benchmarks CSV upload parsing with `parsed_player_count` metric in [`CSVImportModal.tsx`](client/src/components/squad/CSVImportModal.tsx).
+    - `live_sub_execution`: Benchmarks tactical in-game sideline substitutions and live event logging in [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx).
+    - `live_emergency_rebalance`: Benchmarks emergency mid-match player departure call-offs and remaining period rebalancing in [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx).
 - **Firebase Google Analytics (GA4) Integration & Custom Matchday Telemetry** ([#23](https://github.com/rossdevereux/team-organiser/issues/23)):
   - Integrated Firebase Analytics SDK (`getAnalytics`, `isSupported`) safely with environment gating (`VITE_FIREBASE_MEASUREMENT_ID`, `VITE_ENABLE_ANALYTICS`, `VITE_DEBUG_ANALYTICS`) in [`firebase.ts`](client/src/firebase.ts) to guarantee zero overhead and zero errors in test/offline/headless environments.
   - Implemented strongly typed analytics event dispatcher [`analytics.ts`](client/src/utils/analytics.ts) with full type definitions for core grassroots coaching events:
