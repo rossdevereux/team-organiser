@@ -4,7 +4,7 @@ test.describe('Fixtures Management Suite', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/fixtures');
     await expect(page.locator('header')).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Fixtures & Matches/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Fixtures & (Matches|Matchdays)/i })).toBeVisible();
   });
 
   test('displays scheduled fixtures list and view mode toggles', async ({ page }) => {
@@ -25,12 +25,12 @@ test.describe('Fixtures Management Suite', () => {
   });
 
   test('schedules a new fixture and verifies it appears in the fixtures list', async ({ page }) => {
-    const newFixBtn = page.getByRole('button', { name: /New Fixture/i });
+    const newFixBtn = page.getByRole('button', { name: /(New|Add) Fixture/i });
     await expect(newFixBtn).toBeVisible();
     await newFixBtn.click();
 
     // Form should appear
-    await expect(page.getByText('Schedule New Fixture & Logistics')).toBeVisible();
+    await expect(page.locator('form').getByRole('heading', { name: /(Schedule|Add) Fixture/i })).toBeVisible();
 
     // Fill opponent name
     const opponentName = `Hawks Utd ${Date.now().toString().slice(-4)}`;
@@ -38,7 +38,7 @@ test.describe('Fixtures Management Suite', () => {
     await oppInput.fill(opponentName);
 
     // Submit form
-    const submitBtn = page.locator('form').getByRole('button', { name: /Create|Schedule/i });
+    const submitBtn = page.locator('form').getByRole('button', { name: /Save|Create|Schedule/i });
     await submitBtn.click();
 
     // Verify fixture card was created
@@ -70,6 +70,20 @@ test.describe('Fixtures Management Suite', () => {
     if (await periodSelect.count() > 0) {
       await periodSelect.first().selectOption('4');
     }
+
+    // Select sub timing strategy override (In-Game Rolling Subs)
+    const subTimingSelect = page.locator('select').filter({ hasText: /In-Game Rolling Subs/i });
+    await expect(subTimingSelect.first()).toBeVisible();
+    await subTimingSelect.first().selectOption('in_game_rolling');
+
+    // Verify lineup continuity checkbox is available
+    const preserveCheckbox = page.locator('#fixture-preserve-lineup');
+    await expect(preserveCheckbox).toBeVisible();
+
+    // Verify mid-period sub interval input is available
+    const subIntervalInput = page.locator('div').filter({ hasText: /^Mid-Period Sub Interval/ }).locator('input');
+    await expect(subIntervalInput).toBeVisible();
+    await subIntervalInput.fill('12.5');
 
     // Save changes
     const saveBtn = page.getByRole('button', { name: /Save Changes/i });

@@ -63,6 +63,9 @@ router.post('/teams', requireActiveSubscription, async (req: AuthenticatedReques
         targetGameTimePercent: 50,
         defaultFormation: '2-3-1',
         customFormations: [],
+        subTimingMode: 'at_breaks',
+        preserveLineupAcrossBreaks: false,
+        midPeriodSubIntervalMinutes: 12.5,
       },
       createdAt: new Date().toISOString(),
     };
@@ -648,6 +651,14 @@ router.post('/fixtures', requireActiveSubscription, async (req: AuthenticatedReq
       periodDurationMinutes: body.periodDurationMinutes ? Number(body.periodDurationMinutes) : undefined,
       formation: body.formation?.trim() || undefined,
       fixedPlayerPositions: body.fixedPlayerPositions || undefined,
+      subTimingMode: body.subTimingMode || undefined,
+      preserveLineupAcrossBreaks:
+        body.preserveLineupAcrossBreaks !== undefined
+          ? Boolean(body.preserveLineupAcrossBreaks)
+          : undefined,
+      midPeriodSubIntervalMinutes: body.midPeriodSubIntervalMinutes
+        ? Number(body.midPeriodSubIntervalMinutes)
+        : undefined,
     };
 
     const saved = await storage.saveFixture(newFixture);
@@ -712,6 +723,23 @@ router.put('/fixtures/:id', async (req: AuthenticatedRequest, res: Response) => 
         ? req.body.fixedPlayerPositions
         : existing.fixedPlayerPositions;
 
+    const subTimingMode =
+      req.body.subTimingMode !== undefined
+        ? (req.body.subTimingMode ? req.body.subTimingMode : undefined)
+        : existing.subTimingMode;
+
+    const preserveLineupAcrossBreaks =
+      req.body.preserveLineupAcrossBreaks !== undefined
+        ? (req.body.preserveLineupAcrossBreaks === null || req.body.preserveLineupAcrossBreaks === undefined
+            ? undefined
+            : Boolean(req.body.preserveLineupAcrossBreaks))
+        : existing.preserveLineupAcrossBreaks;
+
+    const midPeriodSubIntervalMinutes =
+      req.body.midPeriodSubIntervalMinutes !== undefined
+        ? (req.body.midPeriodSubIntervalMinutes ? Number(req.body.midPeriodSubIntervalMinutes) : undefined)
+        : existing.midPeriodSubIntervalMinutes;
+
     const updated: Fixture = {
       ...existing,
       ...req.body,
@@ -721,6 +749,9 @@ router.put('/fixtures/:id', async (req: AuthenticatedRequest, res: Response) => 
       periodDurationMinutes,
       formation,
       fixedPlayerPositions,
+      subTimingMode,
+      preserveLineupAcrossBreaks,
+      midPeriodSubIntervalMinutes,
       groundAddress: groundAddress || undefined,
       mapsUrl: mapsUrl || undefined,
       id,

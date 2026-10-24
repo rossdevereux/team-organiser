@@ -55,6 +55,7 @@ When you first log in with your Google or email account, SubShuffle allows you t
 1. Open the **Teams** tab in the top navigation.
 2. Tap **Create New Team** (or use the team dropdown in the header).
 3. Enter your team name (e.g. *The Rovers FC U10s*), your club affiliation, and select your age category.
+4. Select your preferred pitch format, match period structure, and **Substitution Timing Strategy** (e.g., standard period breaks vs in-game rolling substitutions with lineup carry-forward).
 
 ### Age Groups & FA Formats
 SubShuffle automatically pre-configures standard Football Association (FA) youth football specifications based on your format:
@@ -124,6 +125,14 @@ Plan your season fixtures from the **Fixtures** page:
 2. Fill in the **Opponent**, **Venue** (Home / Away / Neutral), **Date**, and **Kick-off Time**.
 3. Optionally add pitch directions, venue postcode, and meet time.
 
+#### Fixture-Specific Overrides (Friendlies, Tournaments & Cup Halves)
+Grassroots teams often play different formats across competitions (for example, 4 quarters for Saturday league matches, but 2 halves for Sunday cup ties or tournaments). By tapping **Edit Fixture** (✏️), you can override:
+- **Squad Cap & Pitch Size:** Tailor team sheet limits (e.g., 5v5 festival or 9v9 cup tie).
+- **Match Periods & Duration:** Customize halves or quarters and minute lengths.
+- **Substitution Timing Strategy:** Switch between *At Period Breaks*, *In-Game Rolling Subs*, or *Hybrid* for a single match without modifying global club settings.
+- **Lineup Continuity:** Force the starting lineup to carry forward across half-time into Period 2.
+- **Mid-Period Sub Interval:** Set custom minute marks (e.g. 12.5m) to prompt rolling sideline swaps.
+
 ### Selecting the Matchday Squad
 Not every player attends every fixture due to squad caps or illness:
 1. Select your upcoming fixture from the header dropdown or Fixtures list.
@@ -183,11 +192,13 @@ On matchday morning, tap **Live Match** in the top toolbar:
 - Tap **Start Period** to start the pitchside stopwatch.
 - The timer runs accurately pitchside and automatically synchronizes with the cloud — if your phone battery dies, you refresh your screen, or you switch apps, the clock continues running with zero time drift.
 - Tap **Pause** at any point for referee injury stoppages.
+- **Period Continuity Banner:** When rolling substitutions or lineup continuity is active, kicking off Period 2 highlights a reassuring banner (`⚡ Starting Half 2 with the same lineup`), confirming that your active outfield players resume without an unnecessary half-time reset.
 
 ### Sideline Substitution Alarms
-If you use rolling substitutions within halves (e.g. every 10 minutes):
-- SubShuffle triggers a visual notification and audio alert when your substitution window opens.
-- The **Suggested Subs** drawer displays exactly who is scheduled to come off and who should come on, keeping touchline panic to zero.
+If you use rolling substitutions within halves (e.g. every 10–12.5 minutes):
+- SubShuffle triggers a visual notification and audio cue (referee whistle) when your scheduled substitution window opens.
+- The **Scheduled In-Game Subs** card displays the exact player stepping off, substitute stepping on, and pitch position with a **1-tap Execute Sub** button that logs the exact match minute and updates Fair Play equity meters instantly.
+- The **Suggested Subs** drawer displays tactical recommendations for all periods, keeping touchline panic to zero.
 
 ### Mid-Match Injuries & Early Departure Rebalancing
 Grassroots football is unpredictable — a player gets injured in the 12th minute or has to leave early:
@@ -233,7 +244,8 @@ The **Team Dashboard** (accessible via the top navigation or from the Fair Play 
 Need to submit team sheets to the league secretary or referee before kick-off?
 1. Tap **Share / Export** -> **Print Team Sheet**.
 2. SubShuffle formats an official FA-standard team sheet complete with starting lineup, substitutes, squad numbers, coaches, and fair play notes.
-3. Print directly to a wireless printer or save as a PDF.
+3. When rolling substitutions are enabled, the print sheet automatically displays the **Planned In-Game Rolling Substitutions Schedule** (listing target match minutes, player swaps, and positions) along with pro-rated playing time calculations.
+4. Print directly to a wireless printer or save as a PDF.
 
 ### Presentation Day Awards Cards
 At the end of your season or for club presentation nights:

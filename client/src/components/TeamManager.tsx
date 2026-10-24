@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
-import { Team, TeamSettings } from '../types';
+import { Team, TeamSettings, SubstitutionTimingMode } from '../types';
 import { getFormationsForTeamSize } from '../utils/formations';
 import { trackTeamCreated } from '../utils/analytics';
 import {
@@ -17,6 +17,7 @@ import {
   UserCheck,
   ChevronRight,
   Sparkles,
+  Clock,
 } from 'lucide-react';
 
 export const TeamManager: React.FC = () => {
@@ -48,6 +49,9 @@ export const TeamManager: React.FC = () => {
   const [defaultFormation, setDefaultFormation] = useState<string>('2-3-1');
   const [matchPeriodCount, setMatchPeriodCount] = useState<number>(2);
   const [periodDurationMinutes, setPeriodDurationMinutes] = useState<number>(25);
+  const [subTimingMode, setSubTimingMode] = useState<SubstitutionTimingMode>('at_breaks');
+  const [preserveLineupAcrossBreaks, setPreserveLineupAcrossBreaks] = useState<boolean>(false);
+  const [midPeriodSubIntervalMinutes, setMidPeriodSubIntervalMinutes] = useState<number>(12.5);
 
   const availableFormations = getFormationsForTeamSize(pitchPlayerCount);
 
@@ -58,18 +62,22 @@ export const TeamManager: React.FC = () => {
       setMatchdaySquadCap(7);
       setDefaultFormation('1-2-1');
       setPeriodDurationMinutes(20);
+      setMidPeriodSubIntervalMinutes(10);
     } else if (size === 7) {
       setMatchdaySquadCap(10);
       setDefaultFormation('2-3-1');
       setPeriodDurationMinutes(25);
+      setMidPeriodSubIntervalMinutes(12.5);
     } else if (size === 9) {
       setMatchdaySquadCap(12);
       setDefaultFormation('3-3-2');
       setPeriodDurationMinutes(30);
+      setMidPeriodSubIntervalMinutes(15);
     } else if (size === 11) {
       setMatchdaySquadCap(14);
       setDefaultFormation('4-4-2');
       setPeriodDurationMinutes(35);
+      setMidPeriodSubIntervalMinutes(17.5);
     }
   };
 
@@ -94,14 +102,17 @@ export const TeamManager: React.FC = () => {
         targetGameTimePercent: 50,
         defaultFormation,
         customFormations: [],
-        subTimingMode: 'at_breaks',
-        preserveLineupAcrossBreaks: false,
-        midPeriodSubIntervalMinutes: 12.5,
+        subTimingMode,
+        preserveLineupAcrossBreaks,
+        midPeriodSubIntervalMinutes,
       },
     });
 
     setIsCreating(false);
     setName('');
+    setSubTimingMode('at_breaks');
+    setPreserveLineupAcrossBreaks(false);
+    setMidPeriodSubIntervalMinutes(12.5);
   };
 
   const handleShareSubmit = async (e: React.FormEvent) => {
@@ -428,6 +439,107 @@ export const TeamManager: React.FC = () => {
                   <span className="text-[10px] text-slate-400">m</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Substitution & Rotation Timing Section */}
+          <div className="pt-3 border-t border-slate-800 space-y-3">
+            <div>
+              <label className="block text-slate-300 font-semibold flex items-center gap-1.5 text-xs">
+                <Clock className="w-3.5 h-3.5 text-sky-400" />
+                <span>{t('settings.subTimingMode', 'Substitution Timing Strategy')}</span>
+              </label>
+              <span className="text-[10px] text-slate-500">
+                Choose whether players rotate at period breaks or via mid-game rolling substitutions
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setSubTimingMode('at_breaks');
+                  setPreserveLineupAcrossBreaks(false);
+                }}
+                className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                  subTimingMode === 'at_breaks' && !preserveLineupAcrossBreaks
+                    ? 'bg-sky-600/20 border-sky-500/60 text-white shadow-sm'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <div className="font-bold text-[11px] text-white">At Period Breaks</div>
+                <div className="text-[10px] text-slate-400 leading-tight mt-0.5">
+                  Lineups shuffle at half-time / quarter transitions
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSubTimingMode('in_game_rolling');
+                  setPreserveLineupAcrossBreaks(true);
+                  if (!midPeriodSubIntervalMinutes) {
+                    setMidPeriodSubIntervalMinutes(periodDurationMinutes / 2);
+                  }
+                }}
+                className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                  subTimingMode === 'in_game_rolling' || preserveLineupAcrossBreaks
+                    ? 'bg-emerald-600/20 border-emerald-500/60 text-white shadow-sm'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <div className="font-bold text-[11px] text-emerald-300 flex items-center gap-1">
+                  <span>In-Game Rolling Subs</span>
+                  <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono">FA Rec</span>
+                </div>
+                <div className="text-[10px] text-slate-400 leading-tight mt-0.5">
+                  Carry over lineup across breaks; rotate bench mid-half
+                </div>
+              </button>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <label className="flex items-start gap-2.5 p-2 rounded-xl bg-slate-950/60 border border-slate-800 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={preserveLineupAcrossBreaks}
+                  onChange={(e) => setPreserveLineupAcrossBreaks(e.target.checked)}
+                  className="mt-0.5 rounded border-slate-700 bg-slate-900 text-sky-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                />
+                <div className="text-left">
+                  <span className="block font-semibold text-slate-200 text-[11px]">
+                    {t('settings.preserveLineupAcrossBreaks', 'Keep Same Lineup at Half-Time')}
+                  </span>
+                  <span className="block text-[10px] text-slate-400 leading-normal">
+                    {t('settings.preserveLineupAcrossBreaksDesc', 'Start subsequent periods with the identical on-pitch lineup to maintain momentum')}
+                  </span>
+                </div>
+              </label>
+
+              {(preserveLineupAcrossBreaks || subTimingMode === 'in_game_rolling') && (
+                <div className="p-2.5 rounded-xl bg-slate-950/80 border border-emerald-900/40 space-y-1.5 animate-fade-in">
+                  <div className="flex items-center justify-between">
+                    <label className="text-slate-300 font-semibold text-[11px]">
+                      {t('settings.midPeriodSubInterval', 'In-Game Sub Interval (Minutes)')}
+                    </label>
+                    <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                      ~{midPeriodSubIntervalMinutes || 12.5} mins
+                    </span>
+                  </div>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="5"
+                    max={periodDurationMinutes ? periodDurationMinutes - 2 : 25}
+                    value={midPeriodSubIntervalMinutes}
+                    onChange={(e) => setMidPeriodSubIntervalMinutes(parseFloat(e.target.value) || 12.5)}
+                    className="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                  <span className="text-[10px] text-slate-500 block">
+                    {t('settings.midPeriodSubIntervalDesc', 'Target interval to schedule rolling substitutions (e.g. 12.5m for 25m halves)')}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

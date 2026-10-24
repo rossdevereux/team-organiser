@@ -1210,6 +1210,96 @@ describe('rotationService: Position Preference & Substitutions Suite', () => {
       assert.ok(announcement.includes('Half 1'));
       assert.ok(announcement.includes('Half 2'));
     });
+
+    it('honours fixture-specific rolling sub override when global settings are at_breaks', () => {
+      const mockPlayers = [
+        createMockPlayer('p1', 'Player 1', ['Goalkeeper']),
+        createMockPlayer('p2', 'Player 2', ['Defence']),
+        createMockPlayer('p3', 'Player 3', ['Defence']),
+        createMockPlayer('p4', 'Player 4', ['Midfield']),
+        createMockPlayer('p5', 'Player 5', ['Midfield']),
+        createMockPlayer('p6', 'Player 6', ['Attack']),
+        createMockPlayer('p7', 'Player 7', ['Attack']),
+        createMockPlayer('p8', 'Player 8', ['Defence']),
+        createMockPlayer('p9', 'Player 9', ['Midfield']),
+      ];
+
+      // Global settings are at_breaks
+      const settings = createMockSettings({
+        pitchPlayerCount: 7,
+        matchdaySquadCap: 9,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+        subTimingMode: 'at_breaks',
+        preserveLineupAcrossBreaks: false,
+      });
+
+      // Fixture overrides to in_game_rolling
+      const fixture = createMockFixture({
+        subTimingMode: 'in_game_rolling',
+        preserveLineupAcrossBreaks: true,
+        midPeriodSubIntervalMinutes: 12.5,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+      });
+
+      const squad = generateFairRotation(fixture, mockPlayers, settings);
+      assert.equal(squad.lineupsByPeriod.length, 2);
+
+      // Verify continuous lineup into Period 2
+      const p1PitchIds = squad.lineupsByPeriod[0].onPitch.map((op) => op.playerId).sort();
+      const p2PitchIds = squad.lineupsByPeriod[1].onPitch.map((op) => op.playerId).sort();
+      assert.deepEqual(p1PitchIds, p2PitchIds);
+
+      // Verify planned in-game subs are generated
+      assert.ok(squad.plannedInGameSubs && squad.plannedInGameSubs.length > 0);
+      assert.equal(squad.plannedInGameSubs[0].targetMinute, 12.5);
+    });
+
+    it('honours fixture-specific at_breaks override when global settings are in_game_rolling', () => {
+      const mockPlayers = [
+        createMockPlayer('p1', 'Player 1', ['Goalkeeper']),
+        createMockPlayer('p2', 'Player 2', ['Defence']),
+        createMockPlayer('p3', 'Player 3', ['Defence']),
+        createMockPlayer('p4', 'Player 4', ['Midfield']),
+        createMockPlayer('p5', 'Player 5', ['Midfield']),
+        createMockPlayer('p6', 'Player 6', ['Attack']),
+        createMockPlayer('p7', 'Player 7', ['Attack']),
+        createMockPlayer('p8', 'Player 8', ['Defence']),
+        createMockPlayer('p9', 'Player 9', ['Midfield']),
+      ];
+
+      // Global settings are in_game_rolling
+      const settings = createMockSettings({
+        pitchPlayerCount: 7,
+        matchdaySquadCap: 9,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+        subTimingMode: 'in_game_rolling',
+        preserveLineupAcrossBreaks: true,
+      });
+
+      // Fixture explicitly opts out of rolling subs (e.g. cup knockout)
+      const fixture = createMockFixture({
+        subTimingMode: 'at_breaks',
+        preserveLineupAcrossBreaks: false,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+      });
+
+      const squad = generateFairRotation(fixture, mockPlayers, settings);
+      assert.equal(squad.lineupsByPeriod.length, 2);
+
+      // Period 2 should rotate bench players onto the pitch at half-time
+      const p1Bench = squad.lineupsByPeriod[0].subs;
+      const p2PitchIds = new Set(squad.lineupsByPeriod[1].onPitch.map((op) => op.playerId));
+      p1Bench.forEach((benchId) => {
+        assert.ok(p2PitchIds.has(benchId), `Bench player ${benchId} should rotate onto pitch at half-time`);
+      });
+
+      // No planned in-game subs should be scheduled
+      assert.equal(squad.plannedInGameSubs?.length || 0, 0);
+    });
   });
 
 });

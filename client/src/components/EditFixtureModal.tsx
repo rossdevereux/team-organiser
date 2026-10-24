@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMatchday } from '../context/MatchdayContext';
-import { Fixture, Player } from '../types';
+import { Fixture, Player, SubstitutionTimingMode } from '../types';
 import { calculateMeetTime } from '../utils/dateUtils';
 import {
   Trophy,
@@ -61,6 +61,9 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
   const [matchPeriodCount, setMatchPeriodCount] = useState<string>('');
   const [periodDurationMinutes, setPeriodDurationMinutes] = useState<string>('');
   const [fixedPositions, setFixedPositions] = useState<Record<string, string>>({});
+  const [subTimingMode, setSubTimingMode] = useState<string>('');
+  const [preserveLineupAcrossBreaks, setPreserveLineupAcrossBreaks] = useState<boolean | undefined>(undefined);
+  const [midPeriodSubIntervalMinutes, setMidPeriodSubIntervalMinutes] = useState<string>('');
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   useEffect(() => {
@@ -79,6 +82,13 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
       setMatchPeriodCount(fixture.matchPeriodCount ? String(fixture.matchPeriodCount) : '');
       setPeriodDurationMinutes(fixture.periodDurationMinutes ? String(fixture.periodDurationMinutes) : '');
       setFixedPositions(fixture.fixedPlayerPositions || {});
+      setSubTimingMode(fixture.subTimingMode || '');
+      setPreserveLineupAcrossBreaks(fixture.preserveLineupAcrossBreaks);
+      setMidPeriodSubIntervalMinutes(
+        fixture.midPeriodSubIntervalMinutes !== undefined && fixture.midPeriodSubIntervalMinutes !== null
+          ? String(fixture.midPeriodSubIntervalMinutes)
+          : ''
+      );
       setIsDeleting(false);
     }
   }, [fixture, currentDefaultSeason]);
@@ -125,6 +135,9 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
       matchPeriodCount: matchPeriodCount.trim() ? parseInt(matchPeriodCount, 10) : undefined,
       periodDurationMinutes: periodDurationMinutes.trim() ? parseFloat(periodDurationMinutes) : undefined,
       fixedPlayerPositions: Object.keys(fixedPositions).length > 0 ? fixedPositions : undefined,
+      subTimingMode: (subTimingMode as SubstitutionTimingMode) || undefined,
+      preserveLineupAcrossBreaks,
+      midPeriodSubIntervalMinutes: midPeriodSubIntervalMinutes.trim() ? parseFloat(midPeriodSubIntervalMinutes) : undefined,
     });
 
     onClose();
@@ -517,6 +530,104 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
                   <p className="text-[10px] text-slate-500 mt-1">
                     Minutes per period for fair play stats.
                   </p>
+                </div>
+
+                {/* Substitution Timing Strategy Override */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-slate-400 font-semibold flex items-center gap-1 text-xs">
+                      <Clock className="w-3.5 h-3.5 text-sky-400" />
+                      <span>Sub Timing Strategy</span>
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      Default: {settings.subTimingMode === 'in_game_rolling' ? 'In-Game Rolling' : settings.subTimingMode === 'hybrid' ? 'Hybrid' : 'At Breaks'}
+                    </span>
+                  </div>
+                  <select
+                    value={subTimingMode}
+                    onChange={(e) => setSubTimingMode(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium text-xs"
+                  >
+                    <option value="">Default ({settings.subTimingMode === 'in_game_rolling' ? 'In-Game Rolling' : settings.subTimingMode === 'hybrid' ? 'Hybrid' : 'At Breaks'})</option>
+                    <option value="at_breaks">At Period Breaks (Half-Time / Quarters)</option>
+                    <option value="in_game_rolling">In-Game Rolling Subs (Mid-Period)</option>
+                    <option value="hybrid">Hybrid (Custom Timing)</option>
+                  </select>
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    When player substitutions occur during this match.
+                  </p>
+                </div>
+
+                {/* Mid-Period Sub Interval Override */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-slate-400 font-semibold flex items-center gap-1 text-xs">
+                      <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Mid-Period Sub Interval</span>
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      Default: {settings.midPeriodSubIntervalMinutes || 12.5}m
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={1}
+                      max={45}
+                      step="any"
+                      value={midPeriodSubIntervalMinutes}
+                      onChange={(e) => setMidPeriodSubIntervalMinutes(e.target.value)}
+                      placeholder={`Default (${settings.midPeriodSubIntervalMinutes || 12.5} mins)`}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium text-xs"
+                    />
+                    {midPeriodSubIntervalMinutes && (
+                      <button
+                        type="button"
+                        onClick={() => setMidPeriodSubIntervalMinutes('')}
+                        className="absolute right-2 top-1.5 text-[10px] text-slate-400 hover:text-white px-1.5 py-0.5 rounded bg-slate-800 transition cursor-pointer"
+                        title="Reset to default"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Target minute mark within each period to trigger rolling substitutions.
+                  </p>
+                </div>
+
+                {/* Keep Lineup Across Breaks (Continuity) Override */}
+                <div className="sm:col-span-2 p-3 rounded-xl bg-slate-950/70 border border-slate-800 flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="fixture-preserve-lineup"
+                    checked={
+                      preserveLineupAcrossBreaks !== undefined
+                        ? preserveLineupAcrossBreaks
+                        : Boolean(settings.preserveLineupAcrossBreaks || settings.subTimingMode === 'in_game_rolling')
+                    }
+                    onChange={(e) => setPreserveLineupAcrossBreaks(e.target.checked)}
+                    className="mt-0.5 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-slate-900 cursor-pointer"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="fixture-preserve-lineup" className="text-xs font-semibold text-slate-200 cursor-pointer">
+                        Keep Same Lineup Across Period Breaks
+                      </label>
+                      {preserveLineupAcrossBreaks !== undefined && (
+                        <button
+                          type="button"
+                          onClick={() => setPreserveLineupAcrossBreaks(undefined)}
+                          className="text-[10px] text-sky-400 hover:text-sky-300 font-normal underline cursor-pointer"
+                        >
+                          Reset to default ({settings.preserveLineupAcrossBreaks ? 'Enabled' : 'Disabled'})
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      When enabled, subsequent periods resume with the identical on-pitch lineup from the previous period (no half-time reshuffle).
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
