@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Stripe Billing & Subscriptions Setup Documentation**:
+  - Added dedicated configuration and architecture guide in [`README.md`](README.md) covering Stripe Checkout, Stripe Customer Portal, webhook secret configuration, Stripe CLI local testing, and Cloud Run production secrets.
+  - Documented `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in [`server/.env.example`](server/.env.example) and the environment configuration section.
+
 ## [1.2.0] - 2026-10-24
 
 ### Added

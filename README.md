@@ -98,7 +98,9 @@ npm run install:all
 ```
 
 ### 2. Environment Configuration
-Create a `.env` file in `client/` if using Firebase Authentication locally (optional; local mode works out-of-the-box):
+
+#### Client Configuration (`client/.env`)
+Create a `.env` file in `client/` if using Firebase Authentication locally (optional; local sandbox mode works out-of-the-box):
 ```env
 # client/.env
 VITE_FIREBASE_API_KEY=your_api_key
@@ -107,6 +109,20 @@ VITE_FIREBASE_PROJECT_ID=team-organiser-prod
 VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
+```
+
+#### Server Configuration (`server/.env`)
+Create a `.env` file in `server/` (optional; local in-memory store and offline simulated billing work out-of-the-box):
+```env
+# server/.env
+PORT=8080
+NODE_ENV=development
+INITIAL_ADMIN_EMAIL=admin@therovers.local
+FIREBASE_PROJECT_ID=team-organiser-prod
+
+# Optional: Stripe Billing (runs in offline simulated mode if omitted)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
 ### 3. Run Development Servers
@@ -250,6 +266,114 @@ To activate automatic deployments on `git push main`:
 2. Add the following repository secrets:
    - `GCP_SA_KEY`: Service account key JSON with `Cloud Run Admin`, `Artifact Registry Writer`, `Service Account User`, and `Firebase Hosting Admin` (`roles/firebasehosting.admin`) roles. (Used for both Cloud Run backend and Firebase Hosting frontend deployments).
    - `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, etc.: Client Firebase configuration values.
+
+---
+
+## 💳 Stripe Billing & Subscriptions Setup
+
+SubShuffle incorporates a fair grassroots cost-recovery billing model designed strictly to offset cloud hosting and database costs:
+- **Coach Monthly:** £1.50 / month (flexible, cancel anytime).
+- **Coach Annual:** £15.00 / year (~£1.25/month).
+- **30-Day Free Trial:** Automatically provisioned upon registration with zero credit card required.
+- **Complimentary Free for Life:** Club Owners can grant permanent lifetime access to volunteer coaches directly in the Admin Portal (`/admin` -> Users tab).
+- **No Hostage Data Policy:** If a subscription lapses, coaches permanently retain full read access to historical fixtures, minutes statistics, and PDF match sheet exports. Active rotation planning and live match tracking resume once renewed or upgraded.
+
+---
+
+### Architecture & Modes
+
+SubShuffle leverages **Stripe Checkout** (hosted payment page) and **Stripe Customer Portal** (hosted invoice and card management) alongside server-side webhook processing with cryptographic signature verification:
+- `POST /api/billing/create-checkout-session`: Generates a Stripe Checkout URL with plan metadata (`coach_monthly` or `coach_annual`).
+- `POST /api/billing/create-portal-session`: Generates a self-service Stripe Customer Portal link for VAT invoices and card changes.
+- `POST /api/billing/webhook`: Verifies Stripe signatures and automatically updates user token claims in Firebase Auth (`subscriptionStatus`, `subscriptionTier`).
+
+#### Offline Simulated Mode (Default)
+If `STRIPE_SECRET_KEY` is not defined in `server/.env`, SubShuffle automatically runs in **offline simulated mode**:
+- Checkout and portal requests succeed with mock URLs without making external network calls.
+- Ideal for local development, automated testing, and demonstration instances.
+
+---
+
+### Step-by-Step Stripe Setup (Test or Live)
+
+#### 1. Retrieve Your Stripe API Key
+1. Log into your [Stripe Dashboard](https://dashboard.stripe.com/).
+2. Navigate to **Developers -> API keys**.
+3. Copy your **Secret key**:
+   - For local development and staging: use your test key (`sk_test_...`).
+   - For production: use your live key (`sk_live_...`).
+
+#### 2. Set Up the Webhook Endpoint in Stripe
+1. In the Stripe Dashboard, navigate to **Developers -> Webhooks**.
+2. Click **Add endpoint**.
+3. **Endpoint URL:** `https://<your-app-domain>/api/billing/webhook`
+   - Example for Firebase Hosting rewrite: `https://team-organiser-prod.web.app/api/billing/webhook`
+   - Example for custom domain: `https://subshuffle.app/api/billing/webhook`
+4. **Events to send:** Click **Select events** and enable:
+   - `checkout.session.completed` (activates subscription and syncs Firebase claims)
+   - `customer.subscription.updated` (tracks renewals, status changes like `past_due` or `canceled`)
+   - `customer.subscription.deleted` (marks expired/canceled accounts)
+   - `invoice.payment_failed` (flags `past_due` payment warnings)
+5. Click **Add endpoint**.
+6. Under **Signing secret**, click **Reveal** and copy the secret (`whsec_...`).
+
+#### 3. Enable the Stripe Customer Portal
+1. In the Stripe Dashboard, navigate to **Settings -> Billing -> Customer portal** (or search "Customer portal").
+2. Click **Activate** (or configure portal features):
+   - Enable **Invoice history** (allows coaches to download VAT receipts for club expense reimbursement).
+   - Enable **Payment methods** (allows coaches to update credit/debit cards).
+   - Enable **Subscription cancellation** and **Plan switching**.
+3. Save your portal settings.
+
+#### 4. Configure Server Environment Variables
+In your local `server/.env` or deployment configuration:
+```env
+# server/.env
+STRIPE_SECRET_KEY=sk_test_51...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+#### 5. Local Testing via Stripe CLI
+To test Stripe Checkout and webhook events locally against `http://localhost:8080`:
+
+1. Install the [Stripe CLI](https://docs.stripe.com/stripe-cli):
+   ```bash
+   # Windows (via Scoop or manual download)
+   scoop bucket add stripe https://github.com/stripe/stripe-cli-scoop-bucket.git
+   scoop install stripe
+
+   # macOS (Homebrew)
+   brew install stripe/stripe-cli/stripe
+
+   # Linux
+   sudo apt-get install stripe
+   ```
+
+2. Log in with your Stripe account:
+   ```bash
+   stripe login
+   ```
+
+3. Forward incoming webhooks to your local server:
+   ```bash
+   stripe listen --forward-to localhost:8080/api/billing/webhook
+   ```
+   *The CLI will print your local webhook signing secret (`whsec_...`). Put this in `server/.env` as `STRIPE_WEBHOOK_SECRET`.*
+
+4. In a separate terminal, trigger a test subscription completion:
+   ```bash
+   stripe trigger checkout.session.completed
+   ```
+   You will see the Express API log: `[Stripe Webhook] Activated coach_monthly subscription for UID: ...`.
+
+#### 6. Production Deployment on Google Cloud Run
+When deploying your containerised Express API to Cloud Run, provide the Stripe secrets via command line or Google Secret Manager:
+
+```bash
+gcloud run services update team-organiser-api \
+  --region europe-west1 \
+  --update-env-vars STRIPE_SECRET_KEY=sk_live_...,STRIPE_WEBHOOK_SECRET=whsec_...
+```
 
 ---
 
