@@ -32,10 +32,14 @@ export const PrintPresentationCard: React.FC<PrintPresentationCardProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      document.body.classList.add('print-awards-open');
       trackPrintSheet({
         type: 'presentation_award',
         teamId: activeTeam?.id,
       });
+      return () => {
+        document.body.classList.remove('print-awards-open');
+      };
     }
   }, [isOpen, activeTeam?.id]);
 

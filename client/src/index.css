@@ -55,11 +55,22 @@
     -webkit-backdrop-filter: none !important;
   }
 
+  /* When an official print modal is open, completely hide #root so it takes zero height */
+  body:has(.official-print-modal) #root,
+  body:has(#awards-sheet-modal) #root,
+  body.print-awards-open #root,
+  body.print-modal-open #root {
+    display: none !important;
+  }
+
   /* Force pure white background and pitch-black text */
   html,
   body,
-  #root {
+  #root,
+  #root > div,
+  #root > div > div {
     background: #ffffff !important;
+    background-color: #ffffff !important;
     color: #000000 !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
     -webkit-print-color-adjust: exact !important;
@@ -69,6 +80,10 @@
     width: 100% !important;
     min-height: auto !important;
     overflow: visible !important;
+  }
+
+  .min-h-screen {
+    min-height: auto !important;
   }
 
   /* Strictly hide all normal application UI: headers, main dashboard, footers, sidebars, buttons, mobile bars, toasts, and non-print modals */
@@ -98,6 +113,8 @@
     width: 100% !important;
     max-width: 100% !important;
     overflow: visible !important;
+    page-break-before: avoid !important;
+    break-before: avoid !important;
   }
 
   .official-print-modal > div {

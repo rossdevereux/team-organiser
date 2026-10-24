@@ -75,7 +75,14 @@ function DashboardShell() {
 
   useEffect(() => {
     const handleBeforePrint = () => {
-      setPrintOpen(true);
+      // If a dedicated print modal is already open (e.g. awards sheet or match sheet), do nothing
+      if (document.getElementById('awards-sheet-modal') || document.querySelector('.official-print-modal')) {
+        return;
+      }
+      // Only open match sheet if user is on a matchday/lineup route
+      if (['/lineup', '/matrix', '/squad', '/fixtures'].includes(location.pathname) || location.pathname === '/') {
+        setPrintOpen(true);
+      }
     };
     const handleOpenSquad = () => {
       setSquadSelectorOpen(true);
@@ -86,7 +93,7 @@ function DashboardShell() {
       window.removeEventListener('beforeprint', handleBeforePrint);
       window.removeEventListener('subshuffle:open-squad-selector', handleOpenSquad);
     };
-  }, []);
+  }, [location.pathname]);
 
   // Backward compatibility: handle legacy /?tab= redirects for bookmarks and tests
   useEffect(() => {

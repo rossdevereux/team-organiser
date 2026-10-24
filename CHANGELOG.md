@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Season Presentation & Awards Sheet Print Preview Dark Page Removal** ([#26](https://github.com/rossdevereux/team-organiser/issues/26)):
+  - Fixed an issue where the print/PDF preview generated an initial full-height solid dark page before the white presentation sheet.
+  - Added `@media print` rules in [`index.css`](client/src/index.css) to completely hide `#root` (`display: none !important`) when official portalled print modals (`#awards-sheet-modal`, `.official-print-modal`) are active, eliminating unwanted DOM heights, screen-layout wrappers, and dark background fills.
+  - Portalled both [`PrintPresentationCard.tsx`](client/src/components/PrintPresentationCard.tsx) and [`PrintMatchSheet.tsx`](client/src/components/PrintMatchSheet.tsx) to `document.body` and set body isolation classes (`print-awards-open`, `print-match-open`) during print preview.
+  - Guarded `window.addEventListener('beforeprint')` in [`RootLayout.tsx`](client/src/RootLayout.tsx) to prevent accidentally mounting `PrintMatchSheet` when a dedicated awards sheet or dialog is already being printed or when not on matchday routes.
+  - Neutralized container min-heights (`.min-h-screen { min-height: auto !important; }`) and forced background color resets to prevent blank screen print breaks.
+
 ## [1.5.0] - 2026-10-24
 
 ### Added

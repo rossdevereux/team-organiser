@@ -96,6 +96,20 @@ test.describe('Season Presentation & Awards Sheet Print / Save PDF Export (Issue
     expect(cardBorder.borderTopColor).toBe('rgb(203, 213, 225)'); // #cbd5e1
     expect(cardBorder.breakInside).toBe('avoid');
 
+    // Verify #root is completely hidden (display: none) during print so no dark or blank page precedes the modal
+    const rootDisplay = await page.evaluate(() => {
+      const root = document.getElementById('root');
+      return root ? window.getComputedStyle(root).display : null;
+    });
+    expect(rootDisplay).toBe('none');
+
+    // Simulate beforeprint event: ensure PrintMatchSheet does NOT accidentally open
+    await page.evaluate(() => {
+      window.dispatchEvent(new Event('beforeprint'));
+    });
+    const matchSheetCount = await page.locator('.official-print-modal:not(#awards-sheet-modal)').count();
+    expect(matchSheetCount).toBe(0);
+
     // Signature lines should remain visible in print
     await expect(modal.getByText(/Head Coach: _____________________________/i)).toBeVisible();
     await expect(modal.getByText(/Date: _____________________________/i)).toBeVisible();

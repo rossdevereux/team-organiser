@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { Printer, X, Download, ShieldCheck } from 'lucide-react';
@@ -29,12 +30,18 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    if (isOpen && activeFixture) {
-      trackPrintSheet({
-        type: 'match_sheet',
-        fixtureId: activeFixture.id,
-        teamId: activeTeam?.id,
-      });
+    if (isOpen) {
+      document.body.classList.add('print-match-open');
+      if (activeFixture) {
+        trackPrintSheet({
+          type: 'match_sheet',
+          fixtureId: activeFixture.id,
+          teamId: activeTeam?.id,
+        });
+      }
+      return () => {
+        document.body.classList.remove('print-match-open');
+      };
     }
   }, [isOpen, activeFixture?.id, activeTeam?.id]);
 
@@ -62,7 +69,7 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
   const captainPlayer = activeFixture.captainId ? playerMap.get(activeFixture.captainId) : null;
   const potmPlayer = activeFixture.playerOfTheMatchId ? playerMap.get(activeFixture.playerOfTheMatchId) : null;
 
-  return (
+  const modalContent = (
     <div
       role="dialog"
       aria-modal="true"
@@ -398,4 +405,8 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 };
