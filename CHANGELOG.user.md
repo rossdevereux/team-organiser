@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-10-24
+
 ### Fixed
 - **Season Presentation Day Awards Sheet Printing**: Resolved an issue where an extra solid dark full-page rectangle appeared at the beginning of print previews and PDF exports before the awards sheet. Printing now starts directly on a clean, single-page presentation certificate.
 

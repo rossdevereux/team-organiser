@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-10-24
+
 ### Fixed
 - **Season Presentation & Awards Sheet Print Preview Dark Page Removal** ([#26](https://github.com/rossdevereux/team-organiser/issues/26)):
   - Fixed an issue where the print/PDF preview generated an initial full-height solid dark page before the white presentation sheet.
