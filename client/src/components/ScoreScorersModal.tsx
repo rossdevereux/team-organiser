@@ -15,6 +15,7 @@ import {
   Shield,
   Users,
 } from 'lucide-react';
+import { trackMatchCompleted } from '../utils/analytics';
 
 interface ScoreScorersModalProps {
   fixture: Fixture | null;
@@ -217,6 +218,17 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
         status: newStatus,
         isLive,
       });
+
+      if (newStatus === 'Completed') {
+        trackMatchCompleted({
+          fixtureId: fixture.id,
+          opponent: fixture.opponent,
+          homeScore,
+          awayScore,
+          scorersCount: scorers.length,
+          venue: fixture.venue,
+        });
+      }
 
       showToast(
         isLive

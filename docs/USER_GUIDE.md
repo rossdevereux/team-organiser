@@ -283,6 +283,9 @@ In the **Admin Portal** under **Backups & Disaster Recovery**:
 **Q: Can multiple coaches manage the same team?**  
 *A: Yes. In the **Teams** tab, click **Share Team** and enter your assistant coach's email address. They will receive instant access to co-manage lineups and matchday substitutions.*
 
+**Q: How does SubShuffle protect club and player privacy?**  
+*A: SubShuffle uses role-based access tokens to ensure only authorized coaches have access to team squads. Matchday telemetry (such as anonymous feature adoption metrics like auto-rotations run and live stopwatch activations) uses Google Analytics (GA4) with zero personally identifiable child player information transmitted.*
+
 ---
 
 *SubShuffle — Grassroots Football Rotations Made Fair & Stress-Free.*

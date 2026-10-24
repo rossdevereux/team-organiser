@@ -29,11 +29,13 @@ import {
 import { GlobalModals } from './components/GlobalModals';
 import { AppVersion } from './components/AppVersion';
 import { ReleaseNotesModal } from './components/ReleaseNotesModal';
+import { trackLineupAutoBalanced, trackPageView } from './utils/analytics';
 
 function DashboardShell() {
   const {
     activeTeam,
     activeFixture,
+    players,
     activeTab,
     activePeriod,
     settings,
@@ -101,7 +103,20 @@ function DashboardShell() {
     }
   }, [location.pathname, navigate]);
 
+  // Track page views on route navigation
+  useEffect(() => {
+    trackPageView(location.pathname, typeof window !== 'undefined' ? window.location.href : undefined);
+  }, [location.pathname]);
+
   const handleAutoRotate = async () => {
+    trackLineupAutoBalanced({
+      teamId: activeTeam?.id,
+      formation: activeFixture?.formation || settings?.defaultFormation,
+      matchPeriodCount: activeFixture?.matchPeriodCount || settings?.matchPeriodCount,
+      periodDurationMinutes: activeFixture?.periodDurationMinutes || settings?.periodDurationMinutes,
+      pitchPlayerCount: activeFixture?.pitchPlayerCount || activeTeam?.settings?.pitchPlayerCount || settings?.pitchPlayerCount,
+      squadSize: players?.length,
+    });
     await autoRotateCurrentFixture();
     showToast(
       'Squad rotations re-balanced across all periods.',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   CheckCircle2,
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useMatchday } from '../context/MatchdayContext';
 import { getAuthToken } from '../firebase';
+import { trackPaywallViewed, trackTrialUpgradeClicked } from '../utils/analytics';
 
 interface PaywallModalProps {
   isOpen: boolean;
@@ -25,9 +26,23 @@ export const PaywallModal: React.FC<PaywallModalProps> = ({ isOpen, onClose }) =
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      trackPaywallViewed({
+        source: 'paywall_modal',
+        daysRemaining: trialDaysRemaining ?? undefined,
+        tier: subscription?.tier,
+      });
+    }
+  }, [isOpen, trialDaysRemaining, subscription?.tier]);
+
   if (!isOpen) return null;
 
   const handleCheckout = async () => {
+    trackTrialUpgradeClicked({
+      plan: selectedPlan === 'coach_annual' ? 'annual' : 'monthly',
+      source: 'paywall_modal',
+    });
     setLoadingCheckout(true);
     setErrorMessage(null);
 

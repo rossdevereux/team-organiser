@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { Team, TeamSettings } from '../types';
 import { getFormationsForTeamSize } from '../utils/formations';
+import { trackTeamCreated } from '../utils/analytics';
 import {
   Shield,
   Plus,
@@ -75,6 +76,11 @@ export const TeamManager: React.FC = () => {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+
+    trackTeamCreated({
+      format: pitchPlayerCount,
+      ageGroup,
+    });
 
     await createTeam({
       name: name.trim(),

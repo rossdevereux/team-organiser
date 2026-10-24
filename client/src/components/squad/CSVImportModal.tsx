@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Player, BroadPosition } from '../../types';
 import { Upload, X, FileSpreadsheet } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
+import { trackCsvImport } from '../../utils/analytics';
 
 interface CSVImportModalProps {
   isOpen: boolean;
@@ -90,6 +91,7 @@ export const CSVImportModal: React.FC<CSVImportModalProps> = ({
     try {
       const count = parsedImportPlayers.length;
       await onImportPlayers(parsedImportPlayers);
+      trackCsvImport({ playerCount: count });
       onClose();
       setCsvRawText('');
       setParsedImportPlayers([]);

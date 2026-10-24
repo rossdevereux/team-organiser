@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { KitJerseyIcon } from '../design-system';
 import { getPlayerInitials } from '../utils/playerUtils';
+import { trackLiveSubstitution } from '../utils/analytics';
 
 interface EmergencyDepartureModalProps {
   isOpen: boolean;
@@ -140,6 +141,14 @@ export const EmergencyDepartureModal: React.FC<EmergencyDepartureModalProps> = (
       );
 
       if (res.success) {
+        trackLiveSubstitution({
+          fixtureId: activeFixture?.id,
+          period: activePeriod,
+          isEmergency: true,
+          reason,
+          matchMinute: cumulativeMatchMinute,
+        });
+
         const replacementName = selectedReplacementId
           ? playerMap.get(selectedReplacementId)?.name
           : undefined;

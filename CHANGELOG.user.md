@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Added
+- **Matchday Adoption Telemetry & Analytics** ([#23](https://github.com/rossdevereux/team-organiser/issues/23)):
+  - Added privacy-safe Google Analytics (GA4) integration via Firebase Analytics to track core grassroots usage (such as auto-rotations run, pitchside stopwatches started, WhatsApp team sheets shared, and roster CSV imports) with zero child personal data collected.
 - **Automated Sunday Morning Coach User Journey Tests**: Added automated real-user journeys testing squad onboarding, matchday rotation planning, pitchside live match tracking, fair play equity math, and multi-team isolation on desktop and mobile.
 
 ### Fixed

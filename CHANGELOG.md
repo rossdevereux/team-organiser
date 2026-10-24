@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Firebase Google Analytics (GA4) Integration & Custom Matchday Telemetry** ([#23](https://github.com/rossdevereux/team-organiser/issues/23)):
+  - Integrated Firebase Analytics SDK (`getAnalytics`, `isSupported`) safely with environment gating (`VITE_FIREBASE_MEASUREMENT_ID`, `VITE_ENABLE_ANALYTICS`, `VITE_DEBUG_ANALYTICS`) in [`firebase.ts`](client/src/firebase.ts) to guarantee zero overhead and zero errors in test/offline/headless environments.
+  - Implemented strongly typed analytics event dispatcher [`analytics.ts`](client/src/utils/analytics.ts) with full type definitions for core grassroots coaching events:
+    - `lineup_auto_balanced`: Tracks auto-rotation engine runs across period counts, durations, and squad sizes in [`RootLayout.tsx`](client/src/RootLayout.tsx).
+    - `live_match_started`: Tracks touchline live match stopwatch initiation in [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx).
+    - `live_substitution`: Tracks tactical sideline substitutions in [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx) and emergency departures in [`EmergencyDepartureModal.tsx`](client/src/components/EmergencyDepartureModal.tsx).
+    - `match_completed`: Tracks finalized match scores, opponent details, and goalscorer counts in [`ScoreScorersModal.tsx`](client/src/components/ScoreScorersModal.tsx).
+    - `whatsapp_export_copied`: Tracks team announcement copies and external WhatsApp app launches in [`WhatsAppExportModal.tsx`](client/src/components/WhatsAppExportModal.tsx).
+    - `print_sheet_opened`: Tracks official referee PDF team sheet views in [`PrintMatchSheet.tsx`](client/src/components/PrintMatchSheet.tsx) and end-of-season award certificates in [`PrintPresentationCard.tsx`](client/src/components/PrintPresentationCard.tsx).
+    - `paywall_viewed`: Tracks subscription upgrade modal impressions from navigation badges in [`TrialBadge.tsx`](client/src/components/TrialBadge.tsx) and [`PaywallModal.tsx`](client/src/components/PaywallModal.tsx).
+    - `trial_upgrade_clicked`: Tracks Stripe Checkout plan upgrade clicks in [`PaywallModal.tsx`](client/src/components/PaywallModal.tsx).
+    - `team_created`: Tracks new squad creations and age formats in [`TeamManager.tsx`](client/src/components/TeamManager.tsx).
+    - `csv_import_completed`: Tracks bulk player imports in [`CSVImportModal.tsx`](client/src/components/squad/CSVImportModal.tsx).
+    - `page_view`: Tracks Single Page App (SPA) route navigation in [`RootLayout.tsx`](client/src/RootLayout.tsx).
 - **Realistic Grassroots Coach End-to-End (E2E) Journey Test Suite** (`e2e/journeys/`):
   - Implemented 5 comprehensive Playwright user journey specs simulating realistic grassroots volunteer coach workflows on desktop (`1280x800`) and mobile touchline viewports (`390x844`):
     - `e2e/journeys/onboarding-and-squad.spec.ts`: Coach onboarding, team format configuration (FA U10 7v7, 10 squad cap, 4 quarters of 12.5m, 50% target), player creation with role badges & fixed GK locking, holiday blackout date assignment, and CSV bulk roster import.

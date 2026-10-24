@@ -1,6 +1,7 @@
 import React from 'react';
 import { Clock, Sparkles, AlertTriangle, ShieldCheck, Crown } from 'lucide-react';
 import { useMatchday } from '../context/MatchdayContext';
+import { trackPaywallViewed } from '../utils/analytics';
 
 interface TrialBadgeProps {
   onOpenPaywall?: () => void;
@@ -16,6 +17,11 @@ export const TrialBadge: React.FC<TrialBadgeProps> = ({ onOpenPaywall, className
   }
 
   const handleOpen = () => {
+    trackPaywallViewed({
+      source: 'trial_badge',
+      daysRemaining: trialDaysRemaining ?? undefined,
+      tier: subscription?.tier,
+    });
     if (onOpenPaywall) {
       onOpenPaywall();
     } else {

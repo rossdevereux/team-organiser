@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, FacebookAuthProvider } from 'firebase/auth';
+import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
 
 // Environment variables configured via .env.local or GitHub Actions secrets
 const firebaseConfig = {
@@ -9,6 +10,7 @@ const firebaseConfig = {
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'team-organiser-prod.appspot.com',
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '000000000000',
   appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:000000000000:web:0000000000000000000000',
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || undefined,
 };
 
 // Singleton initialization prevents re-initialization during Vite HMR
@@ -18,6 +20,22 @@ export const googleProvider = new GoogleAuthProvider();
 export const facebookProvider = new FacebookAuthProvider();
 facebookProvider.addScope('email');
 facebookProvider.addScope('public_profile');
+
+export let analytics: Analytics | null = null;
+
+if (typeof window !== 'undefined') {
+  isSupported().then((supported) => {
+    if (supported && (import.meta.env.PROD || import.meta.env.VITE_ENABLE_ANALYTICS === 'true')) {
+      try {
+        analytics = getAnalytics(app);
+      } catch (err) {
+        console.warn('Firebase Analytics initialization error:', err);
+      }
+    }
+  }).catch((err) => {
+    console.warn('Firebase Analytics support check failed:', err);
+  });
+}
 
 // Check if credentials are production/configured or default placeholders
 export const isFirebaseConfigured = (): boolean => {

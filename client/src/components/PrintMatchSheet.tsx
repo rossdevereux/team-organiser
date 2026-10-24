@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { Printer, X, Download, ShieldCheck } from 'lucide-react';
+import { trackPrintSheet } from '../utils/analytics';
 
 interface PrintMatchSheetProps {
   isOpen: boolean;
@@ -26,6 +27,16 @@ export const PrintMatchSheet: React.FC<PrintMatchSheetProps> = ({ isOpen, onClos
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen && activeFixture) {
+      trackPrintSheet({
+        type: 'match_sheet',
+        fixtureId: activeFixture.id,
+        teamId: activeTeam?.id,
+      });
+    }
+  }, [isOpen, activeFixture?.id, activeTeam?.id]);
 
   if (!isOpen || !activeFixture || !activeFixture.matchSquad) return null;
 

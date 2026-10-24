@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { Copy, Check, ExternalLink, X, MessageSquare, Sparkles } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { trackWhatsAppExport } from '../utils/analytics';
 
 interface WhatsAppExportModalProps {
   isOpen: boolean;
@@ -46,6 +47,11 @@ export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen
   if (!isOpen) return null;
 
   const handleCopy = async () => {
+    trackWhatsAppExport({
+      fixtureId: activeFixture?.id,
+      opponent: activeFixture?.opponent,
+      squadCount: activeFixture?.matchSquad?.selectedPlayerIds?.length,
+    });
     try {
       await navigator.clipboard.writeText(announcementText);
       setCopied(true);
@@ -125,6 +131,13 @@ export const WhatsAppExportModal: React.FC<WhatsAppExportModalProps> = ({ isOpen
             href={shareUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => {
+              trackWhatsAppExport({
+                fixtureId: activeFixture?.id,
+                opponent: activeFixture?.opponent,
+                squadCount: activeFixture?.matchSquad?.selectedPlayerIds?.length,
+              });
+            }}
             className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-semibold bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 border border-[#25D366]/30 transition cursor-pointer flex items-center justify-center gap-2"
           >
             <ExternalLink className="w-4 h-4" />

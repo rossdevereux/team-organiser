@@ -23,6 +23,7 @@ import {
 import { SingleSubChange, LiveMatchPeriodTimer, LiveMatchState, Player } from '../types';
 import { ScoreScorersModal } from './ScoreScorersModal';
 import { EmergencyDepartureModal } from './EmergencyDepartureModal';
+import { trackLiveMatchStarted, trackLiveSubstitution } from '../utils/analytics';
 
 interface LiveMatchModalProps {
   isOpen: boolean;
@@ -229,6 +230,12 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     let startedAt: string | undefined = undefined;
 
     if (isNowRunning) {
+      trackLiveMatchStarted({
+        fixtureId: activeFixture.id,
+        opponent: activeFixture.opponent,
+        venue: activeFixture.venue,
+        periodCount: activeFixture.matchPeriodCount || settings.matchPeriodCount,
+      });
       startedAt = nowIso;
     } else {
       // Pausing: accumulate running time from current segment
@@ -320,6 +327,17 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
   };
 
   const handleExecuteQuickSub = async (offId: string, onId: string, targetPos?: string) => {
+    const periodDuration = activeFixture?.periodDurationMinutes || settings.periodDurationMinutes || 25;
+    const matchMinute = ((activePeriod - 1) * periodDuration) + Math.floor(elapsedSeconds / 60);
+
+    trackLiveSubstitution({
+      fixtureId: activeFixture?.id,
+      period: activePeriod,
+      isEmergency: false,
+      reason: 'tactical',
+      matchMinute,
+    });
+
     await executeLiveSubstitution(offId, onId, targetPos);
     if (soundEnabled) {
       playRefWhistle();

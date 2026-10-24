@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { TeamDashboardSummary } from '../types';
 import { useMatchday } from '../context/MatchdayContext';
 import { Printer, X, Trophy, Shield, Star, Award, CheckCircle2 } from 'lucide-react';
+import { trackPrintSheet } from '../utils/analytics';
 
 interface PrintPresentationCardProps {
   isOpen: boolean;
@@ -27,6 +28,15 @@ export const PrintPresentationCard: React.FC<PrintPresentationCardProps> = ({
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      trackPrintSheet({
+        type: 'presentation_award',
+        teamId: activeTeam?.id,
+      });
+    }
+  }, [isOpen, activeTeam?.id]);
 
   if (!isOpen) return null;
 
