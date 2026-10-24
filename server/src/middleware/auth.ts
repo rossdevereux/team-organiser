@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { getAuth } from 'firebase-admin/auth';
 import { initFirebaseAdmin } from '../auth/claims.js';
 
+import { SubscriptionStatus, SubscriptionTier } from '../types.js';
+
 // Ensure Firebase Admin is initialized
 initFirebaseAdmin();
 
@@ -10,9 +12,12 @@ export interface AuthenticatedRequest extends Request {
     uid: string;
     email?: string;
     role?: 'owner' | 'coach' | 'viewer';
+    subscriptionStatus?: SubscriptionStatus;
+    subscriptionTier?: SubscriptionTier;
     name?: string;
     picture?: string;
   };
+  rawBody?: Buffer;
 }
 
 /**
@@ -67,6 +72,8 @@ export const requireAuth = async (
                 ? process.env.INITIAL_ADMIN_EMAIL || 'admin@therovers.local'
                 : 'coach@therovers.local'),
             role: roleFromToken,
+            subscriptionStatus: (req.headers['x-subscription-status'] as SubscriptionStatus) || undefined,
+            subscriptionTier: (req.headers['x-subscription-tier'] as SubscriptionTier) || undefined,
             name: 'Development User',
           };
         } else {
@@ -79,6 +86,8 @@ export const requireAuth = async (
                 uid: payload.sub || payload.user_id || 'dev-user',
                 email: payload.email,
                 role: payload.role || (req.headers['x-user-role'] as any) || 'viewer',
+                subscriptionStatus: payload.subscriptionStatus || (req.headers['x-subscription-status'] as SubscriptionStatus) || undefined,
+                subscriptionTier: payload.subscriptionTier || (req.headers['x-subscription-tier'] as SubscriptionTier) || undefined,
                 name: payload.name,
                 picture: payload.picture,
               };
@@ -98,6 +107,8 @@ export const requireAuth = async (
       uid: decoded.uid,
       email: decoded.email,
       role: (decoded.role as 'owner' | 'coach' | 'viewer') || 'viewer',
+      subscriptionStatus: (decoded.subscriptionStatus as SubscriptionStatus) || (req.headers['x-subscription-status'] as SubscriptionStatus) || undefined,
+      subscriptionTier: (decoded.subscriptionTier as SubscriptionTier) || (req.headers['x-subscription-tier'] as SubscriptionTier) || undefined,
       name: decoded.name,
       picture: decoded.picture,
     };
@@ -150,11 +161,16 @@ export const optionalAuth = (
   const customEmail = req.headers['x-user-email'] as string;
   const customRole = req.headers['x-user-role'] as 'owner' | 'coach' | 'viewer';
 
+  const customStatus = req.headers['x-subscription-status'] as SubscriptionStatus;
+  const customTier = req.headers['x-subscription-tier'] as SubscriptionTier;
+
   if (customUid) {
     req.user = {
       uid: customUid,
       email: customEmail || 'coach@therovers.local',
       role: customRole || 'coach',
+      subscriptionStatus: customStatus || undefined,
+      subscriptionTier: customTier || undefined,
     };
     return next();
   }
@@ -186,6 +202,8 @@ export const optionalAuth = (
       uid: customUid || (token.startsWith('mock-token-') ? token.replace('mock-token-', '') : (roleFromToken === 'owner' ? 'admin-user-1' : 'dev-user-123')),
       email: customEmail || (roleFromToken === 'owner' ? (process.env.INITIAL_ADMIN_EMAIL || 'admin@therovers.local') : 'coach@therovers.local'),
       role: roleFromToken,
+      subscriptionStatus: customStatus || undefined,
+      subscriptionTier: customTier || undefined,
     };
     return next();
   }
@@ -198,6 +216,8 @@ export const optionalAuth = (
         uid: payload.sub || payload.user_id || 'user',
         email: payload.email,
         role: (payload.role as 'owner' | 'coach' | 'viewer') || 'viewer',
+        subscriptionStatus: payload.subscriptionStatus || customStatus || undefined,
+        subscriptionTier: payload.subscriptionTier || customTier || undefined,
         name: payload.name,
       };
     } catch {

@@ -9,6 +9,7 @@ import { requireAuth, optionalAuth, AuthenticatedRequest } from './middleware/au
 
 import apiRouter from './routes/api.js';
 import adminRouter from './routes/admin.js';
+import billingRouter from './routes/billing.js';
 
 dotenv.config();
 
@@ -21,7 +22,13 @@ const port = parseInt(process.env.PORT || '8080', 10);
 // Basic middleware
 app.use(cors({ exposedHeaders: ['ETag'] }));
 app.use(compression({ threshold: 256 }));
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 // Request logger
 app.use((req, _res, next) => {
@@ -98,6 +105,9 @@ app.use('/api', apiRouter);
 
 // Mount SubShuffle RBAC Admin routes (Users, Club Settings, Backups)
 app.use('/api/admin', adminRouter);
+
+// Mount SubShuffle Stripe Billing & Monetisation routes
+app.use('/api/billing', billingRouter);
 
 // Fallback for unmatched /api routes
 app.all('/api/*', (_req: Request, res: Response) => {

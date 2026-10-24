@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { getAuth, UserRecord } from 'firebase-admin/auth';
-import { UserRole, AdminUser } from '../types.js';
+import { UserRole, AdminUser, UserSubscription, SubscriptionStatus, SubscriptionTier } from '../types.js';
 import { storage } from '../db/storage.js';
 
 // Ensure Firebase Admin SDK is initialized singleton
@@ -22,25 +22,54 @@ initFirebaseAdmin();
 
 /**
  * Assigns Firebase Custom User Claims { role: 'owner' | 'coach' | 'viewer' }
- * This claim is encoded directly into the user's JWT ID token.
+ * Preserves any existing subscriptionStatus or subscriptionTier claims.
  */
 export async function setCustomUserRole(uid: string, role: UserRole): Promise<void> {
   initFirebaseAdmin();
   const auth = getAuth();
 
   try {
-    // 1. Set custom claims in Firebase Auth
-    await auth.setCustomUserClaims(uid, { role });
+    const user = await auth.getUser(uid).catch(() => null);
+    const existingClaims = user?.customClaims || {};
+    await auth.setCustomUserClaims(uid, {
+      ...existingClaims,
+      role,
+    });
     console.log(`✅ Set Firebase custom user claim { role: '${role}' } for UID: ${uid}`);
   } catch (err: any) {
     console.warn(`⚠️ Warning setting Firebase claim directly on auth (${err?.message}). Syncing with local registry.`);
   }
 
-  // 2. Synchronize with local store user registry for zero-latency queries & backups
+  // Synchronize with local store user registry for zero-latency queries & backups
   await storage.upsertAdminUser({
     uid,
     role,
   });
+}
+
+/**
+ * Assigns Firebase Custom User Claims for subscription: { subscriptionStatus, subscriptionTier }
+ * Preserves existing role claim.
+ */
+export async function setUserSubscriptionClaims(uid: string, sub: UserSubscription): Promise<void> {
+  initFirebaseAdmin();
+  const auth = getAuth();
+
+  try {
+    const user = await auth.getUser(uid).catch(() => null);
+    const existingClaims = user?.customClaims || {};
+    await auth.setCustomUserClaims(uid, {
+      ...existingClaims,
+      subscriptionStatus: sub.status,
+      subscriptionTier: sub.tier,
+    });
+    console.log(`✅ Set Firebase custom user claim { subscriptionStatus: '${sub.status}', subscriptionTier: '${sub.tier}' } for UID: ${uid}`);
+  } catch (err: any) {
+    console.warn(`⚠️ Warning setting Firebase subscription claim (${err?.message}). Syncing with local registry.`);
+  }
+
+  // Synchronize with local store
+  await storage.saveUserSubscription(uid, sub);
 }
 
 /**

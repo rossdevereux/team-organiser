@@ -10,6 +10,7 @@ import {
 import { getChangelogData } from '../services/changelogService.js';
 import { getFormationsForTeamSize, DEFAULT_FORMATIONS } from '../db/formations.js';
 import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
+import { requireActiveSubscription } from '../middleware/requireActiveSubscription.js';
 import { Player, TeamSettings, Fixture, MatchSquad, Team, Formation, PostMatchRecording, GoalScorer, LiveMatchState, LiveStatusResponse, EarlyDeparture } from '../types.js';
 
 const router = Router();
@@ -35,7 +36,7 @@ router.get('/teams', async (req: AuthenticatedRequest, res: Response) => {
 });
 
 // POST /api/teams (Create a new team)
-router.post('/teams', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/teams', requireActiveSubscription, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const body = req.body as Partial<Team>;
     if (!body.name) {
@@ -346,7 +347,7 @@ router.get('/players', async (req: AuthenticatedRequest, res: Response) => {
 });
 
 // POST /api/players
-router.post('/players', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/players', requireActiveSubscription, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const body = req.body as Partial<Player>;
     if (!body.name || !body.name.trim()) {
@@ -387,7 +388,7 @@ router.post('/players', async (req: AuthenticatedRequest, res: Response) => {
 });
 
 // POST /api/players/bulk (Bulk import players)
-router.post('/players/bulk', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/players/bulk', requireActiveSubscription, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { players: rawPlayers, teamId } = req.body as { players: Partial<Player>[]; teamId?: string };
     if (!Array.isArray(rawPlayers) || rawPlayers.length === 0) {
@@ -564,7 +565,7 @@ router.get('/fixtures/:id', async (req: AuthenticatedRequest, res: Response) => 
 });
 
 // POST /api/fixtures
-router.post('/fixtures', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/fixtures', requireActiveSubscription, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const body = req.body as Partial<Fixture>;
     if (!body.opponent || !body.opponent.trim() || !body.date) {
@@ -782,7 +783,7 @@ router.delete('/fixtures/:id', async (req: AuthenticatedRequest, res: Response) 
 });
 
 // PUT /api/fixtures/:id/squad (Manual overrides and lineup updates)
-router.put('/fixtures/:id/squad', async (req: Request, res: Response) => {
+router.put('/fixtures/:id/squad', requireActiveSubscription, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const matchSquad = req.body as MatchSquad;
@@ -802,7 +803,7 @@ router.put('/fixtures/:id/squad', async (req: Request, res: Response) => {
 });
 
 // POST /api/fixtures/:id/auto-rotate
-router.post('/fixtures/:id/auto-rotate', async (req: Request, res: Response) => {
+router.post('/fixtures/:id/auto-rotate', requireActiveSubscription, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const fixture = await storage.getFixtureById(id);
@@ -829,7 +830,7 @@ router.post('/fixtures/:id/auto-rotate', async (req: Request, res: Response) => 
 });
 
 // POST /api/fixtures/:id/early-departure (Dynamic Sub Rebalancer for mid-match injury / departure)
-router.post('/fixtures/:id/early-departure', async (req: AuthenticatedRequest, res: Response) => {
+router.post('/fixtures/:id/early-departure', requireActiveSubscription, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const fixture = await storage.getFixtureById(id);
@@ -1132,7 +1133,7 @@ router.put('/fixtures/:id/score', async (req: AuthenticatedRequest, res: Respons
 });
 
 // PUT /api/fixtures/:id/live-state (Persist live match timer, period timestamps, substitutions, and running state)
-router.put('/fixtures/:id/live-state', async (req: AuthenticatedRequest, res: Response) => {
+router.put('/fixtures/:id/live-state', requireActiveSubscription, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const fixture = await storage.getFixtureById(id);

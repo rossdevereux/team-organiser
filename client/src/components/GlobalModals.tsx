@@ -36,6 +36,9 @@ const EditFixtureModal = lazy(() =>
 const DesignSystemShowcase = lazy(() =>
   import('../design-system').then((m) => ({ default: m.DesignSystemShowcase }))
 );
+const PaywallModal = lazy(() =>
+  import('./PaywallModal').then((m) => ({ default: m.PaywallModal }))
+);
 
 export interface GlobalModalsProps {
   confirmResetOpen: boolean;
@@ -94,7 +97,7 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
   editActiveFixtureOpen,
   onEditActiveFixtureClose,
 }) => {
-  const { activeFixture } = useMatchday();
+  const { activeFixture, paywallOpen, setPaywallOpen } = useMatchday();
 
   return (
     <>
@@ -208,6 +211,15 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
             fixture={activeFixture}
             isOpen={editActiveFixtureOpen}
             onClose={onEditActiveFixtureClose}
+          />
+        </Suspense>
+      )}
+
+      {paywallOpen && (
+        <Suspense fallback={null}>
+          <PaywallModal
+            isOpen={paywallOpen}
+            onClose={() => setPaywallOpen(false)}
           />
         </Suspense>
       )}

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Free Trial Lifecycle, Subscription Paywall & Stripe Billing Integration** ([#6](https://github.com/rossdevereux/team-organiser/issues/6)):
+  - Added `UserSubscription`, `SubscriptionTier`, and `SubscriptionStatus` data models across [`shared/types.ts`](shared/types.ts), [`server/src/types.ts`](server/src/types.ts), and [`client/src/types.ts`](client/src/types.ts).
+  - Implemented automatic credit-card-free 30-day trial provisioning upon registration in [`server/src/db/storage.ts`](server/src/db/storage.ts) with zero-lookup Firebase custom claims syncing (`subscriptionStatus`, `subscriptionTier`) in [`server/src/auth/claims.ts`](server/src/auth/claims.ts).
+  - Built Stripe billing router [`server/src/routes/billing.ts`](server/src/routes/billing.ts) supporting Stripe Checkout session generation (`POST /api/billing/create-checkout-session`), Stripe Customer Portal sessions (`POST /api/billing/create-portal-session`), subscription status retrieval (`GET /api/billing/subscription`), and raw-body Stripe webhook signature verification (`POST /api/billing/webhook`) handling checkout completions, plan updates, deletions, and payment failures.
+  - Added feature gating middleware [`server/src/middleware/requireActiveSubscription.ts`](server/src/middleware/requireActiveSubscription.ts) gating active match planning, live rotations, and fixture creation with `402 Payment Required` (`{ code: 'TRIAL_EXPIRED' }`) while strictly preserving full read-only and export access for past matches, stats, and PDF downloads (no hostage data policy).
+  - Built navigation trial status badge [`TrialBadge.tsx`](client/src/components/TrialBadge.tsx) displaying dynamic trial countdown with color cues (green for >5 days, amber for ≤3 days, red for expired) and upgrade prompts.
+  - Implemented paywall modal [`PaywallModal.tsx`](client/src/components/PaywallModal.tsx) with Monthly (£3.99/mo) vs Annual (£29.99/yr, saving ~37%) plan comparisons, value propositions, and direct Stripe Checkout redirection.
+  - Added dedicated "Billing & Plan" management tab inside user settings modal [`SettingsModal.tsx`](client/src/components/SettingsModal.tsx) and "Manage Subscription" option in [`UserMenu.tsx`](client/src/components/UserMenu.tsx).
+  - Integrated paywall interception and subscription state into [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx) and mounted modal in [`GlobalModals.tsx`](client/src/components/GlobalModals.tsx).
+  - Added comprehensive test suite in [`server/src/tests/stripeBilling.test.ts`](server/src/tests/stripeBilling.test.ts) covering trial provisioning, entitlement calculation, 402 paywall middleware enforcement, checkout sessions, and webhook processing.
+
 ## [1.1.9] - 2026-10-24
 
 ### Added

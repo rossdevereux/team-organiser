@@ -225,3 +225,18 @@ export interface SuggestedSubPlan {
   strategyDescription: string;
   windows: SuggestedSubWindow[];
 }
+
+// Subscription & Monetisation Models
+export type SubscriptionTier = 'free_trial' | 'coach_monthly' | 'coach_annual' | 'club_unlimited';
+export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'canceled' | 'expired';
+
+export interface UserSubscription {
+  status: SubscriptionStatus;
+  tier: SubscriptionTier;
+  trialStartedAt: string; // ISO 8601
+  trialEndsAt: string;    // ISO 8601 (Signup + 30 days)
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  currentPeriodEnd?: string; // ISO 8601
+  cancelAtPeriodEnd?: boolean;
+}

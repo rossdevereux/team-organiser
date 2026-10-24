@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { UserMenu } from './UserMenu';
+import { TrialBadge } from './TrialBadge';
 import {
   Calendar,
   Printer,
@@ -308,6 +309,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>Create Team</span>
               </button>
             ) : null}
+
+            {/* Trial Countdown Badge beside team selector */}
+            <TrialBadge />
           </div>
 
           {/* Action Tools & Consolidated User Menu */}
