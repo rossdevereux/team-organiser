@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-24
+
 ### Added
 - **Comprehensive Coach User Guide & Help Center**:
   - Added an in-app Coach User Guide accessible from the top navigation bar and account menu ([#22](https://github.com/rossdevereux/team-organiser/issues/22)).
