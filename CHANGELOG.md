@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.9] - 2026-10-24
+
+### Added
+- **Dynamic Sub Rebalancer for Mid-Match Injuries & Early Departures** ([#18](https://github.com/rossdevereux/team-organiser/issues/18)):
+  - Added `EarlyDeparture` model and `earlyDepartures?: EarlyDeparture[]` on `Fixture` across [`shared/types.ts`](shared/types.ts), [`server/src/types.ts`](server/src/types.ts), and [`client/src/types.ts`](client/src/types.ts) tracking exact period, minute, match minute, reason, replacement sub, and pro-rated minutes.
+  - Implemented dynamic sub rebalancer engine `rebalanceRemainingPeriods(...)` in [`server/src/services/rotationService.ts`](server/src/services/rotationService.ts) to instantly swap injured on-pitch players with a selected bench sub, lock departed players out of all subsequent periods, and redistribute remaining quarters/halves across active squad members prioritizing lowest-minute players to maintain the FA 50%+ rule.
+  - Added dedicated endpoint `POST /api/fixtures/:id/early-departure` in [`server/src/routes/api.ts`](server/src/routes/api.ts) persisting early departure records, rebalanced squads, and timestamped audit logs in `liveMatchState.subLog`.
+  - Created touchline emergency prompt modal [`EmergencyDepartureModal.tsx`](client/src/components/EmergencyDepartureModal.tsx) with reason selectors, minute sliders defaulting to the live match stopwatch, immediate bench substitute selection with player playtime stats, and rebalance guarantee summaries.
+  - Integrated "Injured / Left Early" touchline action buttons into [`PitchView.tsx`](client/src/components/PitchView.tsx), [`BenchView.tsx`](client/src/components/BenchView.tsx), and [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx), plus a mid-match departures list and pitch badge indicators.
+  - Updated `calculateMatchStats` in [`server/src/services/rotationService.ts`](server/src/services/rotationService.ts) and [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx) along with `applyFixtureMinutes` in [`server/src/db/storage.ts`](server/src/db/storage.ts) to freeze departed players' logged match minutes at their exact exit minute.
+  - Added comprehensive test suite in [`server/src/tests/dynamicSubRebalancer.test.ts`](server/src/tests/dynamicSubRebalancer.test.ts).
+
 ## [1.1.8] - 2026-10-18
 
 ### Fixed

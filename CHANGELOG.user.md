@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [1.1.9] - 2026-10-24
+
+### Added
+- **Dynamic Sub Rebalancer for Mid-Match Injuries & Early Departures**:
+  - Touchline emergency substitution action: tap "Injured / Left Early" on any active player badge or bench card to immediately bring on a bench substitute ([#18](https://github.com/rossdevereux/team-organiser/issues/18)).
+  - Departing players are automatically locked out of all remaining quarters or halves.
+  - The rotation engine automatically rebalances future periods across remaining healthy squad members, prioritizing players with the lowest pitch time to protect the FA 50%+ rule.
+  - Playing minutes for departed players are frozen at their exact minute of exit for accurate Fair Play tracking.
+
 ## [1.1.8] - 2026-10-18
 
 ### Fixed
