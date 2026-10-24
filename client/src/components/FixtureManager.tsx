@@ -121,7 +121,7 @@ export const FixtureManager: React.FC = () => {
       matchdaySquadCap: matchdaySquadCap.trim() ? parseInt(matchdaySquadCap, 10) : undefined,
       pitchPlayerCount: pitchPlayerCount.trim() ? parseInt(pitchPlayerCount, 10) : undefined,
       matchPeriodCount: matchPeriodCount.trim() ? parseInt(matchPeriodCount, 10) : undefined,
-      periodDurationMinutes: periodDurationMinutes.trim() ? parseInt(periodDurationMinutes, 10) : undefined,
+      periodDurationMinutes: periodDurationMinutes.trim() ? parseFloat(periodDurationMinutes) : undefined,
     });
 
     setIsAdding(false);
@@ -481,11 +481,12 @@ export const FixtureManager: React.FC = () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
               <div>
-                <label className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
+                <label htmlFor="fixture-squad-size" className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
                   <Users className="w-3 h-3 text-sky-400" />
                   <span>Squad Size</span>
                 </label>
                 <input
+                  id="fixture-squad-size"
                   type="number"
                   min={pitchPlayerCount ? parseInt(pitchPlayerCount, 10) : (settings.pitchPlayerCount || 5)}
                   max={30}
@@ -497,11 +498,12 @@ export const FixtureManager: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
+                <label htmlFor="fixture-pitch-format" className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
                   <Shield className="w-3 h-3 text-indigo-400" />
                   <span>Pitch Format</span>
                 </label>
                 <select
+                  id="fixture-pitch-format"
                   value={pitchPlayerCount}
                   onChange={(e) => setPitchPlayerCount(e.target.value)}
                   className="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium text-xs"
@@ -515,11 +517,12 @@ export const FixtureManager: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
+                <label htmlFor="fixture-periods" className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
                   <Layers className="w-3 h-3 text-amber-400" />
                   <span>Periods</span>
                 </label>
                 <select
+                  id="fixture-periods"
                   value={matchPeriodCount}
                   onChange={(e) => setMatchPeriodCount(e.target.value)}
                   className="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-indigo-500 font-medium text-xs"
@@ -532,14 +535,16 @@ export const FixtureManager: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
+                <label htmlFor="fixture-duration" className="block text-slate-400 font-semibold mb-1 flex items-center gap-1">
                   <Clock className="w-3 h-3 text-emerald-400" />
                   <span>Duration / Period</span>
                 </label>
                 <input
+                  id="fixture-duration"
                   type="number"
                   min={5}
                   max={60}
+                  step="any"
                   value={periodDurationMinutes}
                   onChange={(e) => setPeriodDurationMinutes(e.target.value)}
                   placeholder={`Default (${settings.periodDurationMinutes || 25}m)`}

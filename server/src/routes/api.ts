@@ -406,6 +406,8 @@ router.post('/players', requireActiveSubscription, async (req: AuthenticatedRequ
       squadNumber: body.squadNumber,
       preferredPositions: body.preferredPositions || ['Midfield'],
       specificPositions: body.specificPositions || [],
+      isFixedPosition: body.isFixedPosition,
+      fixedPosition: body.fixedPosition,
       unavailableDates: body.unavailableDates || [],
       signOnDate: body.signOnDate,
       leaveDate: body.leaveDate,
@@ -449,6 +451,8 @@ router.post('/players/bulk', requireActiveSubscription, async (req: Authenticate
       squadNumber: body.squadNumber,
       preferredPositions: body.preferredPositions && body.preferredPositions.length > 0 ? body.preferredPositions : ['Midfield'],
       specificPositions: body.specificPositions || [],
+      isFixedPosition: body.isFixedPosition,
+      fixedPosition: body.fixedPosition,
       unavailableDates: body.unavailableDates || [],
       signOnDate: body.signOnDate,
       leaveDate: body.leaveDate,
@@ -1142,7 +1146,13 @@ router.put('/fixtures/:id/score', async (req: AuthenticatedRequest, res: Respons
       homeScore,
       awayScore,
       scorers: validScorers,
-      status: status || (isLive ? 'In Progress' : fixture.status === 'Upcoming' ? 'Completed' : fixture.status),
+      status:
+        status ||
+        (isLive
+          ? 'In Progress'
+          : fixture.status === 'Upcoming' || fixture.status === 'In Progress'
+          ? 'Completed'
+          : fixture.status),
       isLive: isLive !== undefined ? isLive : false,
     });
 

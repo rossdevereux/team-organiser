@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+- **Automated Sunday Morning Coach User Journey Tests**: Added automated real-user journeys testing squad onboarding, matchday rotation planning, pitchside live match tracking, fair play equity math, and multi-team isolation on desktop and mobile.
+
+### Fixed
+- **Fractional Match Period Durations**: You can now schedule match periods with fractional minutes (such as 12.5 minutes for FA Under-10 four-quarter formats) without form validation errors.
+- **Goalkeeper Lock Persistence**: Fixed an issue where locking a player as a fixed goalkeeper during player creation wasn't saved immediately.
+- **Scrollable Team Switcher**: Teams dropdown menu in the top bar now scrolls smoothly when managing multiple club squads.
+- **Match Status Completion**: Finalizing live match scores cleanly records match completion and updates season statistics without requiring page reloads.
+
 ## [1.3.0] - 2026-10-24
 
 ### Added

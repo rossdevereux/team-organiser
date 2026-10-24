@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Realistic Grassroots Coach End-to-End (E2E) Journey Test Suite** (`e2e/journeys/`):
+  - Implemented 5 comprehensive Playwright user journey specs simulating realistic grassroots volunteer coach workflows on desktop (`1280x800`) and mobile touchline viewports (`390x844`):
+    - `e2e/journeys/onboarding-and-squad.spec.ts`: Coach onboarding, team format configuration (FA U10 7v7, 10 squad cap, 4 quarters of 12.5m, 50% target), player creation with role badges & fixed GK locking, holiday blackout date assignment, and CSV bulk roster import.
+    - `e2e/journeys/match-planning.spec.ts`: Weekend fixture scheduling ("vs Tadley Gladiators"), automatic exclusion of holiday players from selection, 4-quarter auto-rotation balancing, touchline player swapping, and formatted WhatsApp announcement copying & clipboard validation.
+    - `e2e/journeys/live-matchday-touchline.spec.ts`: Pitchside live match touchline interface, outdoor match stopwatch running timer, tactical 1-tap sideline substitutions with live sub event log recording, mid-match injury departure call-off with automatic dynamic rebalancing, live home goal scoring, goal attribution to Jack (#9), and final whistle match completion locking the 1-0 score.
+    - `e2e/journeys/fairplay-audit.spec.ts`: Post-match cumulative playing time math, call-off minute pro-ration for injured players, healthy player ~25+ minute equity parity, green compliance indicators (>50%), and Team Dashboard season KPI updates (1 Win, 1 Clean Sheet, Jack top scorer with 1 goal).
+    - `e2e/journeys/team-isolation.spec.ts`: Strict multi-tenant club boundary testing across secondary team creation ("Cold Ash Hawks U9"), empty squad and fixtures assertions, zero player leakage, and complete restoration of 13 players and match data upon switching back.
+  - Implemented reusable test helpers [`e2e/helpers/auth.ts`](e2e/helpers/auth.ts) (simulated coach session bypassing third-party OAuth popups), [`e2e/helpers/selectors.ts`](e2e/helpers/selectors.ts) (semantic ARIA and test-id selectors), and [`e2e/helpers/squad.ts`](e2e/helpers/squad.ts) (`setupTestTeamAndSquad` for deterministic test isolation).
+
+### Fixed
+- Fixed player creation in [`server/src/routes/api.ts`](server/src/routes/api.ts) where `isFixedPosition` and `fixedPosition` were omitted when saving new players via `POST /api/players` and `POST /api/players/bulk`, restoring goalkeeper rotation locks.
+- Fixed match status transition in [`ScoreScorersModal.tsx`](client/src/components/ScoreScorersModal.tsx) and [`server/src/routes/api.ts`](server/src/routes/api.ts) ensuring non-live score saves from `In Progress` status cleanly transition to `Completed`.
+- Added fractional minute support (`step="any"` and `parseFloat`) for fixture period duration inputs in [`FixtureManager.tsx`](client/src/components/FixtureManager.tsx) and [`EditFixtureModal.tsx`](client/src/components/EditFixtureModal.tsx) to accommodate FA youth quarter durations (e.g., 12.5m).
+- Added scrollable `max-h-80 overflow-y-auto` to team switcher dropdown menu in [`Navbar.tsx`](client/src/components/Navbar.tsx) to handle clubs with many teams cleanly without viewport overflow.
+- Added `data-testid="player-card-<name>"` to player cards in [`SquadManager.tsx`](client/src/components/SquadManager.tsx) for deterministic test targeting.
+
 ## [1.3.0] - 2026-10-24
 
 ### Added

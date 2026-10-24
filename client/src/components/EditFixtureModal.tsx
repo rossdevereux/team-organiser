@@ -123,7 +123,7 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
       matchdaySquadCap: matchdaySquadCap.trim() ? parseInt(matchdaySquadCap, 10) : undefined,
       pitchPlayerCount: pitchPlayerCount.trim() ? parseInt(pitchPlayerCount, 10) : undefined,
       matchPeriodCount: matchPeriodCount.trim() ? parseInt(matchPeriodCount, 10) : undefined,
-      periodDurationMinutes: periodDurationMinutes.trim() ? parseInt(periodDurationMinutes, 10) : undefined,
+      periodDurationMinutes: periodDurationMinutes.trim() ? parseFloat(periodDurationMinutes) : undefined,
       fixedPlayerPositions: Object.keys(fixedPositions).length > 0 ? fixedPositions : undefined,
     });
 
@@ -497,6 +497,7 @@ export const EditFixtureModal: React.FC<EditFixtureModalProps> = ({
                       type="number"
                       min={5}
                       max={60}
+                      step="any"
                       value={periodDurationMinutes}
                       onChange={(e) => setPeriodDurationMinutes(e.target.value)}
                       placeholder={`Default (${settings.periodDurationMinutes || 25} mins)`}

@@ -51,7 +51,8 @@ export const requireAuth = async (
       if (process.env.NODE_ENV !== 'production') {
         if (
           token === 'mock-dev-token' ||
-          token.startsWith('mock-token-') ||
+          token === 'mock-token' ||
+          token.startsWith('mock-token') ||
           token === 'mock-owner-token' ||
           token === 'mock-coach-token' ||
           token === 'mock-viewer-token'
@@ -185,7 +186,8 @@ export const optionalAuth = (
 
   if (
     token === 'mock-dev-token' ||
-    token.startsWith('mock-token-') ||
+    token === 'mock-token' ||
+    token.startsWith('mock-token') ||
     token === 'mock-owner-token' ||
     token === 'mock-coach-token' ||
     token === 'mock-viewer-token'

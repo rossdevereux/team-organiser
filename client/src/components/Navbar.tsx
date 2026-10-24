@@ -156,8 +156,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </button>
 
                   {teamDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-2 w-72 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-1.5 z-50 space-y-1">
-                      <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-800 flex items-center justify-between">
+                    <div className="absolute top-full left-0 mt-2 w-72 max-h-80 overflow-y-auto rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-1.5 z-50 space-y-1">
+                      <div className="sticky top-0 bg-slate-900 z-10 px-3 py-1 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-800 flex items-center justify-between">
                         <span>Switch Team</span>
                         <span>{teams.length} teams</span>
                       </div>

@@ -205,7 +205,11 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
     setValidationError(null);
 
     try {
-      const newStatus = isLive ? 'In Progress' : fixture.status === 'Upcoming' ? 'Completed' : fixture.status;
+      const newStatus = isLive
+        ? 'In Progress'
+        : (fixture.status === 'Upcoming' || fixture.status === 'In Progress')
+        ? 'Completed'
+        : fixture.status;
       await updateFixtureScore(fixture.id, {
         homeScore,
         awayScore,

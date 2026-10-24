@@ -226,6 +226,7 @@ export const SquadManager: React.FC = () => {
             return (
               <div
                 key={player.id}
+                data-testid={`player-card-${player.name.toLowerCase()}`}
                 className={`p-4 rounded-2xl border transition-all space-y-3 ${
                   isInactiveForFixture
                     ? 'bg-slate-950/60 border-rose-900/40'
