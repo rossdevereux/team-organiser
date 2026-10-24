@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+- **30-Day Free Trial & SubShuffle Pro Billing**:
+  - New coaches automatically receive an automatic, credit-card-free 30-day trial upon registering to try out automatic rotations on real matchdays ([#6](https://github.com/rossdevereux/team-organiser/issues/6)).
+  - Top navigation now features an active trial countdown pill showing your remaining trial days with color indicators.
+  - Transparent grassroots pricing: Coach Annual at £29.99/year (save ~37%) or Coach Monthly at £3.99/month.
+  - Added a Billing & Plan section in Team Settings to manage subscriptions, view renewal dates, and access VAT invoices in the Stripe Customer Portal.
+  - No Hostage Data guarantee: if your trial ends, you retain permanent free access to view match lineups, minutes stats, and export pitch sheets.
+
 ## [1.1.9] - 2026-10-24
 
 ### Added

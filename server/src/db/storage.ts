@@ -11,6 +11,7 @@ import {
   PostMatchRecording,
   ClubSettings,
   AdminUser,
+  UserSubscription,
   BackupData,
   GoalScorer,
   LiveMatchState,
@@ -1420,6 +1421,81 @@ export class StorageManager {
       }
     }
     return this.memoryStore.adminUsers.length < prevLen;
+  }
+
+  // ================= User Subscription & Monetisation =================
+  async getUserSubscription(uid: string): Promise<UserSubscription> {
+    await this.ensureInitialized();
+    const user = await this.getAdminUserByUid(uid);
+    const now = Date.now();
+
+    if (user && user.subscription) {
+      let sub = { ...user.subscription };
+      let changed = false;
+
+      // Check if free trial has expired
+      if (sub.status === 'trialing') {
+        const trialEnd = new Date(sub.trialEndsAt).getTime();
+        if (trialEnd <= now) {
+          sub.status = 'expired';
+          changed = true;
+        }
+      }
+
+      // Check if canceled subscription passed current period end
+      if (sub.status === 'canceled' && sub.currentPeriodEnd) {
+        const periodEnd = new Date(sub.currentPeriodEnd).getTime();
+        if (periodEnd <= now) {
+          sub.status = 'expired';
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        await this.upsertAdminUser({ uid, subscription: sub });
+      }
+
+      return sub;
+    }
+
+    // Default: Provision 30-day free trial on first access
+    const trialStartedAt = new Date().toISOString();
+    const trialEndsAt = new Date(now + 30 * 24 * 60 * 60 * 1000).toISOString();
+    const initialSubscription: UserSubscription = {
+      status: 'trialing',
+      tier: 'free_trial',
+      trialStartedAt,
+      trialEndsAt,
+    };
+
+    await this.upsertAdminUser({
+      uid,
+      subscription: initialSubscription,
+    });
+
+    return initialSubscription;
+  }
+
+  async saveUserSubscription(uid: string, sub: Partial<UserSubscription>): Promise<UserSubscription> {
+    await this.ensureInitialized();
+    const existing = await this.getUserSubscription(uid);
+    const updated: UserSubscription = {
+      ...existing,
+      ...sub,
+    };
+
+    await this.upsertAdminUser({
+      uid,
+      subscription: updated,
+    });
+
+    return updated;
+  }
+
+  async getAdminUserByStripeCustomerId(customerId: string): Promise<AdminUser | null> {
+    await this.ensureInitialized();
+    const users = await this.getAdminUsers();
+    return users.find((u) => u.subscription?.stripeCustomerId === customerId) || null;
   }
 
   // ================= System Backups & Disaster Recovery =================

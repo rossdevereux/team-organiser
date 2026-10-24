@@ -14,6 +14,7 @@ import {
   Check,
   Shield,
   AlertCircle,
+  CreditCard,
 } from 'lucide-react';
 import { AuthModal } from './auth/AuthModal';
 
@@ -22,7 +23,7 @@ interface UserMenuProps {
 }
 
 export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings }) => {
-  const { currentUser, userRole, isOwner, isCoach, signOutUser } = useMatchday();
+  const { currentUser, userRole, isOwner, isCoach, signOutUser, openPaywall, subscription } = useMatchday();
   const { t, i18n } = useTranslation();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -188,6 +189,33 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings }) => {
             <div className="text-left flex-1">
               <div className="font-semibold text-slate-200">Team & League Settings</div>
               <div className="text-[10px] text-slate-400">Rules, match duration & squad caps</div>
+            </div>
+          </button>
+
+          {/* Action 2: Subscription & Billing */}
+          <button
+            type="button"
+            onClick={() => {
+              openPaywall();
+              setIsOpen(false);
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-200 hover:text-white hover:bg-slate-800 transition cursor-pointer min-h-[44px]"
+            title="Subscription & Billing Management"
+            data-testid="subscription-menu-item"
+          >
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+              <CreditCard className="w-3.5 h-3.5" />
+            </div>
+            <div className="text-left flex-1">
+              <div className="font-semibold text-slate-200 flex items-center justify-between">
+                <span>Manage Subscription</span>
+                {subscription?.status === 'active' && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold">
+                    PRO
+                  </span>
+                )}
+              </div>
+              <div className="text-[10px] text-slate-400">Plans, invoices & trial status</div>
             </div>
           </button>
 

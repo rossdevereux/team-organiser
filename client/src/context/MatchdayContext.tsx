@@ -25,6 +25,7 @@ import {
   LiveMatchState,
   LiveMatchSubLogEntry,
   EarlyDeparture,
+  UserSubscription,
 } from '../types';
 import { getFormationsForTeamSize, findFormation, DEFAULT_FORMATIONS } from '../utils/formations';
 import { DEMO_TEAMS, DEMO_PLAYERS, DEMO_FIXTURES, isDemoTeamId } from '../utils/demoData';
@@ -136,6 +137,14 @@ interface MatchdayContextType {
   refreshData: () => Promise<void>;
   enterDemoMode: () => void;
   signOutUser: () => Promise<void>;
+  // Subscription & Paywall
+  subscription: UserSubscription | null;
+  trialDaysRemaining: number;
+  isSubscriptionActive: boolean;
+  paywallOpen: boolean;
+  setPaywallOpen: (open: boolean) => void;
+  openPaywall: () => void;
+  refreshSubscription: () => Promise<void>;
 }
 
 const MatchdayContext = createContext<MatchdayContextType | null>(null);
@@ -188,6 +197,58 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isOffline, setIsOffline] = useState<boolean>(() => (typeof navigator !== 'undefined' ? !navigator.onLine : false));
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [subscription, setSubscription] = useState<UserSubscription | null>(null);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number>(30);
+  const [isSubscriptionActive, setIsSubscriptionActive] = useState<boolean>(true);
+  const [paywallOpen, setPaywallOpen] = useState<boolean>(false);
+
+  const openPaywall = useCallback(() => {
+    setPaywallOpen(true);
+  }, []);
+
+  const refreshSubscription = useCallback(async () => {
+    try {
+      const token = await getAuthToken();
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else if (currentUser?.uid) {
+        headers['x-user-id'] = currentUser.uid;
+        headers['x-user-email'] = currentUser.email || '';
+        headers['Authorization'] = 'Bearer mock-dev-token';
+      } else {
+        headers['x-user-id'] = 'dev-user-123';
+        headers['Authorization'] = 'Bearer mock-dev-token';
+      }
+
+      const res = await fetch('/api/billing/subscription', { headers });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.subscription) {
+          setSubscription(data.subscription);
+          setTrialDaysRemaining(data.trialDaysRemaining ?? 30);
+          setIsSubscriptionActive(!!data.isSubscriptionActive);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Could not fetch subscription status:', err);
+    }
+
+    // Default optimistic fallback: 30-day trial
+    if (!subscription) {
+      const now = Date.now();
+      const defaultSub: UserSubscription = {
+        status: 'trialing',
+        tier: 'free_trial',
+        trialStartedAt: new Date(now).toISOString(),
+        trialEndsAt: new Date(now + 30 * 86400000).toISOString(),
+      };
+      setSubscription(defaultSub);
+      setTrialDaysRemaining(30);
+      setIsSubscriptionActive(true);
+    }
+  }, [currentUser]);
 
   // Switch active team with immediate data isolation and zero leakage
   const setActiveTeamId = useCallback((newTeamId: string) => {
@@ -301,7 +362,12 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (auth.currentUser) {
       await evaluateRole(auth.currentUser, true);
     }
-  }, [evaluateRole]);
+    await refreshSubscription();
+  }, [evaluateRole, refreshSubscription]);
+
+  useEffect(() => {
+    refreshSubscription();
+  }, [refreshSubscription]);
 
   // Keep URL updated with team and fixture query params for bookmarking and sharing
   useEffect(() => {
@@ -894,6 +960,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Auto rotate current fixture with undo snapshot history
   const autoRotateCurrentFixture = async (selectedPlayerIds?: string[]) => {
     if (!activeFixture) return;
+    if (subscription && !isSubscriptionActive) {
+      setPaywallOpen(true);
+      return;
+    }
     try {
       if (activeFixture.matchSquad) {
         setPreviousLineupsMap((prev) => ({
@@ -908,6 +978,11 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         headers,
         body: JSON.stringify({ selectedPlayerIds }),
       });
+
+      if (res.status === 402) {
+        setPaywallOpen(true);
+        return;
+      }
 
       if (res.ok) {
         const data = await res.json();
@@ -1154,6 +1229,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Team Management
   const createTeam = async (teamData: Partial<Team>): Promise<Team | null> => {
+    if (subscription && !isSubscriptionActive) {
+      setPaywallOpen(true);
+      return null;
+    }
     try {
       const headers = await getAuthHeaders();
       const res = await fetch('/api/teams', {
@@ -1161,6 +1240,11 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         headers,
         body: JSON.stringify(teamData),
       });
+
+      if (res.status === 402) {
+        setPaywallOpen(true);
+        return null;
+      }
 
       if (res.ok) {
         const created: Team = await res.json();
@@ -1290,6 +1374,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Player CRUD
   const createPlayer = async (playerData: Partial<Player>): Promise<Player | null> => {
+    if (subscription && !isSubscriptionActive) {
+      setPaywallOpen(true);
+      return null;
+    }
     try {
       const headers = await getAuthHeaders();
       const res = await fetch('/api/players', {
@@ -1297,6 +1385,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         headers,
         body: JSON.stringify({ ...playerData, teamId: activeTeamId }),
       });
+      if (res.status === 402) {
+        setPaywallOpen(true);
+        return null;
+      }
       if (res.ok) {
         const created: Player = await res.json();
         setPlayers((prev) => [...prev, created]);
@@ -1309,6 +1401,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const bulkCreatePlayers = async (playersData: Partial<Player>[]): Promise<Player[]> => {
+    if (subscription && !isSubscriptionActive) {
+      setPaywallOpen(true);
+      return [];
+    }
     try {
       const headers = await getAuthHeaders();
       const res = await fetch('/api/players/bulk', {
@@ -1316,6 +1412,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         headers,
         body: JSON.stringify({ players: playersData, teamId: activeTeamId }),
       });
+      if (res.status === 402) {
+        setPaywallOpen(true);
+        return [];
+      }
       if (res.ok) {
         const created: Player[] = await res.json();
         setPlayers((prev) => [...prev, ...created]);
@@ -1367,6 +1467,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Fixture CRUD
   const createFixture = async (fixtureData: Partial<Fixture>): Promise<Fixture | null> => {
+    if (subscription && !isSubscriptionActive) {
+      setPaywallOpen(true);
+      return null;
+    }
     try {
       const headers = await getAuthHeaders();
       const res = await fetch('/api/fixtures', {
@@ -1374,6 +1478,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         headers,
         body: JSON.stringify({ ...fixtureData, teamId: activeTeamId }),
       });
+      if (res.status === 402) {
+        setPaywallOpen(true);
+        return null;
+      }
       if (res.ok) {
         const created: Fixture = await res.json();
         setFixtures((prev) => [created, ...prev]);
@@ -2188,6 +2296,13 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         refreshData,
         enterDemoMode,
         signOutUser,
+        subscription,
+        trialDaysRemaining,
+        isSubscriptionActive,
+        paywallOpen,
+        setPaywallOpen,
+        openPaywall,
+        refreshSubscription,
       }}
     >
       {children}
