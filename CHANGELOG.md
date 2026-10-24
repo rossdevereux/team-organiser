@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-24
+
 ### Added
 - **Firebase Performance Monitoring & Custom Matchday Workflows Traces** ([#24](https://github.com/rossdevereux/team-organiser/issues/24)):
   - Initialized Firebase Performance SDK (`getPerformance`, `trace`) safely in [`firebase.ts`](client/src/firebase.ts) with environment gating (`PROD || VITE_ENABLE_PERF === 'true'`) ensuring zero overhead in test, SSR, and development environments.

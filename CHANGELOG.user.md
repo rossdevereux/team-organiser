@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-24
+
 ### Added
 - **Pitchside Performance & Latency Telemetry** ([#24](https://github.com/rossdevereux/team-organiser/issues/24)):
   - Added Firebase Performance Monitoring to benchmark core matchday operations (including auto-rotations, touchline substitutions, CSV roster parsing, and season dashboard loading) to ensure fast, stutter-free performance on mobile devices pitchside.
