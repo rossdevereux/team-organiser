@@ -24,6 +24,7 @@ import {
   GoalScorer,
   LiveMatchState,
   LiveMatchSubLogEntry,
+  EarlyDeparture,
 } from '../types';
 import { getFormationsForTeamSize, findFormation, DEFAULT_FORMATIONS } from '../utils/formations';
 import { DEMO_TEAMS, DEMO_PLAYERS, DEMO_FIXTURES, isDemoTeamId } from '../utils/demoData';
@@ -119,6 +120,14 @@ interface MatchdayContextType {
     onPlayerId: string,
     targetPosition?: string
   ) => Promise<void>;
+  handleEarlyDeparture: (
+    departedPlayerId: string,
+    departurePeriod: number,
+    replacementPlayerId?: string,
+    reason?: 'injured' | 'left_early' | 'unwell',
+    minute?: number,
+    matchMinute?: number
+  ) => Promise<{ success: boolean; earlyDeparture?: EarlyDeparture }>;
   getSuggestedSubs: (fixtureId: string, interval?: number) => Promise<SuggestedSubPlan[]>;
   isPlayerFixed: (playerId: string, fixture?: Fixture) => boolean;
   getFixedPlayerPosition: (playerId: string, fixture?: Fixture) => string | undefined;
@@ -744,10 +753,21 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       let minutesPlayed = periodsPlayed.length * duration;
       let isPostMatchRecorded = false;
 
+      // Check early departures to freeze departed player's logged minutes
+      const departure = activeFixture.earlyDepartures?.find((d) => d.playerId === playerId);
+      if (departure) {
+        minutesPlayed = departure.proRatedMinutes;
+      } else if (
+        activeFixture.creditedMinutes &&
+        typeof activeFixture.creditedMinutes[playerId] === 'number'
+      ) {
+        minutesPlayed = activeFixture.creditedMinutes[playerId];
+      }
+
       if (activeFixture.postMatchRecording) {
         isPostMatchRecorded = true;
         if (activeFixture.postMatchRecording.trackingMode === 'full_credit') {
-          minutesPlayed = totalMatchMinutes;
+          minutesPlayed = departure ? departure.proRatedMinutes : totalMatchMinutes;
         } else if (activeFixture.postMatchRecording.trackingMode === 'exact') {
           if (
             activeFixture.postMatchRecording.playerMinutes &&
@@ -1708,6 +1728,53 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [activeFixture, activePeriod, players, updateLiveMatchState]
   );
 
+  const handleEarlyDeparture = useCallback(
+    async (
+      departedPlayerId: string,
+      departurePeriod: number,
+      replacementPlayerId?: string,
+      reason: 'injured' | 'left_early' | 'unwell' = 'injured',
+      minute?: number,
+      matchMinute?: number
+    ): Promise<{ success: boolean; earlyDeparture?: EarlyDeparture }> => {
+      if (!activeFixture || !activeFixture.matchSquad) return { success: false };
+
+      try {
+        setLoading(true);
+        const headers = await getAuthHeaders();
+        const res = await fetch(`/api/fixtures/${activeFixture.id}/early-departure`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            departedPlayerId,
+            departurePeriod,
+            replacementPlayerId,
+            reason,
+            minute,
+            matchMinute,
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.fixture) {
+            setFixtures((prev) =>
+              prev.map((f) => (f.id === activeFixture.id ? data.fixture : f))
+            );
+            return { success: true, earlyDeparture: data.earlyDeparture };
+          }
+        }
+        return { success: false };
+      } catch (err) {
+        console.error('Error executing early departure:', err);
+        return { success: false };
+      } finally {
+        setLoading(false);
+      }
+    },
+    [activeFixture]
+  );
+
   // Optimised live match status polling via lightweight heartbeat endpoint with ETag & 304 conditional support
   useLiveMatchStatus({
     fixtureId: activeFixture?.id,
@@ -2112,6 +2179,7 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateFixtureScore,
         updateLiveMatchState,
         executeLiveSubstitution,
+        handleEarlyDeparture,
         getSuggestedSubs,
         isPlayerFixed,
         getFixedPlayerPosition,

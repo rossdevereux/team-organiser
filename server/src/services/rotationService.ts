@@ -10,6 +10,7 @@ import {
   SuggestedSubPlan,
   SuggestedSubWindow,
   SingleSubChange,
+  EarlyDeparture,
 } from '../types.js';
 import { findFormation } from '../db/formations.js';
 
@@ -249,12 +250,21 @@ export const calculateMatchStats = (
     let minutesPlayed = periodsPlayed.length * duration;
     let isPostMatchRecorded = false;
 
+    // Check early departures to freeze departed player's logged minutes
+    const departure = fixture?.earlyDepartures?.find((d) => d.playerId === playerId);
+    if (departure) {
+      minutesPlayed = departure.proRatedMinutes;
+    } else if (fixture?.creditedMinutes && typeof fixture.creditedMinutes[playerId] === 'number') {
+      minutesPlayed = fixture.creditedMinutes[playerId];
+    }
+
     // Handle post-match recordings
     if (postMatchRecording) {
       isPostMatchRecorded = true;
       if (postMatchRecording.trackingMode === 'full_credit') {
         // Coach opted for full credit / 100% equal participation without exact minute tracking
-        minutesPlayed = totalMatchMinutes;
+        // (If player departed early, keep their frozen minutes rather than full credit)
+        minutesPlayed = departure ? departure.proRatedMinutes : totalMatchMinutes;
       } else if (postMatchRecording.trackingMode === 'exact') {
         if (postMatchRecording.playerMinutes && typeof postMatchRecording.playerMinutes[playerId] === 'number') {
           minutesPlayed = postMatchRecording.playerMinutes[playerId];
@@ -681,6 +691,295 @@ export const generateFairRotation = (
     manualOverrides: false,
     fixedPlayerPositions:
       Object.keys(fixedPositionsRecord).length > 0 ? fixedPositionsRecord : undefined,
+  };
+};
+
+/**
+ * Dynamic Sub Rebalancer for mid-match injuries and early departures.
+ *
+ * 1. Takes the fixture's existing MatchSquad and updates departurePeriod:
+ *    - If departed player is onPitch, replaces them with replacementPlayerId (if provided).
+ *    - Removes departed player from onPitch and active bench.
+ * 2. Locks departed player out of all subsequent periods (period > departurePeriod).
+ * 3. Re-distributes remaining pitch time across active players in future periods:
+ *    - Prioritises players with lowest pitch time / periods played up to that point.
+ *    - Avoids consecutive bench stints.
+ *    - Maintains FA 50%+ target minutes rule for healthy players where mathematically possible.
+ *    - Optimal position placement using Kuhn-Munkres Hungarian matching.
+ *
+ * @param fixture Current fixture state
+ * @param players All squad players
+ * @param settings Team settings
+ * @param departedPlayerId ID of the player departing mid-match
+ * @param departurePeriod 1-indexed period in which departure occurred
+ * @param replacementPlayerId Optional ID of bench substitute stepping up onto pitch immediately
+ */
+export const rebalanceRemainingPeriods = (
+  fixture: Fixture,
+  players: Player[],
+  settings: TeamSettings,
+  departedPlayerId: string,
+  departurePeriod: number,
+  replacementPlayerId?: string
+): MatchSquad => {
+  if (!fixture.matchSquad) {
+    throw new Error('Cannot rebalance a fixture without an existing match squad');
+  }
+
+  const pitchCount = fixture.pitchPlayerCount || settings.pitchPlayerCount || 7;
+  const periodCount = fixture.matchPeriodCount || settings.matchPeriodCount || 2;
+  const formation = findFormation(
+    fixture.formation || settings.defaultFormation || '2-3-1',
+    pitchCount,
+    settings.customFormations || []
+  );
+
+  const fixedMap = getFixedPositionsMap(fixture, players);
+  const playerMap = new Map(players.map((p) => [p.id, p]));
+
+  // All previously departed player IDs plus this new departedPlayerId
+  const allDepartedIds = new Set<string>(
+    (fixture.earlyDepartures || []).map((d) => d.playerId).concat(departedPlayerId)
+  );
+
+  // Active squad players (excluding departed players)
+  const activeSquadIds = fixture.matchSquad.selectedPlayerIds.filter(
+    (id) => !allDepartedIds.has(id)
+  );
+  const activePlayers = activeSquadIds
+    .map((id) => playerMap.get(id))
+    .filter((p): p is Player => Boolean(p));
+
+  const existingLineups = fixture.matchSquad.lineupsByPeriod;
+  const newLineups: PeriodLineup[] = [];
+
+  // 1. Periods before departurePeriod remain completely untouched
+  for (let p = 1; p < departurePeriod; p++) {
+    const existing = existingLineups.find((l) => l.period === p);
+    if (existing) {
+      newLineups.push({
+        period: p,
+        onPitch: [...existing.onPitch],
+        subs: [...existing.subs],
+      });
+    }
+  }
+
+  // 2. Handle departurePeriod
+  const currentLineup = existingLineups.find((l) => l.period === departurePeriod);
+  if (currentLineup) {
+    const isDepartedOnPitch = currentLineup.onPitch.some((op) => op.playerId === departedPlayerId);
+    let updatedOnPitch = [...currentLineup.onPitch];
+    let updatedSubs = currentLineup.subs.filter(
+      (subId) => subId !== departedPlayerId && !allDepartedIds.has(subId)
+    );
+
+    if (isDepartedOnPitch) {
+      const departedIdx = updatedOnPitch.findIndex((op) => op.playerId === departedPlayerId);
+      const slotPos = updatedOnPitch[departedIdx].position;
+
+      if (replacementPlayerId && updatedSubs.includes(replacementPlayerId)) {
+        // Place replacement on pitch in departed player's position slot
+        updatedOnPitch[departedIdx] = {
+          playerId: replacementPlayerId,
+          position: slotPos,
+        };
+        // Remove replacement from bench
+        updatedSubs = updatedSubs.filter((id) => id !== replacementPlayerId);
+      } else {
+        // Remove departed player without replacement (play with 1 fewer)
+        updatedOnPitch.splice(departedIdx, 1);
+      }
+    }
+
+    newLineups.push({
+      period: departurePeriod,
+      onPitch: updatedOnPitch,
+      subs: updatedSubs,
+    });
+  }
+
+  // Track periods played so far across periods 1..departurePeriod for all active players
+  const periodsPlayedMap = new Map<string, number>();
+  activePlayers.forEach((p) => periodsPlayedMap.set(p.id, 0));
+
+  newLineups.forEach((lineup) => {
+    lineup.onPitch.forEach((entry) => {
+      if (periodsPlayedMap.has(entry.playerId)) {
+        periodsPlayedMap.set(entry.playerId, (periodsPlayedMap.get(entry.playerId) || 0) + 1);
+      }
+    });
+  });
+
+  // Track previous period bench IDs to prevent back-to-back benching
+  let previousBenchIds: string[] = newLineups[newLineups.length - 1]?.subs || [];
+
+  // 3. Rebalance remaining periods: departurePeriod + 1 to periodCount
+  for (let period = departurePeriod + 1; period <= periodCount; period++) {
+    const onPitchAssignments: { playerId: string; position: string }[] = [];
+    const assignedSlotCodes = new Set<string>();
+
+    // A. Fixed players still active
+    const fixedActivePlayers = activePlayers.filter((p) => fixedMap.has(p.id));
+    fixedActivePlayers.forEach((fixedPlayer) => {
+      const wantedPos = fixedMap.get(fixedPlayer.id)!;
+      let matchedSlot = formation.slots.find(
+        (s) => !assignedSlotCodes.has(s.code) && s.code.toUpperCase() === wantedPos.toUpperCase()
+      );
+      if (!matchedSlot) {
+        matchedSlot = formation.slots.find(
+          (s) => !assignedSlotCodes.has(s.code) && s.category === positionToBroad(wantedPos)
+        );
+      }
+      if (!matchedSlot) {
+        matchedSlot = formation.slots.find((s) => !assignedSlotCodes.has(s.code));
+      }
+
+      if (matchedSlot) {
+        assignedSlotCodes.add(matchedSlot.code);
+        onPitchAssignments.push({
+          playerId: fixedPlayer.id,
+          position: matchedSlot.code,
+        });
+      }
+    });
+
+    // B. Goalkeeper assignment (if not occupied by fixed player)
+    const hasFixedGk = onPitchAssignments.some(
+      (item) => positionToBroad(item.position) === 'Goalkeeper'
+    );
+
+    const nonFixedActive = activePlayers.filter((p) => !fixedMap.has(p.id));
+
+    if (!hasFixedGk) {
+      const nonFixedGkList = nonFixedActive.filter((p) =>
+        p.preferredPositions.includes('Goalkeeper')
+      );
+
+      let periodGk: Player | undefined;
+      if (nonFixedGkList.length === 1) {
+        periodGk = nonFixedGkList[0];
+      } else if (nonFixedGkList.length > 1) {
+        // Rotate between multiple GKs, prioritizing whoever played fewer periods
+        periodGk = [...nonFixedGkList].sort((a, b) => {
+          const aCount = periodsPlayedMap.get(a.id) || 0;
+          const bCount = periodsPlayedMap.get(b.id) || 0;
+          return aCount - bCount;
+        })[0];
+      } else if (nonFixedActive.length > 0 && formation.slots.some((s) => s.category === 'Goalkeeper')) {
+        // Sort nonFixed by lowest periods played
+        periodGk = [...nonFixedActive].sort(
+          (a, b) => (periodsPlayedMap.get(a.id) || 0) - (periodsPlayedMap.get(b.id) || 0)
+        )[0];
+      }
+
+      if (periodGk && !onPitchAssignments.some((a) => a.playerId === periodGk!.id)) {
+        const gkSlot =
+          formation.slots.find(
+            (s) => !assignedSlotCodes.has(s.code) && s.category === 'Goalkeeper'
+          ) || formation.slots.find((s) => !assignedSlotCodes.has(s.code));
+
+        if (gkSlot) {
+          assignedSlotCodes.add(gkSlot.code);
+          onPitchAssignments.push({
+            playerId: periodGk.id,
+            position: gkSlot.code,
+          });
+        }
+      }
+    }
+
+    // C. Non-fixed outfield rotation
+    const unassignedFormationSlots = formation.slots.filter(
+      (s) => !assignedSlotCodes.has(s.code)
+    );
+    // Number of available pitch slots (capped by remaining available players)
+    const availableCandidates = nonFixedActive.filter(
+      (p) => !onPitchAssignments.some((a) => a.playerId === p.id)
+    );
+    const slotsNeeded = Math.min(unassignedFormationSlots.length, availableCandidates.length);
+
+    // Dynamic Sub Rebalancer Priority Sorting:
+    // 1. Players benched in previous period (avoid consecutive bench stints)
+    // 2. Players with fewest periods played so far (CRITICAL: lifts players with lowest pitch time to protect FA 50%+)
+    // 3. Tie-breaker: lowest historical season minutes played
+    availableCandidates.sort((a, b) => {
+      const aWasBenched = previousBenchIds.includes(a.id) ? 1 : 0;
+      const bWasBenched = previousBenchIds.includes(b.id) ? 1 : 0;
+      if (aWasBenched !== bWasBenched) {
+        return bWasBenched - aWasBenched; // benched previously gets priority
+      }
+
+      const aPlayed = periodsPlayedMap.get(a.id) || 0;
+      const bPlayed = periodsPlayedMap.get(b.id) || 0;
+      if (aPlayed !== bPlayed) {
+        return aPlayed - bPlayed; // lower pitch time gets priority!
+      }
+
+      return a.totalMinutesPlayed - b.totalMinutesPlayed;
+    });
+
+    const selectedOutfield = availableCandidates.slice(0, slotsNeeded);
+    const benchPlayers = availableCandidates.slice(slotsNeeded);
+    previousBenchIds = benchPlayers.map((p) => p.id);
+
+    // Solve Maximum Weight Bipartite Matching for tactical position happiness
+    const targetSlots = unassignedFormationSlots.slice(0, slotsNeeded);
+    const weights: number[][] = selectedOutfield.map((player) =>
+      targetSlots.map((slot) =>
+        getPositionPreferenceScore(player, slot.category, slot.code)
+      )
+    );
+
+    const slotAssignments = maxWeightBipartiteMatching(weights);
+    const assignedIndices = new Set<number>();
+    const unassignedPlayers: Player[] = [];
+
+    selectedOutfield.forEach((player, pIdx) => {
+      const slotIdx = slotAssignments[pIdx];
+      if (
+        slotIdx !== undefined &&
+        slotIdx >= 0 &&
+        slotIdx < slotsNeeded &&
+        !assignedIndices.has(slotIdx)
+      ) {
+        assignedIndices.add(slotIdx);
+        onPitchAssignments.push({
+          playerId: player.id,
+          position: targetSlots[slotIdx].code,
+        });
+      } else {
+        unassignedPlayers.push(player);
+      }
+    });
+
+    targetSlots.forEach((slot, sIdx) => {
+      if (!assignedIndices.has(sIdx) && unassignedPlayers.length > 0) {
+        const player = unassignedPlayers.shift()!;
+        assignedIndices.add(sIdx);
+        onPitchAssignments.push({
+          playerId: player.id,
+          position: slot.code,
+        });
+      }
+    });
+
+    // Update periods played counter
+    onPitchAssignments.forEach((item) => {
+      periodsPlayedMap.set(item.playerId, (periodsPlayedMap.get(item.playerId) || 0) + 1);
+    });
+
+    newLineups.push({
+      period,
+      onPitch: onPitchAssignments,
+      subs: benchPlayers.map((p) => p.id),
+    });
+  }
+
+  return {
+    ...fixture.matchSquad,
+    manualOverrides: true,
+    lineupsByPeriod: newLineups,
   };
 };
 

@@ -13,12 +13,14 @@ import {
   X,
   Check,
   AlertCircle,
+  HeartPulse,
 } from 'lucide-react';
 import { KitJerseyIcon } from '../design-system';
 import { Player } from '../types';
 import { EmptyState } from './EmptyState';
 import { useToast } from '../context/ToastContext';
 import { PlayerCallOffModal } from './PlayerCallOffModal';
+import { EmergencyDepartureModal } from './EmergencyDepartureModal';
 import { getPlayerInitials } from '../utils/playerUtils';
 
 export const BenchView: React.FC = () => {
@@ -41,6 +43,7 @@ export const BenchView: React.FC = () => {
 
   const [replacingSubPlayer, setReplacingSubPlayer] = useState<Player | null>(null);
   const [promotingRestedPlayer, setPromotingRestedPlayer] = useState<Player | null>(null);
+  const [emergencyDepartureSubPlayer, setEmergencyDepartureSubPlayer] = useState<Player | null>(null);
 
   const playerMap = useMemo(() => new Map(players.map((p) => [p.id, p])), [players]);
   const statsMap = useMemo(() => new Map(stats.map((s) => [s.playerId, s])), [stats]);
@@ -232,10 +235,23 @@ export const BenchView: React.FC = () => {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
+                          setEmergencyDepartureSubPlayer(sub);
+                        }}
+                        className="h-8 px-2.5 rounded-xl bg-rose-600/15 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 transition flex items-center gap-1 text-xs cursor-pointer font-semibold"
+                        title="Player injured or leaving early mid-match? Lock out and rebalance"
+                        aria-label={`Mark player injured or departing early ${sub.name}`}
+                      >
+                        <HeartPulse className="w-3.5 h-3.5 text-rose-400" />
+                        <span className="text-[11px] font-medium hidden sm:inline">Injured / Left</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setReplacingSubPlayer(sub);
                         }}
-                        className="h-8 px-2.5 rounded-xl bg-slate-850 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-slate-700/60 transition flex items-center gap-1 text-xs cursor-pointer"
-                        title="Player ill or called off? Remove or replace"
+                        className="h-8 px-2 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700/60 transition flex items-center gap-1 text-xs cursor-pointer"
+                        title="Player ill or called off pre-match? Remove or replace"
                         aria-label={`Replace absent or ill player ${sub.name}`}
                       >
                         <UserX className="w-3.5 h-3.5" />
@@ -487,6 +503,57 @@ export const BenchView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Mid-Match Departures Section */}
+      {activeFixture.earlyDepartures && activeFixture.earlyDepartures.length > 0 && (
+        <div className="p-4 sm:p-5 rounded-3xl bg-rose-950/20 border border-rose-500/30 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-rose-500/20">
+            <div className="flex items-center gap-2">
+              <HeartPulse className="w-4 h-4 text-rose-400" />
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                Departed Players ({activeFixture.earlyDepartures.length})
+              </h4>
+            </div>
+            <span className="text-[10px] text-rose-300 font-mono">
+              Minutes Frozen at Exit
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            {activeFixture.earlyDepartures.map((dep) => (
+              <div
+                key={dep.playerId}
+                className="p-3 rounded-xl bg-slate-950/80 border border-rose-500/30 flex items-center justify-between gap-2"
+              >
+                <div>
+                  <div className="font-bold text-white flex items-center gap-1.5">
+                    <span>{dep.playerName}</span>
+                    <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 uppercase">
+                      {dep.reason}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    Exit: Period {dep.period} ({dep.matchMinute}') • {dep.replacedByPlayerName ? `Replaced by ${dep.replacedByPlayerName}` : 'No cover'}
+                  </div>
+                </div>
+
+                <div className="text-right font-mono text-xs font-bold text-emerald-400 shrink-0">
+                  {dep.proRatedMinutes}m credited
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Mid-Match Emergency Departure & Rebalancer */}
+      <EmergencyDepartureModal
+        isOpen={Boolean(emergencyDepartureSubPlayer)}
+        player={emergencyDepartureSubPlayer}
+        currentLocation="bench"
+        currentPeriod={activePeriod}
+        onClose={() => setEmergencyDepartureSubPlayer(null)}
+      />
 
       {/* Modal: Mark Sub as Sick / Call-Off (Remove without replacement OR replace from rested roster) */}
       <PlayerCallOffModal

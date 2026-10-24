@@ -5,11 +5,12 @@ import {
   calculateMatchStats,
   generateWhatsAppAnnouncement,
   generateSuggestedSubstitutions,
+  rebalanceRemainingPeriods,
 } from '../services/rotationService.js';
 import { getChangelogData } from '../services/changelogService.js';
 import { getFormationsForTeamSize, DEFAULT_FORMATIONS } from '../db/formations.js';
 import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
-import { Player, TeamSettings, Fixture, MatchSquad, Team, Formation, PostMatchRecording, GoalScorer, LiveMatchState, LiveStatusResponse } from '../types.js';
+import { Player, TeamSettings, Fixture, MatchSquad, Team, Formation, PostMatchRecording, GoalScorer, LiveMatchState, LiveStatusResponse, EarlyDeparture } from '../types.js';
 
 const router = Router();
 
@@ -824,6 +825,146 @@ router.post('/fixtures/:id/auto-rotate', async (req: Request, res: Response) => 
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to generate fair rotation', details: err.message });
+  }
+});
+
+// POST /api/fixtures/:id/early-departure (Dynamic Sub Rebalancer for mid-match injury / departure)
+router.post('/fixtures/:id/early-departure', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const fixture = await storage.getFixtureById(id);
+    if (!fixture) {
+      return res.status(404).json({ error: 'Fixture not found' });
+    }
+
+    const userId = req.user?.uid;
+    const userEmail = req.user?.email;
+    const team = await storage.getTeamById(fixture.teamId);
+    if (team && userId && !storage.hasTeamAccess(team, userId, userEmail)) {
+      return res.status(403).json({ error: 'Access denied: Cannot modify fixture for this team' });
+    }
+
+    if (!fixture.matchSquad) {
+      return res.status(400).json({ error: 'Match squad has not been generated for this fixture yet' });
+    }
+
+    const {
+      departedPlayerId,
+      departurePeriod,
+      minute,
+      matchMinute,
+      reason = 'injured',
+      replacementPlayerId,
+    } = req.body;
+
+    if (!departedPlayerId || typeof departurePeriod !== 'number') {
+      return res.status(400).json({ error: 'departedPlayerId and departurePeriod are required' });
+    }
+
+    const players = await storage.getPlayers(fixture.teamId);
+    const settings = await storage.getSettings(fixture.teamId);
+
+    const departedPlayer = players.find((p) => p.id === departedPlayerId);
+    const replacementPlayer = replacementPlayerId
+      ? players.find((p) => p.id === replacementPlayerId)
+      : undefined;
+
+    const duration = fixture.periodDurationMinutes || settings.periodDurationMinutes || 25;
+
+    // Calculate pro-rated minutes for departed player
+    const priorCompletedPeriods = fixture.matchSquad.lineupsByPeriod.filter(
+      (l) => l.period < departurePeriod && l.onPitch.some((op) => op.playerId === departedPlayerId)
+    ).length;
+    const priorMinutes = priorCompletedPeriods * duration;
+
+    const currentLineup = fixture.matchSquad.lineupsByPeriod.find((l) => l.period === departurePeriod);
+    const wasOnPitch = Boolean(currentLineup?.onPitch.some((op) => op.playerId === departedPlayerId));
+
+    const exitMinInPeriod = wasOnPitch
+      ? typeof minute === 'number' && minute >= 0
+        ? Math.min(duration, Math.max(1, Math.round(minute)))
+        : duration
+      : 0;
+
+    const proRatedMinutes = priorMinutes + exitMinInPeriod;
+
+    const calcMatchMinute =
+      typeof matchMinute === 'number' && matchMinute >= 0
+        ? Math.round(matchMinute)
+        : (departurePeriod - 1) * duration + exitMinInPeriod;
+
+    const departureEntry: EarlyDeparture = {
+      playerId: departedPlayerId,
+      playerName: departedPlayer?.name || 'Player',
+      period: departurePeriod,
+      minute: exitMinInPeriod,
+      matchMinute: calcMatchMinute,
+      reason: reason as 'injured' | 'left_early' | 'unwell',
+      replacedByPlayerId: replacementPlayerId,
+      replacedByPlayerName: replacementPlayer?.name,
+      departedAt: new Date().toISOString(),
+      proRatedMinutes,
+    };
+
+    // Rebalance remaining periods using the dynamic sub rebalancer engine
+    const rebalancedSquad = rebalanceRemainingPeriods(
+      fixture,
+      players,
+      settings,
+      departedPlayerId,
+      departurePeriod,
+      replacementPlayerId
+    );
+
+    // Record departure in earlyDepartures on fixture
+    const existingDepartures = (fixture.earlyDepartures || []).filter(
+      (d) => d.playerId !== departedPlayerId
+    );
+    fixture.earlyDepartures = [...existingDepartures, departureEntry];
+    fixture.matchSquad = rebalancedSquad;
+
+    // Audit log entry in live match state subLog
+    const minStr = String(Math.floor(calcMatchMinute)).padStart(2, '0');
+    const timeFormatted = `${minStr}:00`;
+    const actionDesc =
+      wasOnPitch && replacementPlayer
+        ? `🚨 INJURY / DEPARTURE: ${departureEntry.playerName} off (${departureEntry.reason}) ➡️ ON: ${replacementPlayer.name}`
+        : `🚨 EARLY DEPARTURE: ${departureEntry.playerName} departed match (${departureEntry.reason})`;
+
+    const subLogEntry = {
+      id: `dep_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      minute: calcMatchMinute,
+      time: timeFormatted,
+      period: departurePeriod,
+      offPlayerId: departedPlayerId,
+      offPlayerName: departureEntry.playerName,
+      onPlayerId: replacementPlayerId || '',
+      onPlayerName: replacementPlayer?.name || '',
+      text: actionDesc,
+      timestamp: new Date().toISOString(),
+    };
+
+    if (fixture.liveMatchState) {
+      fixture.liveMatchState.subLog = [subLogEntry, ...(fixture.liveMatchState.subLog || [])];
+    } else {
+      fixture.liveMatchState = {
+        isRunning: false,
+        currentPeriod: departurePeriod,
+        elapsedSeconds: 0,
+        subLog: [subLogEntry],
+      };
+    }
+
+    const updatedFixture = await storage.saveFixture(fixture);
+
+    res.json({
+      message: 'Dynamic sub rebalancing completed successfully',
+      earlyDeparture: departureEntry,
+      matchSquad: rebalancedSquad,
+      fixture: updatedFixture,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to process early departure and rebalance', details: err.message });
   }
 });
 

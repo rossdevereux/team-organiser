@@ -187,9 +187,23 @@ export interface Fixture {
   scorers?: GoalScorer[];
   isLive?: boolean;
   liveMatchState?: LiveMatchState;
+  earlyDepartures?: EarlyDeparture[];
   creditedMinutes?: Record<string, number>; // playerId -> minutes credited to player totals
   version?: number; // Monotonic revision number for ETag & cache invalidation
   updatedAt?: string; // ISO timestamp of last fixture mutation
+}
+
+export interface EarlyDeparture {
+  playerId: string;
+  playerName: string;
+  period: number; // 1-indexed period during which departure occurred
+  minute: number; // Period elapsed minute at time of departure
+  matchMinute: number; // Cumulative match minute (e.g. 39)
+  reason: 'injured' | 'left_early' | 'unwell';
+  replacedByPlayerId?: string; // ID of bench sub stepping onto pitch
+  replacedByPlayerName?: string; // Display name of incoming bench sub
+  departedAt: string; // ISO timestamp
+  proRatedMinutes: number; // Exact cumulative match minutes credited to player
 }
 
 export interface LiveStatusResponse {

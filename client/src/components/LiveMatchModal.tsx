@@ -18,9 +18,11 @@ import {
   Users,
   ChevronRight,
   ShieldCheck,
+  HeartPulse,
 } from 'lucide-react';
-import { SingleSubChange, LiveMatchPeriodTimer, LiveMatchState } from '../types';
+import { SingleSubChange, LiveMatchPeriodTimer, LiveMatchState, Player } from '../types';
 import { ScoreScorersModal } from './ScoreScorersModal';
+import { EmergencyDepartureModal } from './EmergencyDepartureModal';
 
 interface LiveMatchModalProps {
   isOpen: boolean;
@@ -123,6 +125,10 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
   const [selectedOffId, setSelectedOffId] = useState<string>('');
   const [selectedOnId, setSelectedOnId] = useState<string>('');
   const [isScoreModalOpen, setIsScoreModalOpen] = useState<boolean>(false);
+  const [emergencyModalPlayer, setEmergencyModalPlayer] = useState<{
+    player: Player;
+    position?: string;
+  } | null>(null);
   const whistlePlayedWindow = useRef<number>(-1);
 
   const subLog = activeFixture?.liveMatchState?.subLog || [];
@@ -742,7 +748,27 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
             </div>
           </div>
 
-          <div className="flex justify-end pt-1">
+          <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+            {selectedOffId ? (
+              <button
+                type="button"
+                onClick={() => {
+                  const targetOp = currentOnPitch.find((op) => op.playerId === selectedOffId);
+                  if (targetOp?.player) {
+                    setEmergencyModalPlayer({
+                      player: targetOp.player,
+                      position: targetOp.position,
+                    });
+                  }
+                }}
+                className="px-3.5 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 font-bold text-xs shadow transition cursor-pointer flex items-center gap-1.5"
+                title="Mark player injured or leaving early and rebalance remaining periods"
+              >
+                <HeartPulse className="w-3.5 h-3.5 text-rose-400" />
+                <span>Injured / Left Early Rebalance</span>
+              </button>
+            ) : <div />}
+
             <button
               type="button"
               disabled={!selectedOffId || !selectedOnId}
@@ -752,7 +778,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
                 setSelectedOffId('');
                 setSelectedOnId('');
               }}
-              className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-40 text-white font-bold text-xs shadow-lg transition cursor-pointer flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-40 text-white font-bold text-xs shadow-lg transition cursor-pointer flex items-center gap-1.5 ml-auto"
             >
               <ArrowRightLeft className="w-3.5 h-3.5" />
               <span>Confirm Substitution Now</span>
@@ -775,6 +801,16 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
           </div>
         )}
       </div>
+
+      {/* Emergency Departure Rebalance Modal */}
+      <EmergencyDepartureModal
+        isOpen={Boolean(emergencyModalPlayer)}
+        player={emergencyModalPlayer ? emergencyModalPlayer.player : null}
+        currentLocation="pitch"
+        currentPosition={emergencyModalPlayer?.position}
+        currentPeriod={activePeriod}
+        onClose={() => setEmergencyModalPlayer(null)}
+      />
 
       {/* Score & Scorers Modal */}
       <ScoreScorersModal

@@ -12,9 +12,11 @@ import {
   Lock,
   Unlock,
   Wand2,
+  HeartPulse,
 } from 'lucide-react';
 import { BroadPosition, Player } from '../types';
 import { PlayerCallOffModal } from './PlayerCallOffModal';
+import { EmergencyDepartureModal } from './EmergencyDepartureModal';
 import { getPlayerInitials, POSITION_CATEGORY_STYLES } from '../utils/playerUtils';
 import { useToast } from '../context/ToastContext';
 
@@ -56,6 +58,10 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
     percent?: number;
   } | null>(null);
   const [callOffPitchPlayer, setCallOffPitchPlayer] = useState<{
+    player: Player;
+    position: string;
+  } | null>(null);
+  const [emergencyDeparturePlayer, setEmergencyDeparturePlayer] = useState<{
     player: Player;
     position: string;
   } | null>(null);
@@ -412,6 +418,11 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
                       <Lock className="w-2.5 h-2.5 inline" />
                     </span>
                   )}
+                  {activeFixture?.earlyDepartures?.some((d) => d.playerId === entry.playerId) && (
+                    <span className="text-rose-400 font-black ml-0.5" title="Player departed early / injured">
+                      <HeartPulse className="w-2.5 h-2.5 inline animate-pulse text-rose-400" />
+                    </span>
+                  )}
                 </div>
 
                 {/* Player Avatar / Squad Number Badge with Fallback Initials */}
@@ -637,22 +648,48 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
               <button
                 type="button"
                 onClick={() => {
+                  setEmergencyDeparturePlayer({
+                    player: inspectedPlayer.player,
+                    position: inspectedPlayer.position,
+                  });
+                  setInspectedPlayer(null);
+                }}
+                className="min-h-[40px] px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-950/40 transition cursor-pointer flex items-center gap-2"
+                title="Mid-match injury or early departure: prompt replacement & rebalance remaining periods"
+              >
+                <HeartPulse className="w-4 h-4 text-white animate-pulse" />
+                <span>Injured / Left Early</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
                   setCallOffPitchPlayer({
                     player: inspectedPlayer.player,
                     position: inspectedPlayer.position,
                   });
                   setInspectedPlayer(null);
                 }}
-                className="min-h-[40px] px-3 py-2 rounded-xl bg-rose-600/15 hover:bg-rose-600/25 text-rose-300 hover:text-white border border-rose-500/30 text-xs font-semibold transition cursor-pointer flex items-center gap-2"
+                className="min-h-[40px] px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold transition cursor-pointer flex items-center gap-2"
                 title="Player ill or called off? Remove or replace"
               >
-                <UserX className="w-4 h-4 text-rose-400" />
-                <span>Player Ill / Call-Off</span>
+                <UserX className="w-4 h-4 text-slate-400" />
+                <span>Pre-Match Call-Off</span>
               </button>
             </div>
           </div>
         );
       })()}
+
+      {/* Modal: Mid-Match Emergency Injury / Early Departure Rebalancer */}
+      <EmergencyDepartureModal
+        isOpen={Boolean(emergencyDeparturePlayer)}
+        player={emergencyDeparturePlayer ? emergencyDeparturePlayer.player : null}
+        currentLocation="pitch"
+        currentPosition={emergencyDeparturePlayer ? emergencyDeparturePlayer.position : undefined}
+        currentPeriod={activePeriod}
+        onClose={() => setEmergencyDeparturePlayer(null)}
+      />
 
       {/* Modal: Mark Pitch Player as Sick / Call-Off (Remove without replacement OR replace from rested roster) */}
       <PlayerCallOffModal

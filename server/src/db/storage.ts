@@ -1145,6 +1145,11 @@ export class StorageManager {
         participantIds.forEach((pId) => {
           newMinutes[pId] = totalMatchMinutes;
         });
+        if (fixture.earlyDepartures) {
+          fixture.earlyDepartures.forEach((dep) => {
+            newMinutes[dep.playerId] = dep.proRatedMinutes;
+          });
+        }
       } else if (fixture.postMatchRecording.trackingMode === 'exact') {
         const pMins = fixture.postMatchRecording.playerMinutes || {};
         for (const [pId, mins] of Object.entries(pMins)) {
@@ -1157,6 +1162,11 @@ export class StorageManager {
           newMinutes[entry.playerId] = (newMinutes[entry.playerId] || 0) + duration;
         });
       });
+      if (fixture.earlyDepartures) {
+        fixture.earlyDepartures.forEach((dep) => {
+          newMinutes[dep.playerId] = dep.proRatedMinutes;
+        });
+      }
     }
 
     // 2. Compute deltas against previously credited minutes on this fixture
