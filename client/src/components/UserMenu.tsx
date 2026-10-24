@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, isFirebaseConfigured } from '../firebase';
@@ -15,6 +16,7 @@ import {
   Shield,
   AlertCircle,
   CreditCard,
+  BookOpen,
 } from 'lucide-react';
 import { AuthModal } from './auth/AuthModal';
 
@@ -23,6 +25,7 @@ interface UserMenuProps {
 }
 
 export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings }) => {
+  const navigate = useNavigate();
   const { currentUser, userRole, isOwner, isCoach, signOutUser, openPaywall, subscription } = useMatchday();
   const { t, i18n } = useTranslation();
 
@@ -219,7 +222,27 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings }) => {
             </div>
           </button>
 
-          {/* Action 2: Language Selector */}
+          {/* Action 3: Coach User Guide */}
+          <button
+            type="button"
+            onClick={() => {
+              (navigate as any)({ to: '/guide', search: (prev: any) => prev });
+              setIsOpen(false);
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-200 hover:text-white hover:bg-slate-800 transition cursor-pointer min-h-[44px]"
+            title="Coach Handbook & Help Guide"
+            data-testid="coach-guide-menu-item"
+          >
+            <div className="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0">
+              <BookOpen className="w-3.5 h-3.5" />
+            </div>
+            <div className="text-left flex-1">
+              <div className="font-semibold text-slate-200">Coach User Guide</div>
+              <div className="text-[10px] text-slate-400">Rules, walkthroughs & FA guidance</div>
+            </div>
+          </button>
+
+          {/* Action 4: Language Selector */}
           <div className="px-3 py-2 rounded-xl bg-slate-950/40 border border-slate-800/60 my-1.5">
             <div className="flex items-center justify-between text-[11px] font-semibold text-slate-300 mb-2">
               <div className="flex items-center gap-1.5">

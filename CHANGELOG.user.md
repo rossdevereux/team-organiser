@@ -3,6 +3,10 @@
 ## [Unreleased]
 
 ### Added
+- **Comprehensive Coach User Guide & Help Center**:
+  - Added an in-app Coach User Guide accessible from the top navigation bar and account menu ([#22](https://github.com/rossdevereux/team-organiser/issues/22)).
+  - Includes step-by-step guides for Sunday morning matchday preparation, FA youth match formats (5v5 to 11v11), fair-play auto-rotation calculations, pitchside stopwatch controls, mid-match injuries, and referee team sheet exports.
+  - Features quick topic search, interactive table of contents, and print-friendly formatting for offline reference.
 - **Complimentary "Free for Life" Lifetime Status**:
   - Club Owners can now grant permanent "Free for Life" status to individual coaches from the Admin Portal.
   - Coaches with Free for Life access enjoy perpetual active access to all features with no trial expiration or recurring fees.

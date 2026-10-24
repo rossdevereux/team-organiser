@@ -69,7 +69,7 @@ function DashboardShell() {
   const [changelogOpen, setChangelogOpen] = useState(false);
 
   const location = useLocation();
-  const isPublicRoute = ['/', '/calculator', '/features', '/rules'].includes(location.pathname);
+  const isPublicRoute = ['/', '/calculator', '/features', '/rules', '/guide'].includes(location.pathname);
 
   useEffect(() => {
     const handleBeforePrint = () => {

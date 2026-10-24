@@ -25,6 +25,7 @@ const LazyAdminPage = React.lazy(() => import('./pages/AdminPage').then((m) => (
 const LazyCalculatorPage = React.lazy(() => import('./pages/CalculatorPage').then((m) => ({ default: m.CalculatorPage })));
 const LazyFeaturesPage = React.lazy(() => import('./pages/FeaturesPage').then((m) => ({ default: m.FeaturesPage })));
 const LazyRulesPage = React.lazy(() => import('./pages/RulesPage').then((m) => ({ default: m.RulesPage })));
+const LazyGuidePage = React.lazy(() => import('./pages/GuidePage').then((m) => ({ default: m.GuidePage })));
 
 const withSuspense = (Component: React.ComponentType) => () => (
   <Suspense fallback={<PageLoader />}>
@@ -58,6 +59,12 @@ const rulesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/rules',
   component: withSuspense(LazyRulesPage),
+});
+
+const guideRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/guide',
+  component: withSuspense(LazyGuidePage),
 });
 
 const lineupRoute = createRoute({
@@ -107,6 +114,7 @@ const routeTree = rootRoute.addChildren([
   calculatorRoute,
   featuresRoute,
   rulesRoute,
+  guideRoute,
   lineupRoute,
   matrixRoute,
   squadRoute,

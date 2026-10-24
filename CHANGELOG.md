@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Comprehensive Coach User Guide & In-App Documentation Viewer** ([#22](https://github.com/rossdevereux/team-organiser/issues/22)):
+  - Authored a comprehensive grassroots coach handbook [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) covering club setup, squad management, FA match rules, auto-rotation engines, live match stopwatches, mid-match emergency rebalancing, post-match fair-play analytics, administration roles, and pricing.
+  - Implemented responsive in-app documentation reader [`GuidePage.tsx`](client/src/pages/GuidePage.tsx) accessible at `/guide` with raw markdown import, sticky Table of Contents sidebar, real-time topic search filter, heading anchor resolution, and print/share actions.
+  - Integrated `/guide` route into [`router.tsx`](client/src/router.tsx), public routes whitelist in [`RootLayout.tsx`](client/src/RootLayout.tsx), top navigation in [`Navbar.tsx`](client/src/components/Navbar.tsx), public navigation in [`PublicNav.tsx`](client/src/components/PublicNav.tsx), and user profile dropdown in [`UserMenu.tsx`](client/src/components/UserMenu.tsx).
+  - Established persistent agent rules in [`.agents/rules/documentation.md`](.agents/rules/documentation.md), [`.antigravity/rules/documentation.md`](.antigravity/rules/documentation.md), and [`AGENTS.md`](AGENTS.md) mandating continuous synchronization between features, user guide, and changelogs.
+  - Added documentation verification linter [`scripts/verify-docs.ts`](scripts/verify-docs.ts) and `"lint:docs"` npm script enforcing non-emptiness, anchor integrity, and core feature keyword presence.
 - **Complimentary "Free for Life" Status & Backend Subscription Management**:
   - Added `'free_for_life'` to `SubscriptionTier` and `'lifetime'` to `SubscriptionStatus` across [`shared/types.ts`](shared/types.ts), [`server/src/types.ts`](server/src/types.ts), and [`client/src/types.ts`](client/src/types.ts).
   - Implemented `PUT /api/admin/users/:uid/subscription` in [`server/src/routes/admin.ts`](server/src/routes/admin.ts) allowing Club Owners to grant `free_for_life` or update subscription tiers for individual users, with immediate Firebase custom token claims syncing (`subscriptionStatus`, `subscriptionTier`).

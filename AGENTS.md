@@ -19,3 +19,10 @@ Every time you:
 - Add the entry as a bullet point under the appropriate subheader (`Added`, `Changed`, `Fixed`, etc.) within `## [Unreleased]`.
 - Provide a concise description of what was changed and why, linking to relevant components or modules (e.g. `BenchView.tsx`, `rotationService.ts`) where appropriate.
 - Never let code changes (features, enhancements, bug fixes) be finalized without an accompanying `CHANGELOG.md` update.
+
+## Continuous Documentation & User Guide Policy (Mandatory)
+
+Whenever you add a feature, update workflows, change settings, or modify UI interactions:
+- **You MUST update [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md)** to reflect the changes in a clear, coach-friendly tone for grassroots volunteers.
+- Run `npm run lint:docs` to verify internal anchor links and ensure all required core topic sections remain intact.
+

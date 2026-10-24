@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { UserMenu } from './UserMenu';
@@ -15,6 +15,7 @@ import {
   Zap,
   WifiOff,
   Crown,
+  BookOpen,
 } from 'lucide-react';
 import { ContextSwitcher } from '../design-system';
 
@@ -51,6 +52,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     isOffline,
     currentUser,
   } = useMatchday();
+
+  const location = useLocation();
+  const isGuide = location.pathname === '/guide';
 
   const { t } = useTranslation();
 
@@ -512,6 +516,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Crown className="w-3.5 h-3.5 text-amber-400" />
               <span>{t('nav.admin')}</span>
+            </Link>
+            <Link
+              role="button"
+              to="/guide"
+              search={(prev: any) => prev}
+              className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap gap-1.5 ${
+                isGuide
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              }`}
+              title="Coach User Guide & Handbook"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Guide</span>
             </Link>
           </nav>
         </div>

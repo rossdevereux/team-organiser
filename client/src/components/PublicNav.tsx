@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { ArrowRight, Calculator, FileText, Sparkles, Play, ShieldCheck, Menu, X } from 'lucide-react';
+import { ArrowRight, Calculator, FileText, Sparkles, Play, ShieldCheck, Menu, X, BookOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
 import { useToast } from '../context/ToastContext';
@@ -8,7 +8,7 @@ import { AuthButton } from './AuthButton';
 import { LanguageSelector } from './LanguageSelector';
 
 interface PublicNavProps {
-  activePage?: 'home' | 'calculator' | 'features' | 'rules';
+  activePage?: 'home' | 'calculator' | 'features' | 'rules' | 'guide';
 }
 
 export const PublicNav: React.FC<PublicNavProps> = ({ activePage }) => {
@@ -37,6 +37,7 @@ export const PublicNav: React.FC<PublicNavProps> = ({ activePage }) => {
     { label: 'Calculator', href: '/calculator', id: 'calculator', icon: Calculator },
     { label: 'Features', href: '/features', id: 'features', icon: Sparkles },
     { label: 'FA Rules', href: '/rules', id: 'rules', icon: FileText },
+    { label: 'Coach Guide', href: '/guide', id: 'guide', icon: BookOpen },
   ];
 
   return (
