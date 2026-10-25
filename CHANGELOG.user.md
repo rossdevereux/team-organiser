@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.5.2] - 2026-10-25
+
 ### Fixed
 - **Mobile Header & Navigation Bar Responsiveness** ([#30](https://github.com/rossdevereux/team-organiser/issues/30)):
   - Redesigned the top header for mobile and touchline phone screens so team names, subscription badges, and the coach User Menu never overflow or get pushed off-screen.

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.2] - 2026-10-25
+
 ### Fixed
 - **Mobile Header & Secondary Tab Navigation Viewport Width Overflow** ([#30](https://github.com/rossdevereux/team-organiser/issues/30)):
   - Resolved viewport overflow, horizontal wobble, and off-screen user avatar truncation on mobile screens ($\le 768\text{px}$) in [`Navbar.tsx`](client/src/components/Navbar.tsx).

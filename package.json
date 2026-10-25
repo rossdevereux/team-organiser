@@ -1,6 +1,6 @@
 {
   "name": "team-organiser",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "private": true,
   "description": "Decoupled, zero-idle-cost full-stack TypeScript project with React, Cloud Run, and Firebase Hosting",
   "scripts": {
