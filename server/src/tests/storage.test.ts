@@ -23,14 +23,18 @@ class MockFirestore {
     return {
       doc: (id: string) => ({
         id,
-        set: async (data: any) => {
+        set: async (data: any, options?: { merge?: boolean }) => {
           // Verify that no undefined properties were passed
           for (const [key, value] of Object.entries(data)) {
             if (value === undefined) {
               throw new Error(`Firestore Error: Cannot use "undefined" as a Firestore value (found in field "${key}")`);
             }
           }
-          colMap.set(id, { ...data });
+          if (options?.merge && colMap.has(id)) {
+            colMap.set(id, { ...colMap.get(id), ...data });
+          } else {
+            colMap.set(id, { ...data });
+          }
         },
         get: async () => {
           const data = colMap.get(id);

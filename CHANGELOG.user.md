@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-10-25
+
+### Fixed
+- **Coach Subscription & Entitlement Preservation**: Fixed an issue where completing or syncing the setup wizard could reset coach subscription details and entitlement badges on the user account.
+
 ## [1.6.0] - 2026-10-25
 
 ### Added

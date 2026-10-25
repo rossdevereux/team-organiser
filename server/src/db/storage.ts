@@ -1411,31 +1411,58 @@ export class StorageManager {
     if (!this.memoryStore.adminUsers) {
       this.memoryStore.adminUsers = [];
     }
+
     const idx = this.memoryStore.adminUsers.findIndex((u) => u.uid === user.uid);
-    let result: AdminUser;
+    let existingUser: AdminUser | null = idx >= 0 ? this.memoryStore.adminUsers[idx] : null;
+
+    if (!existingUser) {
+      existingUser = await this.getAdminUserByUid(user.uid);
+    }
+
+    const mergedSubscription =
+      user.subscription !== undefined
+        ? user.subscription
+        : existingUser?.subscription;
+
+    const mergedOnboarding =
+      user.onboarding !== undefined || existingUser?.onboarding !== undefined
+        ? {
+            ...(existingUser?.onboarding || DEFAULT_ONBOARDING_STATE),
+            ...(user.onboarding || {}),
+          }
+        : undefined;
+
+    const result: AdminUser = {
+      email: user.email || existingUser?.email || 'user@therovers.local',
+      displayName: user.displayName || existingUser?.displayName || 'Club Member',
+      role: user.role || existingUser?.role || 'viewer',
+      creationTime: existingUser?.creationTime || user.creationTime || new Date().toISOString(),
+      lastSignInTime: user.lastSignInTime || existingUser?.lastSignInTime || new Date().toISOString(),
+      ...existingUser,
+      ...user,
+      uid: user.uid,
+    };
+
+    if (mergedSubscription) {
+      result.subscription = mergedSubscription;
+    }
+    if (mergedOnboarding) {
+      result.onboarding = mergedOnboarding;
+    }
+
     if (idx >= 0) {
-      result = {
-        ...this.memoryStore.adminUsers[idx],
-        ...user,
-      };
       this.memoryStore.adminUsers[idx] = result;
     } else {
-      result = {
-        email: 'user@therovers.local',
-        displayName: 'Club Member',
-        role: 'viewer',
-        creationTime: new Date().toISOString(),
-        lastSignInTime: new Date().toISOString(),
-        ...user,
-        uid: user.uid,
-      };
       this.memoryStore.adminUsers.push(result);
     }
     this.saveToFile();
 
     if (this.isFirestoreAvailable && this.firestoreInstance) {
       try {
-        await this.firestoreInstance.collection('adminUsers').doc(result.uid).set(cleanUndefined(result));
+        await this.firestoreInstance
+          .collection('adminUsers')
+          .doc(result.uid)
+          .set(cleanUndefined(result), { merge: true });
       } catch (err) {
         console.error('Firestore save admin user error:', err);
       }
@@ -1521,8 +1548,11 @@ export class StorageManager {
       ...sub,
     };
 
+    const existingUser = await this.getAdminUserByUid(uid);
+
     await this.upsertAdminUser({
       uid,
+      ...(existingUser ? { ...existingUser } : {}),
       subscription: updated,
     });
 
@@ -1553,8 +1583,11 @@ export class StorageManager {
       ...onboarding,
     };
 
+    const existingUser = await this.getAdminUserByUid(uid);
+
     await this.upsertAdminUser({
       uid,
+      ...(existingUser ? { ...existingUser } : {}),
       onboarding: updated,
     });
 

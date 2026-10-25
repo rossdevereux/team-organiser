@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-10-25
+
+### Fixed
+- **Preserve User Subscriptions & Entitlements on Admin User Profile Updates**:
+  - Resolved an issue in [`storage.ts`](server/src/db/storage.ts) where saving onboarding state or updating user profiles stripped existing `subscription` details from `AdminUser` documents.
+  - Enhanced `upsertAdminUser` to actively query and merge with existing stored profiles (`getAdminUserByUid`), preserving subscription status, tiers, onboarding progress, and custom claims across both memory and Firestore.
+  - Added `{ merge: true }` to Firestore `adminUsers` document updates to prevent unmentioned profile and entitlement fields from being overwritten.
+  - Updated [`OnboardingContext.tsx`](client/src/components/onboarding/OnboardingContext.tsx) to attach active user authentication headers during onboarding synchronization.
+
 ## [1.6.0] - 2026-10-25
 
 ### Added

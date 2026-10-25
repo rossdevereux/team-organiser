@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { UserOnboardingState, DEFAULT_ONBOARDING_STATE } from '../../types';
 import { getAuthToken } from '../../firebase';
+import { useMatchday } from '../../context/MatchdayContext';
 
 const LOCAL_STORAGE_KEY = 'subshuffle_onboarding_state';
 
@@ -22,6 +23,7 @@ interface OnboardingContextType {
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
 export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { currentUser } = useMatchday();
   const [onboarding, setOnboarding] = useState<UserOnboardingState>(() => {
     try {
       const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -64,6 +66,10 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       };
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
+      } else if (currentUser?.uid) {
+        headers['x-user-id'] = currentUser.uid;
+        headers['x-user-email'] = currentUser.email || '';
+        headers['Authorization'] = 'Bearer mock-dev-token';
       }
 
       await fetch('/api/user/onboarding', {
@@ -74,7 +80,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     } catch (err) {
       console.warn('Failed to sync onboarding state with server:', err);
     }
-  }, []);
+  }, [currentUser]);
 
   // Fetch initial onboarding state from API
   useEffect(() => {
@@ -86,6 +92,10 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const headers: Record<string, string> = {};
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
+        } else if (currentUser?.uid) {
+          headers['x-user-id'] = currentUser.uid;
+          headers['x-user-email'] = currentUser.email || '';
+          headers['Authorization'] = 'Bearer mock-dev-token';
         }
 
         const res = await fetch('/api/user/onboarding', { headers });

@@ -65,6 +65,45 @@ describe('User Onboarding State & API Suite (Issue #28)', () => {
       const retrieved = await storage.getUserOnboarding(testUserId);
       assert.deepEqual(retrieved, updated);
     });
+
+    it('preserves existing user subscription details and profile when onboarding state is updated', async () => {
+      // 1. Seed an admin user with lifetime subscription and owner role
+      await storage.upsertAdminUser({
+        uid: testUserId,
+        email: 'headcoach@rovers.local',
+        displayName: 'Head Coach Sarah',
+        role: 'owner',
+        subscription: {
+          status: 'lifetime',
+          tier: 'free_for_life',
+          trialStartedAt: '2026-10-01T00:00:00.000Z',
+          trialEndsAt: '2026-11-01T00:00:00.000Z',
+        },
+      });
+
+      // 2. Perform onboarding updates
+      await storage.saveUserOnboarding(testUserId, {
+        hasCompletedWizard: true,
+        completedSteps: ['team_created', 'players_added'],
+        hasSeenTour: true,
+      });
+
+      // 3. Verify user record in storage
+      const user = await storage.getAdminUserByUid(testUserId);
+      assert.ok(user);
+      assert.equal(user.email, 'headcoach@rovers.local');
+      assert.equal(user.displayName, 'Head Coach Sarah');
+      assert.equal(user.role, 'owner');
+      assert.equal(user.subscription?.status, 'lifetime');
+      assert.equal(user.subscription?.tier, 'free_for_life');
+      assert.equal(user.onboarding?.hasCompletedWizard, true);
+      assert.equal(user.onboarding?.hasSeenTour, true);
+
+      // 4. Verify getUserSubscription returns the preserved lifetime subscription
+      const sub = await storage.getUserSubscription(testUserId);
+      assert.equal(sub.status, 'lifetime');
+      assert.equal(sub.tier, 'free_for_life');
+    });
   });
 
   describe('GET & POST /api/user/onboarding Endpoints', () => {

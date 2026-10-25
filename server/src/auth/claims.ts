@@ -194,15 +194,18 @@ export async function listAllUsersWithClaims(): Promise<AdminUser[]> {
     const listResult = await auth.listUsers(100);
     for (const record of listResult.users) {
       const role = (record.customClaims?.role as UserRole) || 'viewer';
+      const existingStored = usersMap.get(record.uid);
       usersMap.set(record.uid, {
         uid: record.uid,
-        email: record.email || 'no-email@therovers.local',
-        displayName: record.displayName || undefined,
-        photoURL: record.photoURL || undefined,
-        role,
-        disabled: record.disabled,
-        creationTime: record.metadata.creationTime,
-        lastSignInTime: record.metadata.lastSignInTime,
+        email: record.email || existingStored?.email || 'no-email@therovers.local',
+        displayName: record.displayName || existingStored?.displayName || undefined,
+        photoURL: record.photoURL || existingStored?.photoURL || undefined,
+        role: existingStored?.role || role,
+        subscription: existingStored?.subscription,
+        onboarding: existingStored?.onboarding,
+        disabled: record.disabled ?? existingStored?.disabled,
+        creationTime: record.metadata.creationTime || existingStored?.creationTime,
+        lastSignInTime: record.metadata.lastSignInTime || existingStored?.lastSignInTime,
       });
     }
   } catch (err: any) {
