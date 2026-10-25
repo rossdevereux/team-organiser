@@ -101,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 print:hidden w-full max-w-full">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+      <div className="max-w-7xl 2xl:max-w-[1700px] mx-auto px-3 sm:px-4 lg:px-8">
         {/* Main Header Bar */}
         <div className="h-16 flex items-center justify-between gap-2 sm:gap-4 w-full min-w-0">
           {/* Brand & Consolidated Breadcrumb Pill */}
@@ -131,9 +131,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Consolidated Breadcrumb Pill: [ Team › Match ▾ ] */}
             {activeTeam ? (
-              <div className="flex items-center rounded-xl bg-slate-950/90 border border-slate-800/90 p-0.5 shadow-sm shrink-0 min-w-0 max-w-[160px] xs:max-w-[200px] sm:max-w-[280px] md:max-w-[420px] lg:max-w-none">
+              <div className="flex items-center rounded-xl bg-slate-950/90 border border-slate-800/90 p-0.5 shadow-sm shrink min-w-0 max-w-[160px] xs:max-w-[200px] sm:max-w-[260px] md:max-w-[340px] lg:max-w-[400px] xl:max-w-[480px] 2xl:max-w-[560px]">
                 {/* Team Switcher Segment */}
-                <div ref={teamDropdownRef} className="relative shrink-0 min-w-0">
+                <div ref={teamDropdownRef} className="relative shrink-0 flex items-center">
                   <button
                     type="button"
                     onClick={() => {
@@ -146,7 +146,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     data-testid="team-switcher-button"
                   >
                     <Shield className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                    <span className="truncate max-w-[100px] xs:max-w-[130px] sm:max-w-[160px] md:max-w-[130px] lg:max-w-[170px]">
+                    <span className="truncate min-w-0 max-w-[80px] xs:max-w-[100px] sm:max-w-[120px] md:max-w-[110px] lg:max-w-[130px] xl:max-w-[150px] 2xl:max-w-[200px]">
                       {activeTeam.name}
                     </span>
                     <ChevronDown
@@ -231,7 +231,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
                 {/* Fixture Switcher Segment - Hidden on mobile (< md) */}
                 {activeFixture ? (
-                  <div ref={fixtureDropdownRef} className="relative shrink-0 hidden md:block">
+                  <div ref={fixtureDropdownRef} className="relative shrink-0 hidden md:flex items-center">
                     <button
                       type="button"
                       onClick={() => {
@@ -244,7 +244,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       data-testid="fixture-switcher-button"
                     >
                       <Calendar className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                      <span className="truncate max-w-[90px] sm:max-w-[130px] lg:max-w-[170px]">
+                      <span className="truncate min-w-0 max-w-[70px] sm:max-w-[100px] lg:max-w-[120px] xl:max-w-[140px] 2xl:max-w-[180px]">
                         vs {activeFixture.opponent}
                       </span>
                       <ChevronDown
@@ -336,11 +336,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={onOpenLiveMatch}
-                className="min-h-[44px] min-w-[44px] h-10 whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5 px-2.5 sm:px-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-rose-500/20 hover:from-amber-500/30 hover:to-rose-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold transition cursor-pointer shadow-sm shadow-amber-500/10"
+                className="min-h-[44px] min-w-[44px] sm:min-w-0 h-10 sm:h-9 whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5 px-2.5 sm:px-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-rose-500/20 hover:from-amber-500/30 hover:to-rose-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold transition cursor-pointer shadow-sm shadow-amber-500/10"
                 title="Pitchside stopwatch, sub timer & live substitution controls"
+                data-testid="live-match-header-btn"
               >
                 <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400 animate-pulse shrink-0" />
-                <span className="hidden lg:inline">Live Match</span>
+                <span className="hidden 2xl:inline">Live Match</span>
               </button>
             )}
 
@@ -358,9 +359,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                 data-testid="share-export-button"
               >
                 <Share2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="hidden sm:inline">Share / Export</span>
+                <span className="hidden 2xl:inline">Share / Export</span>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 hidden sm:inline ${
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 hidden 2xl:inline ${
                     shareDropdownOpen ? 'rotate-180' : ''
                   }`}
                 />
@@ -419,7 +420,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </div>
 
-            <div className="hidden md:block shrink-0">
+            <div className="hidden 2xl:block shrink-0">
               <ContextSwitcher onOpenShowcase={onOpenShowcase} onOpenPrint={onOpenPrint} />
             </div>
 
@@ -454,7 +455,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                <span className="hidden 2xl:inline">{periodCount === 2 ? '2-Half ' : `${periodCount}-Period `}</span>{t('nav.matrix')}
+                <span>{t('nav.matrix')}</span>
               </Link>
               <Link
                 role="button"
