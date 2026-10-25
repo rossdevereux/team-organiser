@@ -62,52 +62,52 @@ export const Modal: React.FC<ModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm animate-fade-in print:hidden"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/80 backdrop-blur-sm animate-fade-in print:hidden"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className={`relative w-full ${maxWidthMap[maxWidth]} bg-[var(--surface-card)] text-[var(--text-main)] border border-[var(--surface-border)] rounded-3xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden ${className}`}
+        className={`relative w-full ${maxWidthMap[maxWidth]} bg-[var(--surface-card)] text-[var(--text-main)] border border-[var(--surface-border)] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[92dvh] sm:max-h-[92vh] overflow-hidden ${className}`}
       >
         {/* Header */}
         {(title || icon) && (
-          <div className="flex items-center justify-between p-5 border-b border-[var(--surface-border)]">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--surface-border)] shrink-0">
+            <div className="flex items-center gap-3 min-w-0 pr-2">
               {icon && (
                 <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shrink-0">
                   {icon}
                 </div>
               )}
-              <div>
+              <div className="min-w-0">
                 {typeof title === 'string' ? (
-                  <h3 className="text-base font-bold text-[var(--text-main)]">{title}</h3>
+                  <h3 className="text-base font-bold text-[var(--text-main)] truncate">{title}</h3>
                 ) : (
                   title
                 )}
                 {subtitle && (
-                  <p className="text-xs text-[var(--text-muted)] mt-0.5">{subtitle}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5 truncate">{subtitle}</p>
                 )}
               </div>
             </div>
             <button
               onClick={onClose}
               aria-label="Close dialog"
-              className="p-1.5 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-slate-800 transition cursor-pointer"
+              className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-slate-800 transition cursor-pointer flex items-center justify-center shrink-0"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         )}
 
         {/* Scrollable Content */}
-        <div className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1">
+        <div className={`p-4 sm:p-6 overflow-y-auto overscroll-contain space-y-4 flex-1 ${footer ? 'pb-24 sm:pb-6' : 'pb-8 sm:pb-6'}`}>
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="p-4 sm:p-5 border-t border-[var(--surface-border)] bg-black/10 flex items-center justify-end gap-2.5">
+          <div className="p-4 sm:p-5 border-t border-[var(--surface-border)] bg-black/10 flex items-center justify-end gap-2.5 shrink-0">
             {footer}
           </div>
         )}

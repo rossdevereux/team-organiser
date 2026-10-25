@@ -436,7 +436,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
             <button
               type="button"
               onClick={() => setHighContrast(!highContrast)}
-              className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+              className={`min-h-[44px] px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
                 highContrast
                   ? 'bg-yellow-400 text-black border-yellow-300 font-bold'
                   : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
@@ -454,7 +454,8 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
                 setSoundEnabled(!soundEnabled);
                 if (!soundEnabled) playRefWhistle();
               }}
-              className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
+              aria-label="Toggle referee whistle audio alert"
+              className={`min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl border text-xs font-semibold gap-1.5 transition cursor-pointer ${
                 soundEnabled
                   ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                   : 'bg-slate-800 text-slate-400 border-slate-700'
@@ -467,10 +468,11 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+              aria-label="Close live match"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
               title="Close live match (Esc)"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>

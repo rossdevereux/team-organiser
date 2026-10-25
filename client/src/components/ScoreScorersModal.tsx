@@ -248,23 +248,23 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="score-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
     >
       <form
         onSubmit={handleSubmit}
-        className="relative w-full max-w-xl max-h-[90vh] flex flex-col rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden"
+        className="relative w-full max-w-xl max-h-[92dvh] sm:max-h-[90vh] flex flex-col rounded-t-3xl sm:rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden"
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/90 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-800 bg-slate-900/90 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold shrink-0">
               ⚽
             </div>
-            <div>
-              <h2 id="score-modal-title" className="text-base font-bold text-white flex items-center gap-2">
+            <div className="min-w-0">
+              <h2 id="score-modal-title" className="text-base font-bold text-white flex items-center gap-2 truncate">
                 <span>{t('modals.scoreTitle')}</span>
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 truncate">
                 vs {fixture.opponent} • {fixture.date} • {t(fixture.venue === 'Away' ? 'common.away' : 'common.home')}
               </p>
             </div>
@@ -280,7 +280,7 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-6 pb-28 sm:pb-6">
           {/* Live vs Final Match Mode Switch */}
           <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80">
             <div className="flex items-center gap-2.5">
@@ -333,7 +333,7 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
                     type="button"
                     onClick={() => handleScoreStepper('home', -1)}
                     aria-label="Decrease home score"
-                    className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg border border-slate-700 transition flex items-center justify-center cursor-pointer shadow-sm"
+                    className="w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg border border-slate-700 transition flex items-center justify-center cursor-pointer shadow-sm"
                   >
                     -
                   </button>
@@ -346,13 +346,13 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
                       setHomeScore(val);
                     }}
                     aria-label="Home team score"
-                    className="w-14 h-12 text-center text-3xl font-extrabold text-white bg-slate-900 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 font-mono"
+                    className="w-14 h-11 text-center text-3xl font-extrabold text-white bg-slate-900 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => handleScoreStepper('home', 1)}
                     aria-label="Increase home score"
-                    className="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-lg border border-indigo-500/40 transition flex items-center justify-center cursor-pointer shadow-sm"
+                    className="w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-lg border border-indigo-500/40 transition flex items-center justify-center cursor-pointer shadow-sm"
                   >
                     +
                   </button>
@@ -378,7 +378,7 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
                     type="button"
                     onClick={() => handleScoreStepper('away', -1)}
                     aria-label="Decrease away score"
-                    className="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg border border-slate-700 transition flex items-center justify-center cursor-pointer shadow-sm"
+                    className="w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-lg border border-slate-700 transition flex items-center justify-center cursor-pointer shadow-sm"
                   >
                     -
                   </button>
@@ -391,13 +391,13 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
                       setAwayScore(val);
                     }}
                     aria-label="Away team score"
-                    className="w-14 h-12 text-center text-3xl font-extrabold text-white bg-slate-900 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 font-mono"
+                    className="w-14 h-11 text-center text-3xl font-extrabold text-white bg-slate-900 rounded-xl border border-slate-700 focus:outline-none focus:border-indigo-500 font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => handleScoreStepper('away', 1)}
                     aria-label="Increase away score"
-                    className="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-lg border border-indigo-500/40 transition flex items-center justify-center cursor-pointer shadow-sm"
+                    className="w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-lg border border-indigo-500/40 transition flex items-center justify-center cursor-pointer shadow-sm"
                   >
                     +
                   </button>
@@ -432,17 +432,17 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
                 <button
                   type="button"
                   onClick={() => handleAddScorer('home')}
-                  className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition"
+                  className="px-3 py-2 min-h-[38px] rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   <span>+ Home Goal</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAddScorer('away')}
-                  className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition"
+                  className="px-3 py-2 min-h-[38px] rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   <span>+ Away Goal</span>
                 </button>
               </div>
@@ -535,7 +535,7 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
                         type="button"
                         onClick={() => handleRemoveScorer(idx)}
                         aria-label={`Remove scorer ${idx + 1}`}
-                        className="min-h-[36px] min-w-[36px] flex items-center justify-center rounded-xl text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer shrink-0"
+                        className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition cursor-pointer shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -548,18 +548,18 @@ export const ScoreScorersModal: React.FC<ScoreScorersModalProps> = ({
         </div>
 
         {/* Modal Footer Actions */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-800 bg-slate-900/90 shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-t border-slate-800 bg-slate-900/95 backdrop-blur-md shrink-0 gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer"
+            className="min-h-[44px] px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition cursor-pointer flex items-center justify-center"
           >
             {t('common.cancel')}
           </button>
           <button
             type="submit"
             disabled={isSubmitting || Boolean(effectiveError)}
-            className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition cursor-pointer flex items-center gap-2"
+            className="min-h-[44px] px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition cursor-pointer flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <span>{t('common.loading')}</span>

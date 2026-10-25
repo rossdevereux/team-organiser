@@ -45,26 +45,26 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
   const [changelogOpen, setChangelogOpen] = React.useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-slate-950 font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-slate-950 font-sans overflow-x-hidden w-full">
       {/* Top Header / Navigation Bar */}
-      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 w-full">
+      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 w-full overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Brand */}
           <div
-            className="flex items-center gap-2.5 select-none cursor-pointer"
+            className="flex items-center gap-2.5 select-none cursor-pointer min-w-0 pr-2"
             onClick={currentUser && onGoToApp ? onGoToApp : onStartDemo}
           >
             <img
               src="/logo-icon.png"
               alt="SubShuffle Logo"
-              className="w-9 h-9 object-contain drop-shadow-[0_4px_12px_rgba(16,185,129,0.35)]"
+              className="w-9 h-9 object-contain drop-shadow-[0_4px_12px_rgba(16,185,129,0.35)] shrink-0"
             />
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center font-extrabold text-lg tracking-tight">
                 <span className="text-[#00e676] drop-shadow-[0_0_12px_rgba(0,230,118,0.35)]">Sub</span>
                 <span className="text-white">Shuffle</span>
               </div>
-              <p className="text-[9px] uppercase font-bold tracking-wider text-slate-400">
+              <p className="text-[9px] uppercase font-bold tracking-wider text-slate-400 truncate">
                 {t('nav.brandSubtitle')}
               </p>
             </div>
@@ -96,12 +96,12 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           </nav>
 
           {/* Action CTAs */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <LanguageSelector compact className="shrink-0" />
             {currentUser && onGoToApp ? (
               <button
                 onClick={onGoToApp}
-                className="min-h-[44px] px-3.5 sm:px-4 flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-md shadow-emerald-500/20 transition cursor-pointer"
+                className="hidden sm:flex min-h-[44px] px-3.5 sm:px-4 items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white shadow-md shadow-emerald-500/20 transition cursor-pointer"
               >
                 <span>{t('common.goToLineup')}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -109,7 +109,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
             ) : (
               <button
                 onClick={onStartDemo}
-                className="min-h-[44px] px-3.5 sm:px-4 flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-700/80 hover:border-slate-600 text-xs font-semibold text-slate-200 transition cursor-pointer"
+                className="hidden sm:flex min-h-[44px] px-3.5 sm:px-4 items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-700/80 hover:border-slate-600 text-xs font-semibold text-slate-200 transition cursor-pointer"
               >
                 <Play className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
                 <span>{t('common.tryLiveDemo')}</span>

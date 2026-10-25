@@ -106,47 +106,55 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
   const INTERVAL_PRESETS = [5, 8, 10, 12, 15];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-3xl rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 space-y-5 max-h-[90vh] flex flex-col">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="suggested-subs-title"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+    >
+      <div className="relative w-full max-w-3xl rounded-t-3xl sm:rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl max-h-[92dvh] sm:max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        <div className="p-4 sm:p-6 border-b border-slate-800 flex items-start justify-between gap-3 shrink-0">
+          <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+            <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0 mt-0.5 sm:mt-0">
               <ArrowRightLeft className="w-5 h-5" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-white">{t('modals.suggestedSubsTitle')}</h3>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 font-semibold">
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 id="suggested-subs-title" className="text-base font-bold text-white truncate">
+                  {t('modals.suggestedSubsTitle')}
+                </h3>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 font-semibold shrink-0">
                   Live Match Assistant
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 truncate">
                 {t('modals.suggestedSubsSubtitle')} vs {fixture.opponent} ({totalMatchMinutes} {t('common.mins')})
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            aria-label="Close dialog"
+            className="min-h-[44px] min-w-[44px] p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer flex items-center justify-center shrink-0 -mr-1 -mt-1"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Configuration Bar */}
-        <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3 shrink-0">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2">
-              <Timer className="w-4 h-4 text-sky-400" />
-              <span className="font-semibold text-white">Rotation Interval:</span>
-              <div className="flex items-center gap-1.5">
+        <div className="p-3.5 sm:p-4 bg-slate-950/80 border-b border-slate-800 space-y-2.5 shrink-0">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 text-xs">
+            <div className="flex items-center gap-2 min-w-0 overflow-x-auto no-scrollbar py-0.5">
+              <Timer className="w-4 h-4 text-sky-400 shrink-0" />
+              <span className="font-semibold text-white shrink-0">Interval:</span>
+              <div className="flex items-center gap-1.5 shrink-0">
                 {INTERVAL_PRESETS.map((intVal) => (
                   <button
                     key={intVal}
                     type="button"
                     onClick={() => setInterval(intVal)}
-                    className={`px-2.5 py-1 rounded-lg font-bold text-xs transition cursor-pointer ${
+                    className={`min-h-[38px] px-2.5 py-1 rounded-lg font-bold text-xs transition cursor-pointer flex items-center justify-center ${
                       interval === intVal
                         ? 'bg-sky-600 text-white shadow'
                         : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-white'
@@ -161,7 +169,7 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
             <button
               type="button"
               onClick={handleCopyPlan}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition cursor-pointer"
+              className="min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition cursor-pointer shrink-0 ml-auto"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? t('common.copied') : t('common.copyToClipboard')}</span>
@@ -170,14 +178,14 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
 
           {/* Strategy Options Tabs */}
           {plans.length > 1 && (
-            <div className="pt-2 border-t border-slate-800/80 flex items-center gap-2 overflow-x-auto text-xs">
-              <span className="text-[11px] text-slate-500 font-semibold shrink-0">Options:</span>
+            <div className="pt-2 border-t border-slate-800/80 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth text-xs">
+              <span className="text-[11px] text-slate-500 font-semibold shrink-0">Strategy:</span>
               {plans.map((plan, idx) => (
                 <button
                   key={plan.strategyName}
                   type="button"
                   onClick={() => setActivePlanIndex(idx)}
-                  className={`px-3 py-1 rounded-lg font-semibold transition cursor-pointer shrink-0 ${
+                  className={`min-h-[36px] px-3 py-1 rounded-lg font-semibold transition cursor-pointer shrink-0 whitespace-nowrap flex items-center ${
                     activePlanIndex === idx
                       ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
                       : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-white'
@@ -190,12 +198,12 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
           )}
         </div>
 
-        {/* Content Body: Timeline */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
+        {/* Content Body: Timeline (Single scroll container with pb-32 safe clearance) */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 overscroll-contain pb-32 sm:pb-8 text-xs">
           {fixedPlayerDetails.length > 0 && (
             <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 flex items-start gap-2.5">
               <Lock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div className="space-y-1">
+              <div className="space-y-1 min-w-0 flex-1">
                 <div className="text-xs font-semibold text-amber-300">
                   Fixed Positions Active (Protected from Substitutions)
                 </div>
@@ -210,7 +218,7 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
                     </span>
                   ))}
                 </div>
-                <p className="text-[10px] text-amber-400/80">
+                <p className="text-[10px] text-amber-400/80 leading-relaxed">
                   These players remain in their designated position for the full match and are omitted from all sideline substitutions.
                 </p>
               </div>
@@ -237,27 +245,27 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
                 </p>
               </div>
 
-              {/* Timeline Cards */}
-              <div className="space-y-3 relative before:absolute before:inset-0 before:left-4 before:w-0.5 before:bg-slate-800">
+              {/* Timeline Cards with safe gutter padding */}
+              <div className="space-y-3 relative before:absolute before:inset-0 before:left-5 before:w-0.5 before:bg-slate-800">
                 {currentPlan.windows.map((window, wIdx) => (
-                  <div key={wIdx} className="relative pl-10">
-                    {/* Minute Circle Pin */}
-                    <div className="absolute left-1.5 top-3 -translate-x-1/2 w-6 h-6 rounded-full bg-slate-900 border-2 border-sky-500 text-sky-400 font-bold text-[10px] flex items-center justify-center shadow">
+                  <div key={wIdx} className="relative pl-12">
+                    {/* Minute Circle Pin (Centered on line at left-5) */}
+                    <div className="absolute left-5 top-3 -translate-x-1/2 w-6 h-6 rounded-full bg-slate-900 border-2 border-sky-500 text-sky-400 font-bold text-[10px] flex items-center justify-center shadow">
                       {window.minute}'
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
-                      <div className="flex items-center justify-between">
+                    <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
+                      <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span className="font-extrabold text-white text-sm">
                             Minute {window.minute}'
                           </span>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-300 border border-sky-500/20 font-semibold">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-300 border border-sky-500/20 font-semibold shrink-0">
                             Period {window.period}
                           </span>
                         </div>
-                        <span className="text-[11px] text-slate-400">
-                          {window.subChanges.length} substitution{window.subChanges.length > 1 ? 's' : ''}
+                        <span className="text-[11px] text-slate-400 shrink-0">
+                          {window.subChanges.length} sub{window.subChanges.length > 1 ? 's' : ''}
                         </span>
                       </div>
 
@@ -266,9 +274,9 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
                         {window.subChanges.map((change, cIdx) => (
                           <div
                             key={cIdx}
-                            className="p-3 rounded-xl bg-slate-900 border border-slate-800/90 flex flex-wrap items-center justify-between gap-3"
+                            className="p-2.5 sm:p-3 rounded-xl bg-slate-900 border border-slate-800/90 flex flex-wrap items-center justify-between gap-2.5"
                           >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                               {/* Player Coming OFF */}
                               <div className="flex items-center gap-1.5">
                                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
@@ -313,15 +321,15 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-          <span className="text-slate-400 text-[11px]">
+        {/* Sticky Pinned Footer (Always visible, safe padding) */}
+        <div className="p-3.5 sm:p-4 border-t border-slate-800 bg-slate-900/95 backdrop-blur-md shrink-0 flex items-center justify-between gap-3 text-xs">
+          <span className="text-slate-400 text-[11px] hidden sm:inline leading-tight">
             Sideline changes update fresh legs while maintaining equal playing time parity.
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold transition cursor-pointer"
+            className="w-full sm:w-auto min-h-[44px] px-6 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md transition cursor-pointer flex items-center justify-center"
           >
             Done
           </button>
