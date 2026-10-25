@@ -1416,7 +1416,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const res = await fetch('/api/players/bulk', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ players: playersData, teamId: activeTeamId }),
+        body: JSON.stringify({
+          players: playersData,
+          teamId: (playersData[0] as any)?.teamId || activeTeamId,
+        }),
       });
       if (res.status === 402) {
         setPaywallOpen(true);
@@ -1482,7 +1485,10 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const res = await fetch('/api/fixtures', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ ...fixtureData, teamId: activeTeamId }),
+        body: JSON.stringify({
+          ...fixtureData,
+          teamId: fixtureData.teamId || activeTeamId,
+        }),
       });
       if (res.status === 402) {
         setPaywallOpen(true);

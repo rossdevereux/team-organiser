@@ -17,3 +17,16 @@ export function calculateMeetTime(kickOffTime: string, offsetMins: number = 30):
 export function getTodayDateString(): string {
   return new Date().toISOString().split('T')[0];
 }
+
+/**
+ * Returns the upcoming Saturday ISO date string (YYYY-MM-DD).
+ */
+export function getNextSaturdayDateString(): string {
+  const d = new Date();
+  const day = d.getDay();
+  // Saturday is day 6. If today is Saturday, next Saturday is +7, else 6 - day.
+  const diff = (6 - day + 7) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().split('T')[0];
+}
+

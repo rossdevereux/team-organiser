@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Interactive New Coach Setup Wizard & Guided Spotlight Tour** ([#28](https://github.com/rossdevereux/team-organiser/issues/28)):
+  - Built an interactive 3-step setup modal wizard ([`OnboardingWizardModal.tsx`](client/src/components/onboarding/OnboardingWizardModal.tsx)) guiding newly registered coaches through club format configuration, squad roster setup, and their first weekend fixture.
+  - Implemented 1-tap FA youth format presets (5v5, 7v7 [default], 9v9) embedding FA rules, default period counts, period durations, and 50%+ equal game time compliance thresholds.
+  - Provided 3 squad kick-start pathways: 1-click "Try with Demo Players" (instant 10-player FA-balanced squad), manual quick-add form (name, number, broad position), and CSV file import drop.
+  - Built a guided spotlight tour ([`SpotlightTour.tsx`](client/src/components/onboarding/SpotlightTour.tsx)) leading directly to the "Magic Moment", highlighting substitute bench availability (`[data-tour-target="bench"]`), 1-tap Auto-Balance (`[data-tour-target="auto-balance"]`), tactical pitch and period tabs (`[data-tour-target="pitch"]`), and the 50%+ equal game time tracker (`[data-tour-target="fair-play"]`).
+  - Added a Matchday Celebration screen highlighting WhatsApp squad announcements and pitchside Live Match stopwatch controls with a "Let's Play! 🚀" launch action.
+  - Added replay triggers: "🔄 Replay Setup Wizard" in the Coach User Menu ([`UserMenu.tsx`](client/src/components/UserMenu.tsx)) and Coach User Guide header ([`GuidePage.tsx`](client/src/pages/GuidePage.tsx)).
+  - Implemented backend persistence and REST API endpoints (`GET /api/user/onboarding` and `POST /api/user/onboarding`) in [`server/src/routes/api.ts`](server/src/routes/api.ts) and [`server/src/db/storage.ts`](server/src/db/storage.ts), supporting both authenticated users and unauthenticated demo sandbox mode.
+  - Added automated unit test suite ([`server/src/tests/onboarding.test.ts`](server/src/tests/onboarding.test.ts)) and Playwright E2E suite ([`e2e/onboarding-wizard.spec.ts`](e2e/onboarding-wizard.spec.ts)) covering multi-step completion, spotlight tour progression, replay shortcuts, and mobile viewports ($390\text{px}$).
+
 ## [1.5.2] - 2026-10-25
 
 ### Fixed

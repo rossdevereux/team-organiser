@@ -25,6 +25,7 @@ import { useMatchday } from '../context/MatchdayContext';
 import { useToast } from '../context/ToastContext';
 import { AppVersion } from '../components/AppVersion';
 import { ReleaseNotesModal } from '../components/ReleaseNotesModal';
+import { useOnboarding } from '../components/onboarding/OnboardingContext';
 import guideMarkdown from '../../../docs/USER_GUIDE.md?raw';
 
 function githubSlug(text: string): string {
@@ -53,6 +54,7 @@ interface TocItem {
 
 export const GuidePage: React.FC = () => {
   const { currentUser, enterDemoMode } = useMatchday();
+  const { replayOnboarding } = useOnboarding();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -130,6 +132,11 @@ export const GuidePage: React.FC = () => {
     navigate({ to: '/lineup', search: (prev: any) => prev });
   };
 
+  const handleReplaySetupWizard = () => {
+    navigate({ to: '/lineup', search: (prev: any) => prev });
+    replayOnboarding();
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -178,6 +185,17 @@ export const GuidePage: React.FC = () => {
 
             {/* Quick Action Tools */}
             <div className="flex items-center gap-2.5 flex-wrap">
+              <button
+                type="button"
+                onClick={handleReplaySetupWizard}
+                className="min-h-[42px] px-3.5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+                title="Replay interactive setup wizard and product tour"
+                data-testid="guide-replay-wizard-button"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+                <span>Replay Setup Wizard</span>
+              </button>
+
               <button
                 type="button"
                 onClick={handlePrint}

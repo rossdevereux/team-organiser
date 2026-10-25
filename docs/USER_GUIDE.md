@@ -9,6 +9,9 @@ This guide walks you through every stage of your season, from your initial team 
 
 ## Table of Contents
 - [1. Getting Started & Club Setup](#1-getting-started--club-setup)
+  - [Interactive New Coach Setup Wizard](#interactive-new-coach-setup-wizard)
+  - [Guided Spotlight Product Tour](#guided-spotlight-product-tour)
+  - [Replaying the Setup Wizard & Tour](#replaying-the-setup-wizard--tour)
   - [Creating Your Team](#creating-your-team)
   - [Age Groups & FA Formats](#age-groups--fa-formats)
   - [Match Rules & Duration](#match-rules--duration)
@@ -50,6 +53,30 @@ This guide walks you through every stage of your season, from your initial team 
 ---
 
 ## 1. Getting Started & Club Setup
+
+### Interactive New Coach Setup Wizard
+When you first log in or open SubShuffle, you are welcomed by the **Interactive Setup Wizard** designed to get your grassroots squad match-ready in under 60 seconds:
+1. **Club & Match Format (Step 1):** Enter your team name, select your age category (U7 through U18), and pick your match format with 1-tap FA youth presets (**5v5**, **7v7** [FA default], or **9v9**). The wizard reinforces the FA 50%+ Equal Minutes rule so you start with compliant timing parameters.
+2. **Squad Roster Kick-Start (Step 2):** Kick-start your roster using one of three pathways:
+   - **⚡ 1-Click Demo Squad:** Instant load of a full 10-player FA-balanced squad to experiment immediately.
+   - **✍️ Quick-Add Form:** Add players one-by-one with name, squad jersey number, and position category.
+   - **📂 CSV Import:** Upload an existing club roster spreadsheet (`.csv`) with automatic column detection.
+3. **First Weekend Match Details (Step 3):** Schedule your upcoming weekend fixture with opponent club name, match date (defaults to next Saturday), Home/Away venue, and kick-off time.
+4. **Instant Magic Lineup Generation:** Tapping **✨ Launch Magic Lineup!** creates your squad, schedules the fixture, and runs the smart fair-play rotation engine to produce a balanced, ready-to-play matchday sheet.
+5. **Skip for Now:** An accessible escape hatch is available on every step if you wish to explore manually.
+
+### Guided Spotlight Product Tour
+Immediately upon completing the setup wizard, SubShuffle launches an interactive **Guided Spotlight Tour** taking you straight to your "Magic Moment":
+1. **The Substitute Bench:** Highlights resting players and demonstrates 1-tap touchline swaps, availability toggles, and sick call-offs.
+2. **⚡ 1-Tap Auto-Balance:** Spotlight focuses on the smart rotation button that guarantees equal playing time and fair positional experience across all periods.
+3. **Interactive Pitch Formation:** Explores the 2D pitch view, dragging players into positions, and toggling between 1st and 2nd Half period views.
+4. **FA 50%+ Equal Minutes Tracker:** Highlights the visual fair-play compliance indicators that ensure every player receives at least 50% game time.
+5. **Matchday Ready Celebration:** A celebration overlay points out quick WhatsApp announcement export and the pitchside stopwatch Live Match mode.
+
+### Replaying the Setup Wizard & Tour
+You can replay the setup wizard or guided product tour at any time:
+- **User Account Menu:** Click your avatar in the top right and select **🔄 Replay Setup Wizard**.
+- **Coach User Guide:** Click **Replay Setup Wizard** in the top action bar on the User Guide page (`/guide`).
 
 ### Creating Your Team
 When you first log in with your Google or email account, SubShuffle allows you to create your team profile under the **Teams** menu:

@@ -12,7 +12,21 @@ import { getChangelogData } from '../services/changelogService.js';
 import { getFormationsForTeamSize, DEFAULT_FORMATIONS } from '../db/formations.js';
 import { optionalAuth, AuthenticatedRequest } from '../middleware/auth.js';
 import { requireActiveSubscription } from '../middleware/requireActiveSubscription.js';
-import { Player, TeamSettings, Fixture, MatchSquad, Team, Formation, PostMatchRecording, GoalScorer, LiveMatchState, LiveStatusResponse, EarlyDeparture } from '../types.js';
+import {
+  Player,
+  TeamSettings,
+  Fixture,
+  MatchSquad,
+  Team,
+  Formation,
+  PostMatchRecording,
+  GoalScorer,
+  LiveMatchState,
+  LiveStatusResponse,
+  EarlyDeparture,
+  UserOnboardingState,
+  DEFAULT_ONBOARDING_STATE,
+} from '../types.js';
 
 const router = Router();
 
@@ -1381,6 +1395,53 @@ router.get('/changelog', async (_req: Request, res: Response) => {
     res.json(changelog);
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to retrieve changelog', details: err.message });
+  }
+});
+
+// ================= User Onboarding Endpoints =================
+
+// GET /api/user/onboarding
+router.get('/user/onboarding', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const uid = req.user?.uid;
+    if (!uid) {
+      return res.json({ onboarding: DEFAULT_ONBOARDING_STATE });
+    }
+    const onboarding = await storage.getUserOnboarding(uid);
+    res.json({ onboarding });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to retrieve onboarding state', details: err.message });
+  }
+});
+
+// POST /api/user/onboarding
+router.post('/user/onboarding', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const uid = req.user?.uid;
+    const body = req.body as Partial<UserOnboardingState>;
+
+    if (body.hasCompletedWizard !== undefined && typeof body.hasCompletedWizard !== 'boolean') {
+      return res.status(400).json({ error: 'hasCompletedWizard must be a boolean' });
+    }
+    if (body.hasSeenTour !== undefined && typeof body.hasSeenTour !== 'boolean') {
+      return res.status(400).json({ error: 'hasSeenTour must be a boolean' });
+    }
+    if (body.completedSteps !== undefined && !Array.isArray(body.completedSteps)) {
+      return res.status(400).json({ error: 'completedSteps must be an array' });
+    }
+
+    if (!uid) {
+      const onboarding: UserOnboardingState = {
+        ...DEFAULT_ONBOARDING_STATE,
+        ...body,
+      };
+      return res.json({ onboarding });
+    }
+
+    const onboarding = await storage.saveUserOnboarding(uid, body);
+    res.json({ onboarding });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to update onboarding state', details: err.message });
   }
 });
 

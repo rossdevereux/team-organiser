@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+- **Interactive New Coach Setup Wizard & Guided Feature Tour** ([#28](https://github.com/rossdevereux/team-organiser/issues/28)):
+  - New coaches are now greeted with a streamlined, 3-step setup wizard to get matchday-ready in under 60 seconds.
+  - **1-Tap FA Match Presets:** Quickly choose 5v5 (U7/U8), 7v7 (U9/U10), or 9v9 (U11/U12) with pre-configured period lengths and 50%+ equal game time thresholds built right in.
+  - **3 Squad Setup Options:** Instant 1-click Demo squad loader (10 players), quick single-player form, or bulk CSV spreadsheet file drop.
+  - **Guided Spotlight Tour:** Walk through your first lineup with a spotlight highlighting the substitute bench, 1-tap Auto-Balance button, tactical pitch formation, and Fair Play minutes gauge.
+  - **Replay Setup Anytime:** Replay the setup wizard and guided tour whenever you need from your account menu or the Coach User Guide page.
+
 ## [1.5.2] - 2026-10-25
 
 ### Fixed

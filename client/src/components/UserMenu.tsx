@@ -17,8 +17,10 @@ import {
   AlertCircle,
   CreditCard,
   BookOpen,
+  Sparkles,
 } from 'lucide-react';
 import { AuthModal } from './auth/AuthModal';
+import { useOnboarding } from './onboarding/OnboardingContext';
 
 interface UserMenuProps {
   onOpenSettings: () => void;
@@ -27,6 +29,7 @@ interface UserMenuProps {
 export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings }) => {
   const navigate = useNavigate();
   const { currentUser, userRole, isOwner, isCoach, signOutUser, openPaywall, subscription } = useMatchday();
+  const { replayOnboarding } = useOnboarding();
   const { t, i18n } = useTranslation();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -239,6 +242,26 @@ export const UserMenu: React.FC<UserMenuProps> = ({ onOpenSettings }) => {
             <div className="text-left flex-1">
               <div className="font-semibold text-slate-200">Coach User Guide</div>
               <div className="text-[10px] text-slate-400">Rules, walkthroughs & FA guidance</div>
+            </div>
+          </button>
+
+          {/* Action 4: Replay Setup Wizard & Tour */}
+          <button
+            type="button"
+            onClick={() => {
+              replayOnboarding();
+              setIsOpen(false);
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-200 hover:text-white hover:bg-slate-800 transition cursor-pointer min-h-[44px]"
+            title="Replay interactive setup wizard and product tour"
+            data-testid="replay-onboarding-menu-item"
+          >
+            <div className="w-7 h-7 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0">
+              <Sparkles className="w-3.5 h-3.5" />
+            </div>
+            <div className="text-left flex-1">
+              <div className="font-semibold text-slate-200">Replay Setup Wizard</div>
+              <div className="text-[10px] text-slate-400">Step-by-step setup & guided tour</div>
             </div>
           </button>
 
