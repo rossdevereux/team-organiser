@@ -148,7 +148,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 md:p-8 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-6 md:p-8 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"
@@ -158,21 +158,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         }
       }}
     >
-      <div className="relative w-full max-w-[480px] sm:max-w-lg my-auto rounded-3xl bg-slate-900/95 border border-slate-700/80 shadow-2xl shadow-black/80 overflow-hidden text-slate-100 font-sans max-h-[92vh] flex flex-col">
+      <div className="relative w-full max-w-[480px] sm:max-w-lg my-0 sm:my-auto rounded-t-3xl sm:rounded-3xl bg-slate-900/95 border border-slate-700/80 shadow-2xl shadow-black/80 overflow-hidden text-slate-100 font-sans max-h-[92dvh] sm:max-h-[92vh] flex flex-col">
         {/* Subtle Ambient Background Glow */}
         <div className="absolute -top-20 -right-20 w-56 h-56 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-56 h-56 bg-sky-500/15 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header Bar */}
-        <div className="relative p-5 sm:p-6 pb-4 flex items-start justify-between border-b border-slate-800 shrink-0">
-          <div className="flex items-center gap-3.5">
+        <div className="relative p-4 sm:p-6 pb-3 sm:pb-4 flex items-start justify-between border-b border-slate-800 shrink-0">
+          <div className="flex items-center gap-3.5 min-w-0 pr-2">
             <img
               src="/logo-icon.png"
               alt="SubShuffle Logo"
-              className="w-11 h-11 sm:w-12 sm:h-12 object-contain drop-shadow-[0_4px_12px_rgba(16,185,129,0.35)] shrink-0"
+              className="w-10 h-10 sm:w-12 sm:h-12 object-contain drop-shadow-[0_4px_12px_rgba(16,185,129,0.35)] shrink-0"
             />
-            <div>
-              <h2 id="auth-modal-title" className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+            <div className="min-w-0">
+              <h2 id="auth-modal-title" className="text-lg sm:text-2xl font-black tracking-tight text-white flex items-center gap-2 truncate">
                 <span>
                   {tab === 'forgot'
                     ? t('auth.resetPasswordTitle')
@@ -181,7 +181,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     : t('auth.signInTitle')}
                 </span>
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 mt-0.5 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-300 mt-0.5 leading-relaxed truncate">
                 {tab === 'forgot'
                   ? t('auth.resetPasswordSubtitle')
                   : tab === 'register'
@@ -193,7 +193,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           <button
             onClick={onClose}
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-750 transition cursor-pointer shrink-0 flex items-center justify-center ml-2"
+            className="w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-750 transition cursor-pointer shrink-0 flex items-center justify-center ml-2"
             aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
@@ -201,7 +201,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </div>
 
         {/* Scrollable Content Body */}
-        <div className="p-5 sm:p-7 space-y-5 overflow-y-auto flex-1">
+        <div className="p-4 sm:p-7 space-y-5 overflow-y-auto overscroll-contain flex-1 pb-10 sm:pb-7">
           {/* Error Banner */}
           {errorInfo && (
             <div className="p-4 rounded-2xl bg-rose-500/15 border border-rose-500/40 text-rose-200 text-xs sm:text-sm flex items-start gap-3 shadow-lg shadow-rose-950/20">

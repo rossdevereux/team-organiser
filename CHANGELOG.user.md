@@ -10,6 +10,14 @@
   - **Guided Spotlight Tour:** Walk through your first lineup with a spotlight highlighting the substitute bench, 1-tap Auto-Balance button, tactical pitch formation, and Fair Play minutes gauge.
   - **Replay Setup Anytime:** Replay the setup wizard and guided tour whenever you need from your account menu or the Coach User Guide page.
 
+### Fixed
+- **Touchline Mobile Experience & Modal Bottom-Sheet Ergonomics** ([#31](https://github.com/rossdevereux/team-organiser/issues/31)):
+  - Redesigned dialogs and modals (Suggested Substitutions, Matchday Squad Selector, Score & Scorers, and Sign In) to open as native bottom-sheets on smartphones with easy swipeable gestures and rounded corners.
+  - Fixed an issue where the bottom action button covered the last substitution card on smaller screens; modal lists now scroll smoothly with dedicated clearance above sticky footers.
+  - Large touch targets ($\ge 44\text{px}$) across all close icons, score adjusters, and period buttons make touchline management easy even with cold or wet hands.
+  - The Rotation Matrix now pins player names on the left while swiping through periods, and includes a **Period Cards** view toggle on mobile to easily review period rosters as cards.
+  - Hardened the tactical 2D pitch display so player cards and names never overlap or get crushed on compact phone screens.
+
 ## [1.5.2] - 2026-10-25
 
 ### Fixed

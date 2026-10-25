@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
-import { CheckCircle2, AlertTriangle, Wand2, Shield, Eye, Lock } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Wand2, Shield, Eye, Lock, LayoutGrid, Table as TableIcon, Users } from 'lucide-react';
 
 export const RotationMatrix: React.FC = () => {
   const { t } = useTranslation();
@@ -16,6 +16,8 @@ export const RotationMatrix: React.FC = () => {
     isPlayerFixed,
     getFixedPlayerPosition,
   } = useMatchday();
+
+  const [mobileView, setMobileView] = useState<'table' | 'cards'>('table');
 
   if (!activeFixture || !activeFixture.matchSquad) {
     return (
@@ -75,22 +77,179 @@ export const RotationMatrix: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => autoRotateCurrentFixture()}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-sky-600/20 transition cursor-pointer"
-        >
-          <Wand2 className="w-3.5 h-3.5" />
-          <span>{t('lineup.autoRotate')}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Mobile View Toggle */}
+          <div className="flex sm:hidden items-center bg-slate-950 p-0.5 rounded-xl border border-slate-800">
+            <button
+              type="button"
+              onClick={() => setMobileView('table')}
+              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+                mobileView === 'table'
+                  ? 'bg-slate-800 text-sky-400 shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Table View"
+            >
+              <TableIcon className="w-3.5 h-3.5" />
+              <span>Table</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileView('cards')}
+              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition ${
+                mobileView === 'cards'
+                  ? 'bg-slate-800 text-sky-400 shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Period Cards View"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Cards</span>
+            </button>
+          </div>
+
+          <button
+            onClick={() => autoRotateCurrentFixture()}
+            className="flex items-center gap-2 min-h-[36px] px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-sky-600/20 transition cursor-pointer"
+          >
+            <Wand2 className="w-3.5 h-3.5" />
+            <span>{t('lineup.autoRotate')}</span>
+          </button>
+        </div>
       </div>
 
-      {/* Matrix Table */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden shadow-xl backdrop-blur-sm">
+      {/* Mobile Period Cards View (Visible on small screens if toggled) */}
+      {mobileView === 'cards' ? (
+        <div className="space-y-4 sm:hidden">
+          {periods.map((p) => {
+            const lineup = matchSquad.lineupsByPeriod.find((l) => l.period === p);
+            const onPitchList = lineup ? lineup.onPitch : [];
+            const subsList = lineup ? lineup.subs : [];
+            const restedList = players.filter(
+              (pl) =>
+                !onPitchList.some((op) => op.playerId === pl.id) &&
+                !subsList.includes(pl.id)
+            );
+
+            return (
+              <div
+                key={p}
+                className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow-lg space-y-3"
+              >
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30 font-bold text-xs flex items-center justify-center font-mono">
+                      {p}
+                    </span>
+                    <h4 className="text-xs font-bold text-white">
+                      {periodCount === 2
+                        ? p === 1
+                          ? t('lineup.firstHalf')
+                          : t('lineup.secondHalf')
+                        : t('lineup.periodN', { period: p })}
+                    </h4>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setActivePeriod(p);
+                      setActiveTab('lineup');
+                    }}
+                    className="text-[11px] font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>View on Pitch</span>
+                    <Eye className="w-3 h-3" />
+                  </button>
+                </div>
+
+                {/* On Pitch */}
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block mb-1.5">
+                    On Pitch ({onPitchList.length})
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {onPitchList.map((entry) => {
+                      const pl = playerMap.get(entry.playerId);
+                      return (
+                        <div
+                          key={entry.playerId}
+                          className="px-2 py-1 rounded-lg bg-slate-950/80 border border-emerald-500/30 flex items-center gap-1.5 text-xs text-white"
+                        >
+                          <span className="text-[9px] font-bold px-1 rounded bg-emerald-500/20 text-emerald-300 font-mono">
+                            {entry.position.replace('_', ' ')}
+                          </span>
+                          <span className="font-medium text-[11px] truncate max-w-[100px]">
+                            {pl?.name || 'Unknown'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Bench */}
+                {subsList.length > 0 && (
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400 block mb-1.5">
+                      Substitutes ({subsList.length})
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {subsList.map((subId) => {
+                        const pl = playerMap.get(subId);
+                        return (
+                          <div
+                            key={subId}
+                            className="px-2 py-1 rounded-lg bg-slate-950/80 border border-sky-500/30 flex items-center gap-1.5 text-xs text-slate-300"
+                          >
+                            <span className="text-[9px] font-bold px-1 rounded bg-sky-500/20 text-sky-300 font-mono">
+                              SUB
+                            </span>
+                            <span className="font-medium text-[11px] truncate max-w-[100px]">
+                              {pl?.name || 'Unknown'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Rested */}
+                {restedList.length > 0 && (
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
+                      Rested ({restedList.length})
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {restedList.map((pl) => (
+                        <span
+                          key={pl.id}
+                          className="px-2 py-0.5 rounded-lg bg-slate-950/40 border border-slate-800 text-[10px] text-slate-500"
+                        >
+                          {pl.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {/* Matrix Table (Always visible on desktop, or when table mode selected on mobile) */}
+      <div
+        className={`rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden shadow-xl backdrop-blur-sm ${
+          mobileView === 'cards' ? 'hidden sm:block' : 'block'
+        }`}
+      >
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
-                <th className="py-3 px-4">{t('matrix.player')}</th>
+              <tr className="border-b border-slate-800 bg-slate-950/90 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                <th className="py-3 px-4 sticky left-0 bg-slate-950 z-20 shadow-[2px_0_8px_rgba(0,0,0,0.6)]">
+                  {t('matrix.player')}
+                </th>
                 <th className="py-3 px-3 text-center">{t('matrix.pos')}</th>
                 {periods.map((p) => (
                   <th key={p} className="py-3 px-3 text-center">
@@ -125,27 +284,29 @@ export const RotationMatrix: React.FC = () => {
                     key={player.id}
                     className="hover:bg-slate-800/30 transition-colors"
                   >
-                    {/* Player Info */}
-                    <td className="py-2.5 px-4 font-medium text-white flex items-center gap-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-[10px] border border-slate-700">
-                          {player.squadNumber || '—'}
-                        </span>
-                        <span className="font-semibold">{player.name}</span>
+                    {/* Player Info - Sticky Column */}
+                    <td className="py-2.5 px-4 font-medium text-white sticky left-0 bg-slate-900/95 z-10 shadow-[2px_0_8px_rgba(0,0,0,0.6)]">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-[10px] border border-slate-700 shrink-0">
+                            {player.squadNumber || '—'}
+                          </span>
+                          <span className="font-semibold truncate max-w-[110px] sm:max-w-none">{player.name}</span>
+                        </div>
+                        {fixed && (
+                          <span
+                            className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1 shrink-0"
+                            title={`Locked as ${fixedPos} for this fixture`}
+                          >
+                            <Lock className="w-2.5 h-2.5" />
+                            <span>{fixedPos}</span>
+                          </span>
+                        )}
                       </div>
-                      {fixed && (
-                        <span
-                          className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1"
-                          title={`Locked as ${fixedPos} for this fixture`}
-                        >
-                          <Lock className="w-2.5 h-2.5" />
-                          <span>{fixedPos}</span>
-                        </span>
-                      )}
                     </td>
 
                     {/* Preferred Position */}
-                    <td className="py-2.5 px-3 text-center text-[11px] text-slate-400">
+                    <td className="py-2.5 px-3 text-center text-[11px] text-slate-400 whitespace-nowrap">
                       {player.preferredPositions.join(', ')}
                     </td>
 
@@ -153,7 +314,7 @@ export const RotationMatrix: React.FC = () => {
                     {periods.map((p) => {
                       const status = getPeriodStatus(player.id, p);
                       return (
-                        <td key={p} className="py-2.5 px-3 text-center">
+                        <td key={p} className="py-2.5 px-3 text-center whitespace-nowrap">
                           {status.type === 'pitch' ? (
                             <span
                               className={`inline-block px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
@@ -178,12 +339,12 @@ export const RotationMatrix: React.FC = () => {
                     })}
 
                     {/* Total Minutes */}
-                    <td className="py-2.5 px-3 text-center font-mono font-medium text-slate-200">
+                    <td className="py-2.5 px-3 text-center font-mono font-medium text-slate-200 whitespace-nowrap">
                       {minutes} {t('common.mins')}
                     </td>
 
                     {/* % Played + Target indicator */}
-                    <td className="py-2.5 px-3 text-center font-mono">
+                    <td className="py-2.5 px-3 text-center font-mono whitespace-nowrap">
                       <div className="flex items-center justify-center gap-1.5">
                         <span
                           className={`font-bold ${

@@ -298,7 +298,7 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
       {/* 2D Football Pitch */}
       <div
         data-tour-target="pitch"
-        className="relative w-full aspect-[4/5] sm:aspect-[4/4.8] max-w-2xl mx-auto rounded-3xl overflow-hidden shadow-2xl border-4 border-[var(--pitch-border)] bg-gradient-to-b from-[var(--pitch-turf-1)] via-[var(--pitch-turf-2)] to-[var(--pitch-turf-3)] select-none transition-colors duration-200"
+        className="relative w-full min-h-[380px] aspect-[4/5] sm:aspect-[4/4.8] max-w-2xl mx-auto rounded-3xl overflow-hidden shadow-2xl border-4 border-[var(--pitch-border)] bg-gradient-to-b from-[var(--pitch-turf-1)] via-[var(--pitch-turf-2)] to-[var(--pitch-turf-3)] select-none transition-colors duration-200"
       >
         {/* Grass Stripes Pattern */}
         <div className="absolute inset-0 opacity-20 pointer-events-none flex flex-col justify-between">
@@ -394,7 +394,7 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
               {/* Player Node Card with Touch Target */}
               <div
                 title={`${playerName} (${entry.position}) • Click to inspect & lock/unlock position`}
-                className={`relative flex flex-col items-center justify-center p-2 rounded-2xl backdrop-blur-md border shadow-xl transition-all min-h-[58px] ${
+                className={`relative flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-2xl backdrop-blur-md border shadow-xl transition-all min-h-[52px] sm:min-h-[58px] min-w-[76px] sm:min-w-[92px] max-w-[88px] sm:max-w-[108px] ${
                   isSelected
                     ? 'ring-4 ring-sky-400 border-white bg-slate-900 shadow-sky-500/50'
                     : isInspected
@@ -407,7 +407,6 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
                     ? 'bg-slate-950/90 hover:bg-slate-900 border-amber-500/50 shadow-amber-500/10'
                     : 'bg-slate-950/85 hover:bg-slate-900 border-white/20'
                 }`}
-                style={{ minWidth: '92px', maxWidth: '108px' }}
               >
                 {/* Position Badge at Top */}
                 <div className="absolute -top-2.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider shadow-sm flex items-center gap-1 border border-white/20 bg-slate-900 text-slate-200">
@@ -471,7 +470,7 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
                 {/* Player Name with Safe Truncation */}
                 <span
                   title={playerName}
-                  className="text-[11px] font-semibold text-white tracking-tight text-center max-w-[88px] truncate leading-tight block"
+                  className="text-[10px] sm:text-[11px] font-semibold text-white tracking-tight text-center max-w-[72px] sm:max-w-[88px] truncate leading-tight block"
                 >
                   {playerName}
                 </span>

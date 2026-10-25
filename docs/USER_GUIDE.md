@@ -114,6 +114,10 @@ When coaching touchline matches on a smartphone or handheld mobile device ($\le 
 - **Icon-Only Touchline Badges:** Trial and subscription alerts display as compact, tap-friendly status icons so the coach User Avatar menu is always visible and never pushed off-screen.
 - **Swipeable Navigation Strip:** The secondary navigation bar supports smooth horizontal swiping across all views (Pitch Lineup, Rotation Matrix, Fair Play Minutes, Awards Dashboard, Squad, Fixtures, and Handbook) with a subtle edge cue indicating more scrollable tabs.
 - **Zero Horizontal Wobble:** The layout is engineered to fit exact mobile screen boundaries ($360\text{px}$ to $412\text{px}$), preventing accidental horizontal page wobble while tapping pitch positions or logging live substitutions.
+- **Universal Bottom-Sheet Modals:** Modals (including Suggested Substitutions, Score & Scorers, Matchday Squad Selector, and Auth) automatically transition to ergonomic bottom-sheets on mobile with rounded top corners (`rounded-t-3xl`), native gesture scroll containment (`overscroll-contain`), and dedicated safe-area bottom clearances (`pb-28 sm:pb-6`) so sticky footers never occlude cards or actions.
+- **Touch Targets ($\ge 44\text{px}$):** All primary touchline controls—close triggers, modal actions, score +/- steppers, and interval pills—meet standard $\ge 44\text{px}$ touch targets for rapid, error-free tapping with cold or wet hands.
+- **Rotation Matrix Sticky Column & Period Cards View:** On mobile screens, the Rotation Matrix pins the player name column (`sticky left-0`) during horizontal table swiping and offers an alternate **Period Cards** view toggle to inspect period rosters as stacked cards.
+- **Pitch Canvas Resilience:** The 2D tactical pitch enforces a minimum height of $380\text{px}$ with responsive player tokens ($76\text{px}$ to $92\text{px}$ min-width) and safe text truncation, eliminating token overlaps on narrow viewports ($360\text{px}$ to $375\text{px}$).
 
 ---
 

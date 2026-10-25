@@ -129,9 +129,10 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="text-slate-400 hover:text-white cursor-pointer"
+          aria-label="Close player form"
+          className="min-h-[44px] min-w-[44px] p-2 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer shrink-0"
         >
-          <X className="w-4 h-4" />
+          <X className="w-5 h-5" />
         </button>
       </div>
 
@@ -423,17 +424,17 @@ export const PlayerFormModal: React.FC<PlayerFormModalProps> = ({
         )}
       </div>
 
-      <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+      <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
         <button
           type="button"
           onClick={onClose}
-          className="px-3.5 py-1.5 rounded-xl bg-slate-850 text-slate-400 hover:text-white text-xs font-semibold transition cursor-pointer"
+          className="min-h-[44px] px-4 py-2 rounded-xl bg-slate-850 text-slate-300 hover:text-white text-xs font-semibold transition cursor-pointer flex items-center justify-center"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-lg shadow-sky-600/20 transition cursor-pointer"
+          className="min-h-[44px] px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-lg shadow-sky-600/20 transition cursor-pointer flex items-center justify-center"
         >
           {isEditing ? 'Update Player' : 'Save Player'}
         </button>
