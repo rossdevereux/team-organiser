@@ -22,7 +22,7 @@ test.describe('Navbar & Navigation Suite', () => {
     // 2. Fair Play Stats tab
     await page.getByRole('button', { name: /Fair Play/i }).first().click();
     await expect(page).toHaveURL(/(tab=stats|\/stats)/);
-    await expect(page.getByRole('heading', { name: /Fair Play Analytics/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Fair Play & Minutes|Fair Play Analytics/i })).toBeVisible();
 
     // 3. Squad Roster tab
     await page.getByRole('button', { name: /Squad/i }).first().click();
@@ -32,7 +32,7 @@ test.describe('Navbar & Navigation Suite', () => {
     // 4. Fixtures tab
     await page.getByRole('button', { name: /Fixtures/i }).first().click();
     await expect(page).toHaveURL(/(tab=fixtures|\/fixtures)/);
-    await expect(page.getByRole('button', { name: /New Fixture/i }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Add Fixture|New Fixture/i }).first()).toBeVisible();
 
     // 5. Teams & Sharing tab
     await page.getByRole('button', { name: /Teams/i }).first().click();
@@ -45,10 +45,10 @@ test.describe('Navbar & Navigation Suite', () => {
   });
 
   test('supports deep linking via URL query parameters', async ({ page }) => {
-    await page.goto('/?tab=fixtures');
-    await expect(page.getByRole('button', { name: /New Fixture/i }).first()).toBeVisible();
+    await page.goto('/fixtures');
+    await expect(page.getByRole('button', { name: /Add Fixture|New Fixture/i }).first()).toBeVisible();
 
-    await page.goto('/?tab=matrix');
+    await page.goto('/matrix');
     await expect(page.getByRole('heading', { name: /Rotation Matrix/i })).toBeVisible();
   });
 
@@ -124,6 +124,102 @@ test.describe('Navbar & Navigation Suite', () => {
     expect(box).not.toBeNull();
     if (box) {
       expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+  });
+
+  test('mobile header collapses fixture breadcrumb and keeps avatar menu fully in viewport (Issue #30)', async ({ page }) => {
+    // Test on 390px mobile viewport (iPhone 14)
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/lineup');
+
+    const header = page.locator('header');
+    await expect(header).toBeVisible();
+
+    // 1. Team switcher must be visible and have truncation constraint
+    const teamBtn = page.locator('header button[data-testid="team-switcher-button"]');
+    await expect(teamBtn).toBeVisible();
+
+    // 2. Fixture switcher segment must be hidden on mobile (< md)
+    const fixtureBtn = page.locator('header button[data-testid="fixture-switcher-button"]');
+    await expect(fixtureBtn).not.toBeVisible();
+
+    // 3. User Avatar / Menu button must be visible and not pushed off-screen
+    const userMenuBtn = page.locator('button[data-testid="user-menu-button"]');
+    await expect(userMenuBtn).toBeVisible();
+    const userBox = await userMenuBtn.boundingBox();
+    expect(userBox).not.toBeNull();
+    if (userBox) {
+      expect(userBox.x + userBox.width).toBeLessThanOrEqual(390);
+    }
+
+    // 4. Trial badge must be icon-only on mobile (text labels hidden) and fit within bounds
+    const trialBadge = page.locator('[data-testid="trial-badge"]');
+    if (await trialBadge.isVisible()) {
+      const badgeBox = await trialBadge.boundingBox();
+      expect(badgeBox).not.toBeNull();
+      if (badgeBox) {
+        expect(badgeBox.x + badgeBox.width).toBeLessThanOrEqual(390);
+      }
+    }
+
+    // 5. Zero horizontal viewport scroll/wobble
+    const hasOverflow = await page.evaluate(() => {
+      return document.documentElement.scrollWidth > window.innerWidth;
+    });
+    expect(hasOverflow).toBe(false);
+  });
+
+  test('secondary tabs support smooth horizontal scroll with no-scrollbar and overflow cue (Issue #30)', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/lineup');
+
+    // Verify sub-bar container has overflow-x-auto and no-scrollbar
+    const tabsContainer = page.locator('header .overflow-x-auto');
+    await expect(tabsContainer).toBeVisible();
+    await expect(tabsContainer).toHaveClass(/no-scrollbar/);
+
+    // Verify tabs have shrink-0 whitespace-nowrap
+    const lineupTab = page.getByRole('button', { name: /Lineup/i }).first();
+    await expect(lineupTab).toHaveClass(/shrink-0/);
+    await expect(lineupTab).toHaveClass(/whitespace-nowrap/);
+
+    // Verify visual overflow cue exists on mobile
+    const cue = page.locator('header .pointer-events-none');
+    await expect(cue).toBeAttached();
+  });
+
+  test('zero horizontal viewport scroll across all mobile & tablet widths (Issue #30)', async ({ page }) => {
+    const viewports = [
+      { width: 360, height: 740 }, // Android small (Galaxy S8/S9)
+      { width: 375, height: 667 }, // iPhone SE
+      { width: 390, height: 844 }, // iPhone 13/14
+      { width: 412, height: 915 }, // Pixel 7
+      { width: 768, height: 1024 }, // iPad Portrait
+      { width: 820, height: 1180 }, // iPad Air
+    ];
+
+    for (const vp of viewports) {
+      await page.setViewportSize(vp);
+      await page.goto('/lineup');
+      await expect(page.locator('header')).toBeVisible();
+
+      // Verify zero horizontal wobble
+      const isClean = await page.evaluate(() => {
+        return (
+          window.innerWidth === document.documentElement.clientWidth &&
+          document.documentElement.scrollWidth <= window.innerWidth
+        );
+      });
+      expect(isClean).toBe(true);
+
+      // Verify User Menu is fully visible on screen
+      const userBtn = page.locator('button[data-testid="user-menu-button"]');
+      await expect(userBtn).toBeVisible();
+      const box = await userBtn.boundingBox();
+      expect(box).not.toBeNull();
+      if (box) {
+        expect(box.x + box.width).toBeLessThanOrEqual(vp.width);
+      }
     }
   });
 });

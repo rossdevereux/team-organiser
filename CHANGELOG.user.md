@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+- **Mobile Header & Navigation Bar Responsiveness** ([#30](https://github.com/rossdevereux/team-organiser/issues/30)):
+  - Redesigned the top header for mobile and touchline phone screens so team names, subscription badges, and the coach User Menu never overflow or get pushed off-screen.
+  - Team switcher automatically collapses to a compact button displaying your active team name with ellipsis truncation on smaller screens.
+  - Navigation tabs (Lineup, Matrix, Fair Play Minutes, Awards, Squad, Fixtures, etc.) swipe smoothly with horizontal touch scrolling and an edge fade cue indicating scrollable tabs without horizontal page wobble.
+
 ## [1.5.1] - 2026-10-24
 
 ### Fixed

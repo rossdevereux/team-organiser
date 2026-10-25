@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Mobile Header & Secondary Tab Navigation Viewport Width Overflow** ([#30](https://github.com/rossdevereux/team-organiser/issues/30)):
+  - Resolved viewport overflow, horizontal wobble, and off-screen user avatar truncation on mobile screens ($\le 768\text{px}$) in [`Navbar.tsx`](client/src/components/Navbar.tsx).
+  - Collapsed the header team/fixture breadcrumb on `< md` viewports to display only the active team name with truncation (`max-w-[100px] xs:max-w-[130px] sm:max-w-[160px]`), hiding the fixture segment and breadcrumb arrow separator to leave match details for the match banner.
+  - Refactored [`TrialBadge.tsx`](client/src/components/TrialBadge.tsx) across all subscription states (`active`, `past_due`, `expired`, `lifetime`, `trial`) to render as compact icon-only badges on `< sm` viewports while preserving complete tooltips, tap actions, and desktop full labels.
+  - Moved the TrialBadge into the right-hand action container alongside UserMenu with `shrink-0`, ensuring the Coach Profile avatar button is permanently visible and never pushed off-screen.
+  - Added smooth horizontal touch scrolling (`overflow-x-auto no-scrollbar scroll-smooth`) with `shrink-0 whitespace-nowrap` on all secondary navigation pills and a subtle right-edge gradient cue to indicate scrollable tabs on touch devices.
+  - Added automated Playwright test suite in [`navbar-navigation.spec.ts`](e2e/navbar-navigation.spec.ts) validating touch targets ($\ge 44\text{px}$), avatar menu positioning, scrollable tab classes, and zero horizontal viewport scroll (`window.innerWidth === document.documentElement.clientWidth`) across iPhone ($375\text{px}$, $390\text{px}$), Android ($360\text{px}$, $412\text{px}$), and iPad ($768\text{px}$, $820\text{px}$).
+
 ## [1.5.1] - 2026-10-24
 
 ### Fixed

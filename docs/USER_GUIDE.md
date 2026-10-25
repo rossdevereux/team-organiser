@@ -13,6 +13,7 @@ This guide walks you through every stage of your season, from your initial team 
   - [Age Groups & FA Formats](#age-groups--fa-formats)
   - [Match Rules & Duration](#match-rules--duration)
   - [Equal Playing Time Thresholds](#equal-playing-time-thresholds)
+  - [Touchline Mobile Navigation](#touchline-mobile-navigation)
 - [2. Squad & Player Management](#2-squad--player-management)
   - [Adding & Editing Players](#adding--editing-players)
   - [Positions & Fixed Goalkeepers](#positions--fixed-goalkeepers)
@@ -79,6 +80,13 @@ In the **Team & League Settings** dialog (accessible via the gear icon or your p
 The FA Charter Standard and grassroots leagues mandate minimum playing time (typically at least **50% playing time across every match** for every attending player).
 - In your settings, set your **Target Playing Time Equity** (default is 50%).
 - SubShuffle's rotation algorithm uses this threshold to ensure no child sits on the bench for more than their fair share. When in-game rolling substitutions are active, playing time is pro-rated down to the exact half-period mark (e.g. 12.5m for substitutes, 37.5m for starters).
+
+### Touchline Mobile Navigation
+When coaching touchline matches on a smartphone or handheld mobile device ($\le 768\text{px}$):
+- **Streamlined Top Header:** The team breadcrumb collapses to display your active team name with ellipsis truncation, leaving matchday opponent logistics to the match banner below.
+- **Icon-Only Touchline Badges:** Trial and subscription alerts display as compact, tap-friendly status icons so the coach User Avatar menu is always visible and never pushed off-screen.
+- **Swipeable Navigation Strip:** The secondary navigation bar supports smooth horizontal swiping across all views (Pitch Lineup, Rotation Matrix, Fair Play Minutes, Awards Dashboard, Squad, Fixtures, and Handbook) with a subtle edge cue indicating more scrollable tabs.
+- **Zero Horizontal Wobble:** The layout is engineered to fit exact mobile screen boundaries ($360\text{px}$ to $412\text{px}$), preventing accidental horizontal page wobble while tapping pitch positions or logging live substitutions.
 
 ---
 

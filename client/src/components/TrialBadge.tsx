@@ -33,13 +33,13 @@ export const TrialBadge: React.FC<TrialBadgeProps> = ({ onOpenPaywall, className
   if (subscription.status === 'lifetime' || subscription.tier === 'free_for_life') {
     return (
       <div
-        className={`h-9 whitespace-nowrap shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold transition shadow-sm select-none ${className}`}
+        className={`min-h-[44px] sm:min-h-[36px] h-9 whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5 px-2 sm:px-2.5 md:px-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold transition shadow-sm select-none ${className}`}
         title="Complimentary Lifetime Access — Free for Life"
         data-testid="subscription-badge-lifetime"
       >
         <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
         <span className="hidden md:inline font-semibold text-[11px] tracking-wide">Free for Life</span>
-        <span className="md:hidden font-semibold text-[11px]">Lifetime</span>
+        <span className="hidden sm:inline md:hidden font-semibold text-[11px]">Lifetime</span>
       </div>
     );
   }
@@ -51,7 +51,7 @@ export const TrialBadge: React.FC<TrialBadgeProps> = ({ onOpenPaywall, className
       <button
         type="button"
         onClick={handleOpen}
-        className={`h-9 whitespace-nowrap shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition cursor-pointer shadow-sm group select-none ${className}`}
+        className={`min-h-[44px] sm:min-h-[36px] h-9 whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5 px-2 sm:px-2.5 md:px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition cursor-pointer shadow-sm group select-none ${className}`}
         title={`Active SubShuffle ${isAnnual ? 'Annual' : 'Monthly'} Subscription — Manage Plan`}
         data-testid="subscription-badge-active"
       >
@@ -59,7 +59,7 @@ export const TrialBadge: React.FC<TrialBadgeProps> = ({ onOpenPaywall, className
         <span className="hidden md:inline font-mono text-[11px]">
           {isAnnual ? 'Coach Annual' : 'Coach Pro'}
         </span>
-        <span className="md:hidden font-mono text-[11px]">Pro</span>
+        <span className="hidden sm:inline md:hidden font-mono text-[11px]">Pro</span>
       </button>
     );
   }
@@ -70,13 +70,13 @@ export const TrialBadge: React.FC<TrialBadgeProps> = ({ onOpenPaywall, className
       <button
         type="button"
         onClick={handleOpen}
-        className={`h-9 whitespace-nowrap shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-semibold transition cursor-pointer shadow-sm animate-pulse select-none ${className}`}
+        className={`min-h-[44px] sm:min-h-[36px] h-9 whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5 px-2 sm:px-2.5 md:px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-semibold transition cursor-pointer shadow-sm animate-pulse select-none ${className}`}
         title="Payment failed: Please update your payment method to avoid losing write access"
         data-testid="subscription-badge-past-due"
       >
         <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-        <span>Payment Issue</span>
-        <span className="hidden sm:inline opacity-80">• Update</span>
+        <span className="hidden sm:inline">Payment Issue</span>
+        <span className="hidden md:inline opacity-80">• Update</span>
       </button>
     );
   }
@@ -87,13 +87,13 @@ export const TrialBadge: React.FC<TrialBadgeProps> = ({ onOpenPaywall, className
       <button
         type="button"
         onClick={handleOpen}
-        className={`h-9 whitespace-nowrap shrink-0 flex items-center gap-1.5 px-2.5 sm:px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-300 text-xs font-bold transition cursor-pointer shadow-sm select-none group animate-pulse ${className}`}
+        className={`min-h-[44px] sm:min-h-[36px] h-9 whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5 px-2 sm:px-2.5 md:px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-300 text-xs font-bold transition cursor-pointer shadow-sm select-none group animate-pulse ${className}`}
         title="Trial expired: Upgrade now to continue creating fixtures and generating lineups"
         data-testid="subscription-badge-expired"
       >
         <Clock className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-        <span className="truncate">Trial Expired</span>
-        <span className="hidden sm:inline bg-rose-500/30 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider text-rose-200">
+        <span className="hidden sm:inline truncate">Trial Expired</span>
+        <span className="hidden md:inline bg-rose-500/30 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider text-rose-200">
           Upgrade
         </span>
       </button>
@@ -123,16 +123,16 @@ export const TrialBadge: React.FC<TrialBadgeProps> = ({ onOpenPaywall, className
     <button
       type="button"
       onClick={handleOpen}
-      className={`h-9 whitespace-nowrap shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 rounded-xl border text-xs font-semibold transition cursor-pointer shadow-sm select-none group ${colorStyles} ${className}`}
+      className={`min-h-[44px] sm:min-h-[36px] h-9 whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5 px-2 sm:px-2.5 md:px-3 rounded-xl border text-xs font-semibold transition cursor-pointer shadow-sm select-none group ${colorStyles} ${className}`}
       title={`${trialDaysRemaining} days remaining in your free trial — Click to upgrade`}
       data-testid="trial-badge"
     >
       <Clock className={`w-3.5 h-3.5 shrink-0 ${iconColor} group-hover:rotate-12 transition-transform`} />
-      <span className="font-medium">
+      <span className="hidden sm:inline font-medium">
         {trialDaysRemaining === 1 ? '1 day left' : `${trialDaysRemaining} days left`}
       </span>
-      <span className="hidden sm:inline opacity-60 text-slate-400">•</span>
-      <span className="hidden sm:flex items-center gap-1 text-[11px] font-bold underline underline-offset-2 decoration-emerald-500/50 hover:decoration-emerald-400">
+      <span className="hidden md:inline opacity-60 text-slate-400">•</span>
+      <span className="hidden md:flex items-center gap-1 text-[11px] font-bold underline underline-offset-2 decoration-emerald-500/50 hover:decoration-emerald-400">
         <Sparkles className="w-3 h-3 text-emerald-400" />
         <span>Upgrade</span>
       </span>

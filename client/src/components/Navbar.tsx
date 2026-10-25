@@ -105,7 +105,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Main Header Bar */}
         <div className="h-16 flex items-center justify-between gap-2 sm:gap-4 w-full min-w-0">
           {/* Brand & Consolidated Breadcrumb Pill */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <Link
               to="/lineup"
               search={(prev: any) => prev}
@@ -117,6 +117,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 alt="SubShuffle Logo"
                 className="w-8 h-8 sm:w-9 sm:h-9 object-contain drop-shadow-[0_4px_12px_rgba(16,185,129,0.3)] group-hover:scale-105 group-hover:rotate-6 transition-all duration-300 shrink-0"
               />
+              <span className="sr-only">SubShuffle</span>
               <div className="hidden sm:block leading-tight shrink-0">
                 <div className="flex items-center font-extrabold text-base sm:text-lg tracking-tight font-sans">
                   <span className="text-[#00e676] drop-shadow-[0_0_12px_rgba(0,230,118,0.35)]">Sub</span>
@@ -130,9 +131,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Consolidated Breadcrumb Pill: [ Team › Match ▾ ] */}
             {activeTeam ? (
-              <div className="flex items-center rounded-xl bg-slate-950/90 border border-slate-800/90 p-0.5 shadow-sm shrink-0 min-w-0 max-w-[280px] sm:max-w-[420px] lg:max-w-none">
+              <div className="flex items-center rounded-xl bg-slate-950/90 border border-slate-800/90 p-0.5 shadow-sm shrink-0 min-w-0 max-w-[160px] xs:max-w-[200px] sm:max-w-[280px] md:max-w-[420px] lg:max-w-none">
                 {/* Team Switcher Segment */}
-                <div ref={teamDropdownRef} className="relative shrink-0">
+                <div ref={teamDropdownRef} className="relative shrink-0 min-w-0">
                   <button
                     type="button"
                     onClick={() => {
@@ -145,7 +146,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     data-testid="team-switcher-button"
                   >
                     <Shield className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                    <span className="truncate max-w-[90px] sm:max-w-[130px] lg:max-w-[170px]">
+                    <span className="truncate max-w-[100px] xs:max-w-[130px] sm:max-w-[160px] md:max-w-[130px] lg:max-w-[170px]">
                       {activeTeam.name}
                     </span>
                     <ChevronDown
@@ -225,12 +226,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                   )}
                 </div>
 
-                {/* Breadcrumb Separator */}
-                <span className="text-slate-500 font-bold select-none px-1 text-xs shrink-0">›</span>
+                {/* Breadcrumb Separator - Hidden on mobile (< md) */}
+                <span className="text-slate-500 font-bold select-none px-1 text-xs shrink-0 hidden md:inline">›</span>
 
-                {/* Fixture Switcher Segment */}
+                {/* Fixture Switcher Segment - Hidden on mobile (< md) */}
                 {activeFixture ? (
-                  <div ref={fixtureDropdownRef} className="relative shrink-0">
+                  <div ref={fixtureDropdownRef} className="relative shrink-0 hidden md:block">
                     <button
                       type="button"
                       onClick={() => {
@@ -295,11 +296,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <button
                     type="button"
                     onClick={() => setActiveTab('fixtures')}
-                    className="min-h-[44px] sm:min-h-[36px] h-9 whitespace-nowrap shrink-0 flex items-center gap-1.5 px-2.5 rounded-lg hover:bg-slate-850 text-xs font-medium text-slate-400 hover:text-slate-200 transition cursor-pointer"
+                    className="min-h-[44px] sm:min-h-[36px] h-9 whitespace-nowrap shrink-0 items-center gap-1.5 px-2.5 rounded-lg hover:bg-slate-850 text-xs font-medium text-slate-400 hover:text-slate-200 transition cursor-pointer hidden md:flex"
                     title="Switch or manage fixtures"
                   >
                     <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="hidden sm:inline">Select Match</span>
+                    <span>Select Match</span>
                   </button>
                 )}
               </div>
@@ -314,13 +315,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>Create Team</span>
               </button>
             ) : null}
-
-            {/* Trial Countdown Badge beside team selector */}
-            <TrialBadge />
           </div>
 
           {/* Action Tools & Consolidated User Menu */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Trial Countdown Badge aligned on the right */}
+            <TrialBadge />
+
             {isOffline && (
               <div
                 className="h-10 whitespace-nowrap shrink-0 flex items-center gap-1.5 px-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold animate-pulse"
@@ -335,7 +336,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={onOpenLiveMatch}
-                className="min-h-[44px] min-w-[44px] h-10 whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5 px-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-rose-500/20 hover:from-amber-500/30 hover:to-rose-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold transition cursor-pointer shadow-sm shadow-amber-500/10"
+                className="min-h-[44px] min-w-[44px] h-10 whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5 px-2.5 sm:px-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-rose-500/20 hover:from-amber-500/30 hover:to-rose-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold transition cursor-pointer shadow-sm shadow-amber-500/10"
                 title="Pitchside stopwatch, sub timer & live substitution controls"
               >
                 <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400 animate-pulse shrink-0" />
@@ -352,15 +353,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setTeamDropdownOpen(false);
                   setFixtureDropdownOpen(false);
                 }}
-                className="min-h-[44px] min-w-[44px] h-10 whitespace-nowrap shrink-0 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 hover:border-slate-600 text-xs font-semibold text-slate-200 transition cursor-pointer shadow-sm"
+                className="min-h-[44px] min-w-[44px] sm:min-w-0 h-10 sm:h-9 whitespace-nowrap shrink-0 flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-700/80 hover:border-slate-600 text-xs font-semibold text-slate-200 transition cursor-pointer shadow-sm"
                 title="Share match announcement or export printable sheet"
                 data-testid="share-export-button"
               >
                 <Share2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span className="hidden sm:inline">Share / Export</span>
-                <span className="sm:hidden">Share</span>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 ${
+                  className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0 hidden sm:inline ${
                     shareDropdownOpen ? 'rotate-180' : ''
                   }`}
                 />
@@ -429,124 +429,131 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Sub-bar: Navigation Tabs Strip */}
-        <div className="py-2 border-t border-slate-800/60 w-full max-w-full overflow-x-auto no-scrollbar scroll-smooth">
-          <nav className="flex items-center gap-1.5 min-w-max" aria-label="Main Navigation">
-            <Link
-              role="button"
-              to="/lineup"
-              search={(prev: any) => prev}
-              className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap ${
-                activeTab === 'lineup'
-                  ? 'bg-sky-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              {t('nav.lineup')}
-            </Link>
-            <Link
-              role="button"
-              to="/matrix"
-              search={(prev: any) => prev}
-              className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap ${
-                activeTab === 'matrix'
-                  ? 'bg-sky-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              <span className="hidden 2xl:inline">{periodCount === 2 ? '2-Half ' : `${periodCount}-Period `}</span>{t('nav.matrix')}
-            </Link>
-            <Link
-              role="button"
-              to="/stats"
-              search={(prev: any) => prev}
-              className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap ${
-                activeTab === 'stats'
-                  ? 'bg-sky-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              {t('nav.stats')}
-            </Link>
-            <Link
-              role="button"
-              to="/team-dashboard"
-              search={(prev: any) => prev}
-              className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap gap-1.5 ${
-                activeTab === 'dashboard'
-                  ? 'bg-amber-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-              title="Team Dashboard, Leaderboards & Awards"
-            >
-              <Trophy className="w-3.5 h-3.5 text-amber-400" />
-              <span>{t('nav.dashboard')}</span>
-            </Link>
-            <Link
-              role="button"
-              to="/squad"
-              search={(prev: any) => prev}
-              className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap ${
-                activeTab === 'squad'
-                  ? 'bg-sky-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              {t('nav.squad')}
-            </Link>
-            <Link
-              role="button"
-              to="/fixtures"
-              search={(prev: any) => prev}
-              className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap ${
-                activeTab === 'fixtures'
-                  ? 'bg-sky-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              {t('nav.fixtures')}
-            </Link>
-            <Link
-              role="button"
-              to="/teams"
-              search={(prev: any) => prev}
-              className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap gap-1.5 ${
-                activeTab === 'teams'
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              <Shield className="w-3.5 h-3.5 text-indigo-400" />
-              <span>{t('nav.teams')}</span>
-            </Link>
-            <Link
-              role="button"
-              to="/admin"
-              search={(prev: any) => prev}
-              className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap gap-1.5 ${
-                activeTab === 'admin'
-                  ? 'bg-amber-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-              title="Club Administration & RBAC Portal"
-            >
-              <Crown className="w-3.5 h-3.5 text-amber-400" />
-              <span>{t('nav.admin')}</span>
-            </Link>
-            <Link
-              role="button"
-              to="/guide"
-              search={(prev: any) => prev}
-              className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap gap-1.5 ${
-                isGuide
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-              title="Coach User Guide & Handbook"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Guide</span>
-            </Link>
-          </nav>
+        <div className="relative border-t border-slate-800/60 w-full max-w-full">
+          <div className="py-2 w-full max-w-full overflow-x-auto no-scrollbar scroll-smooth">
+            <nav className="flex items-center gap-1.5 min-w-max px-0.5" aria-label="Main Navigation">
+              <Link
+                role="button"
+                to="/lineup"
+                search={(prev: any) => prev}
+                className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === 'lineup'
+                    ? 'bg-sky-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                {t('nav.lineup')}
+              </Link>
+              <Link
+                role="button"
+                to="/matrix"
+                search={(prev: any) => prev}
+                className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === 'matrix'
+                    ? 'bg-sky-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <span className="hidden 2xl:inline">{periodCount === 2 ? '2-Half ' : `${periodCount}-Period `}</span>{t('nav.matrix')}
+              </Link>
+              <Link
+                role="button"
+                to="/stats"
+                search={(prev: any) => prev}
+                className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === 'stats'
+                    ? 'bg-sky-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                {t('nav.stats')}
+              </Link>
+              <Link
+                role="button"
+                to="/team-dashboard"
+                search={(prev: any) => prev}
+                className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap shrink-0 gap-1.5 ${
+                  activeTab === 'dashboard'
+                    ? 'bg-amber-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+                title="Team Dashboard, Leaderboards & Awards"
+              >
+                <Trophy className="w-3.5 h-3.5 text-amber-400" />
+                <span>{t('nav.dashboard')}</span>
+              </Link>
+              <Link
+                role="button"
+                to="/squad"
+                search={(prev: any) => prev}
+                className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === 'squad'
+                    ? 'bg-sky-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                {t('nav.squad')}
+              </Link>
+              <Link
+                role="button"
+                to="/fixtures"
+                search={(prev: any) => prev}
+                className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap shrink-0 ${
+                  activeTab === 'fixtures'
+                    ? 'bg-sky-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                {t('nav.fixtures')}
+              </Link>
+              <Link
+                role="button"
+                to="/teams"
+                search={(prev: any) => prev}
+                className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap shrink-0 gap-1.5 ${
+                  activeTab === 'teams'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Shield className="w-3.5 h-3.5 text-indigo-400" />
+                <span>{t('nav.teams')}</span>
+              </Link>
+              <Link
+                role="button"
+                to="/admin"
+                search={(prev: any) => prev}
+                className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap shrink-0 gap-1.5 ${
+                  activeTab === 'admin'
+                    ? 'bg-amber-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+                title="Club Administration & RBAC Portal"
+              >
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                <span>{t('nav.admin')}</span>
+              </Link>
+              <Link
+                role="button"
+                to="/guide"
+                search={(prev: any) => prev}
+                className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap shrink-0 gap-1.5 ${
+                  isGuide
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+                title="Coach User Guide & Handbook"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Guide</span>
+              </Link>
+            </nav>
+          </div>
+          {/* Subtle gradient cue on the right indicating scrollable overflow on mobile */}
+          <div
+            className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-slate-900/90 via-slate-900/40 to-transparent sm:hidden"
+            aria-hidden="true"
+          />
         </div>
       </div>
     </header>
