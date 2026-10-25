@@ -2,6 +2,7 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Outlet, useNavigate, useLocation } from '@tanstack/react-router';
 import { ToastProvider, useToast } from './context/ToastContext';
 import { MatchdayProvider, useMatchday } from './context/MatchdayContext';
+import { OnboardingProvider } from './components/onboarding/OnboardingContext';
 import { DesignSystemProvider, useDesignSystem } from './design-system';
 import { Navbar } from './components/Navbar';
 import { AuthButton } from './components/AuthButton';
@@ -386,7 +387,10 @@ function DashboardShell() {
                   </span>
                 </div>
 
-                <div className="h-9 px-3 rounded-xl bg-[var(--surface-base)] border border-[var(--surface-border)] flex items-center gap-1.5 text-[var(--text-main)] whitespace-nowrap shrink-0">
+                <div
+                  data-tour-target="fair-play"
+                  className="h-9 px-3 rounded-xl bg-[var(--surface-base)] border border-[var(--surface-border)] flex items-center gap-1.5 text-[var(--text-main)] whitespace-nowrap shrink-0"
+                >
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   <span>Target: {settings.targetGameTimePercent}%+</span>
                 </div>
@@ -620,9 +624,11 @@ export function RootLayout() {
   return (
     <ToastProvider>
       <MatchdayProvider>
-        <DesignSystemWrapper>
-          <DashboardShell />
-        </DesignSystemWrapper>
+        <OnboardingProvider>
+          <DesignSystemWrapper>
+            <DashboardShell />
+          </DesignSystemWrapper>
+        </OnboardingProvider>
       </MatchdayProvider>
     </ToastProvider>
   );

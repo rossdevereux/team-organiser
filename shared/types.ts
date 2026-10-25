@@ -262,6 +262,19 @@ export interface UserSubscription {
   cancelAtPeriodEnd?: boolean;
 }
 
+export interface UserOnboardingState {
+  hasCompletedWizard: boolean;
+  wizardDismissedAt?: string;
+  completedSteps: ('team_created' | 'players_added' | 'fixture_created' | 'rotation_generated')[];
+  hasSeenTour: boolean;
+}
+
+export const DEFAULT_ONBOARDING_STATE: UserOnboardingState = {
+  hasCompletedWizard: false,
+  completedSteps: [],
+  hasSeenTour: false,
+};
+
 // ================= Team Dashboard & Season Analytics Models =================
 
 export interface ScorerLeaderboardItem {

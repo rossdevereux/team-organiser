@@ -309,6 +309,19 @@ export interface UserSubscription {
 // Role-Based Access Control (RBAC) & Custom Claims Models
 export type UserRole = 'owner' | 'coach' | 'viewer';
 
+export interface UserOnboardingState {
+  hasCompletedWizard: boolean;
+  wizardDismissedAt?: string;
+  completedSteps: ('team_created' | 'players_added' | 'fixture_created' | 'rotation_generated')[];
+  hasSeenTour: boolean;
+}
+
+export const DEFAULT_ONBOARDING_STATE: UserOnboardingState = {
+  hasCompletedWizard: false,
+  completedSteps: [],
+  hasSeenTour: false,
+};
+
 export interface AdminUser {
   uid: string;
   email: string;
@@ -316,6 +329,7 @@ export interface AdminUser {
   photoURL?: string;
   role: UserRole;
   subscription?: UserSubscription;
+  onboarding?: UserOnboardingState;
   disabled?: boolean;
   creationTime?: string;
   lastSignInTime?: string;

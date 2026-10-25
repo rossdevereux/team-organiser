@@ -39,6 +39,12 @@ const DesignSystemShowcase = lazy(() =>
 const PaywallModal = lazy(() =>
   import('./PaywallModal').then((m) => ({ default: m.PaywallModal }))
 );
+const OnboardingWizardModal = lazy(() =>
+  import('./onboarding/OnboardingWizardModal').then((m) => ({ default: m.OnboardingWizardModal }))
+);
+const SpotlightTour = lazy(() =>
+  import('./onboarding/SpotlightTour').then((m) => ({ default: m.SpotlightTour }))
+);
 
 export interface GlobalModalsProps {
   confirmResetOpen: boolean;
@@ -223,6 +229,12 @@ export const GlobalModals: React.FC<GlobalModalsProps> = ({
           />
         </Suspense>
       )}
+
+      {/* Interactive New Coach Onboarding Wizard & Spotlight Tour */}
+      <Suspense fallback={null}>
+        <OnboardingWizardModal />
+        <SpotlightTour />
+      </Suspense>
     </>
   );
 };

@@ -284,6 +284,7 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
           {/* Auto-Balance Button */}
           <button
             type="button"
+            data-tour-target="auto-balance"
             onClick={handleAutoBalance}
             className="min-h-[40px] sm:min-h-[36px] h-9 px-3 sm:px-3.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-md transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 shrink-0"
             title="Re-balance playing time automatically"
@@ -295,7 +296,10 @@ export const PitchView: React.FC<PitchViewProps> = ({ onOpenSquadSelector, onAut
       </div>
 
       {/* 2D Football Pitch */}
-      <div className="relative w-full aspect-[4/5] sm:aspect-[4/4.8] max-w-2xl mx-auto rounded-3xl overflow-hidden shadow-2xl border-4 border-[var(--pitch-border)] bg-gradient-to-b from-[var(--pitch-turf-1)] via-[var(--pitch-turf-2)] to-[var(--pitch-turf-3)] select-none transition-colors duration-200">
+      <div
+        data-tour-target="pitch"
+        className="relative w-full aspect-[4/5] sm:aspect-[4/4.8] max-w-2xl mx-auto rounded-3xl overflow-hidden shadow-2xl border-4 border-[var(--pitch-border)] bg-gradient-to-b from-[var(--pitch-turf-1)] via-[var(--pitch-turf-2)] to-[var(--pitch-turf-3)] select-none transition-colors duration-200"
+      >
         {/* Grass Stripes Pattern */}
         <div className="absolute inset-0 opacity-20 pointer-events-none flex flex-col justify-between">
           {Array.from({ length: 8 }).map((_, i) => (

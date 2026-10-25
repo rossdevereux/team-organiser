@@ -122,7 +122,10 @@ export const BenchView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Active Substitutes Bench */}
-      <div className="p-4 sm:p-6 rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-xl backdrop-blur-sm space-y-4 transition-all duration-200">
+      <div
+        data-tour-target="bench"
+        className="p-4 sm:p-6 rounded-3xl bg-[var(--surface-card)] border border-[var(--surface-border)] shadow-xl backdrop-blur-sm space-y-4 transition-all duration-200"
+      >
         <div className="flex items-center justify-between pb-3 border-b border-[var(--surface-border)]">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">

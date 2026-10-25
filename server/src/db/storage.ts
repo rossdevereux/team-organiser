@@ -12,6 +12,8 @@ import {
   ClubSettings,
   AdminUser,
   UserSubscription,
+  UserOnboardingState,
+  DEFAULT_ONBOARDING_STATE,
   BackupData,
   GoalScorer,
   LiveMatchState,
@@ -1531,6 +1533,32 @@ export class StorageManager {
     await this.ensureInitialized();
     const users = await this.getAdminUsers();
     return users.find((u) => u.subscription?.stripeCustomerId === customerId) || null;
+  }
+
+  // ================= User Onboarding =================
+  async getUserOnboarding(uid: string): Promise<UserOnboardingState> {
+    await this.ensureInitialized();
+    const user = await this.getAdminUserByUid(uid);
+    if (user && user.onboarding) {
+      return { ...DEFAULT_ONBOARDING_STATE, ...user.onboarding };
+    }
+    return { ...DEFAULT_ONBOARDING_STATE };
+  }
+
+  async saveUserOnboarding(uid: string, onboarding: Partial<UserOnboardingState>): Promise<UserOnboardingState> {
+    await this.ensureInitialized();
+    const existing = await this.getUserOnboarding(uid);
+    const updated: UserOnboardingState = {
+      ...existing,
+      ...onboarding,
+    };
+
+    await this.upsertAdminUser({
+      uid,
+      onboarding: updated,
+    });
+
+    return updated;
   }
 
   // ================= System Backups & Disaster Recovery =================

@@ -460,6 +460,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 role="button"
                 to="/stats"
                 search={(prev: any) => prev}
+                data-tour-target="fair-play"
                 className={`min-h-[44px] px-3.5 sm:px-4 flex items-center rounded-xl font-semibold text-xs transition cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === 'stats'
                     ? 'bg-sky-600 text-white shadow-md'
