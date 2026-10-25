@@ -2,6 +2,12 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Navbar & Navigation Suite', () => {
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'subshuffle_onboarding_state',
+        JSON.stringify({ hasCompletedWizard: true, hasSeenTour: true, completedSteps: [] })
+      );
+    });
     await page.goto('/?tab=lineup');
     // Wait for initial load
     await expect(page.locator('header')).toBeVisible();

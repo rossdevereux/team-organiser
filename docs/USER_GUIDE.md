@@ -17,6 +17,7 @@ This guide walks you through every stage of your season, from your initial team 
   - [Match Rules & Duration](#match-rules--duration)
   - [Equal Playing Time Thresholds](#equal-playing-time-thresholds)
   - [Touchline Mobile Navigation](#touchline-mobile-navigation)
+  - [Desktop & Laptop Navigation Ergonomics](#desktop--laptop-navigation-ergonomics)
 - [2. Squad & Player Management](#2-squad--player-management)
   - [Adding & Editing Players](#adding--editing-players)
   - [Positions & Fixed Goalkeepers](#positions--fixed-goalkeepers)
@@ -118,6 +119,13 @@ When coaching touchline matches on a smartphone or handheld mobile device ($\le 
 - **Touch Targets ($\ge 44\text{px}$):** All primary touchline controls—close triggers, modal actions, score +/- steppers, and interval pills—meet standard $\ge 44\text{px}$ touch targets for rapid, error-free tapping with cold or wet hands.
 - **Rotation Matrix Sticky Column & Period Cards View:** On mobile screens, the Rotation Matrix pins the player name column (`sticky left-0`) during horizontal table swiping and offers an alternate **Period Cards** view toggle to inspect period rosters as stacked cards.
 - **Pitch Canvas Resilience:** The 2D tactical pitch enforces a minimum height of $380\text{px}$ with responsive player tokens ($76\text{px}$ to $92\text{px}$ min-width) and safe text truncation, eliminating token overlaps on narrow viewports ($360\text{px}$ to $375\text{px}$).
+
+### Desktop & Laptop Navigation Ergonomics
+When planning lineups or reviewing season statistics on desktop computers and laptop displays ($1024\text{px}$, $1280\text{px}$, $1366\text{px}$, $1920\text{px}$):
+- **Harmonized Tab Labels:** The secondary navigation tab strip maintains clean, consistent labels across all views (e.g. **Rotation Matrix** instead of concatenated period prefixes), ensuring uniform tab alignment across standard 2-half matches and 4-quarter formats in all supported languages.
+- **Congestion-Free Header Layout:** On intermediate laptop screens ($1024\text{px}$ to $1440\text{px}$), secondary controls automatically collapse into sleek, touch-friendly icon buttons (Live Match stopwatch, Share / Export lineup menu, and compact Pro badge), freeing up ample space in the center header. On large displays ($\ge 1536\text{px}$), full descriptive text labels and the dugout pitchside switcher smoothly expand.
+- **Breadcrumb Protection & Truncation:** The consolidated team and fixture breadcrumb pill (`[ Team › Match ▾ ]`) uses flexible bounds and individual segment truncation constraints. Long club names and opponent names gracefully truncate with ellipsis without spilling over or colliding with right-aligned action tools.
+- **Generous Display Scaling:** On widescreen monitors ($1920\text{px}$ HD and beyond), the header container gracefully expands up to $1700\text{px}$, providing over $500\text{px}$ of breathing room between your team breadcrumb and matchday action tools.
 
 ---
 

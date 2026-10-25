@@ -11,6 +11,11 @@
   - **Replay Setup Anytime:** Replay the setup wizard and guided tour whenever you need from your account menu or the Coach User Guide page.
 
 ### Fixed
+- **Desktop Header & Laptop Layout Refinements** ([#32](https://github.com/rossdevereux/team-organiser/issues/32)):
+  - Fixed tab label concatenation in the secondary navigation bar; the tab now cleanly reads **Rotation Matrix** across all match formats and languages instead of merging period prefixes (e.g. `2-HalfRotation Matrix`).
+  - Resolved header overcrowding and overlapping controls on laptop viewports ($1024\text{px}$, $1280\text{px}$, and $1366\text{px}$) by collapsing secondary action labels into sleek icon buttons (`Live Match`, `Share / Export`, and compact `Pro` trial badge).
+  - Ensured long team names and opponent names truncate gracefully with ellipsis inside the header breadcrumb pill (`[ Team › Match ▾ ]`) so they never collide with right-side action buttons.
+  - Expanded widescreen desktop header spacing up to $1700\text{px}$ on high-resolution displays ($1920\text{px}$ HD), providing generous breathing room across all controls.
 - **Touchline Mobile Experience & Modal Bottom-Sheet Ergonomics** ([#31](https://github.com/rossdevereux/team-organiser/issues/31)):
   - Redesigned dialogs and modals (Suggested Substitutions, Matchday Squad Selector, Score & Scorers, and Sign In) to open as native bottom-sheets on smartphones with easy swipeable gestures and rounded corners.
   - Fixed an issue where the bottom action button covered the last substitution card on smaller screens; modal lists now scroll smoothly with dedicated clearance above sticky footers.
