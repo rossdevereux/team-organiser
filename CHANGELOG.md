@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-25
+
 ### Added
 - **Interactive New Coach Setup Wizard & Guided Spotlight Tour** ([#28](https://github.com/rossdevereux/team-organiser/issues/28)):
   - Built an interactive 3-step setup modal wizard ([`OnboardingWizardModal.tsx`](client/src/components/onboarding/OnboardingWizardModal.tsx)) guiding newly registered coaches through club format configuration, squad roster setup, and their first weekend fixture.

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-25
+
 ### Added
 - **Interactive New Coach Setup Wizard & Guided Feature Tour** ([#28](https://github.com/rossdevereux/team-organiser/issues/28)):
   - New coaches are now greeted with a streamlined, 3-step setup wizard to get matchday-ready in under 60 seconds.
