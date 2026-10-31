@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "team-organiser-prod"
+  },
+  "targets": {
+    "team-organiser-prod": {
+      "hosting": {
+        "live": [
+          "team-organiser-prod"
+        ],
+        "beta": [
+          "subshuffle-beta"
+        ]
+      }
+    }
   }
 }
