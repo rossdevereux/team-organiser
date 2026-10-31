@@ -882,18 +882,62 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (!res.ok) {
           throw new Error('Failed to save match squad');
         }
+        const updatedFixture: Fixture = await res.json();
+        if (updatedFixture && updatedFixture.matchSquad && !pendingSquadUpdateRef.current) {
+          setFixtures((prev) =>
+            prev.map((f) => (f.id === fixtureId ? { ...f, matchSquad: updatedFixture.matchSquad } : f))
+          );
+          try {
+            const cached = localStorage.getItem(`subshuffle_cached_fixtures_${activeTeamId}`);
+            if (cached) {
+              const list = JSON.parse(cached);
+              const updated = list.map((f: Fixture) =>
+                f.id === fixtureId ? { ...f, matchSquad: updatedFixture.matchSquad } : f
+              );
+              localStorage.setItem(`subshuffle_cached_fixtures_${activeTeamId}`, JSON.stringify(updated));
+            }
+          } catch (_) {}
+        }
       } catch (err) {
         console.error('Error saving match squad:', err);
       }
     },
-    [getAuthHeaders]
+    [getAuthHeaders, activeTeamId]
   );
 
   // Update MatchSquad on server with 800ms debounce to collapse rapid swaps into 1 Firestore write
   const updateMatchSquad = useCallback(
-    async (newSquad: MatchSquad, immediate = false) => {
+    async (rawSquad: MatchSquad, immediate = false) => {
       if (!activeFixture) return;
       const fixtureId = activeFixture.id;
+
+      // Sanitize plannedInGameSubs immediately against restedPlayerIds, selectedPlayerIds, and lineupsByPeriod
+      const restedSet = new Set(rawSquad.restedPlayerIds || []);
+      const selectedSet = new Set(rawSquad.selectedPlayerIds || []);
+      const sanitizedPlannedSubs = rawSquad.plannedInGameSubs
+        ? rawSquad.plannedInGameSubs.filter((s) => {
+            if (!s.playerOutId || !s.playerInId || s.playerOutId === s.playerInId) return false;
+            if (restedSet.has(s.playerOutId) || restedSet.has(s.playerInId)) return false;
+            if (selectedSet.size > 0 && (!selectedSet.has(s.playerOutId) || !selectedSet.has(s.playerInId))) {
+              return false;
+            }
+            const lineup = rawSquad.lineupsByPeriod.find((l) => l.period === s.period);
+            if (lineup) {
+              const pitchSet = new Set(lineup.onPitch.map((op) => op.playerId));
+              const benchSet = new Set(lineup.subs);
+              const isPreSub = pitchSet.has(s.playerOutId) && benchSet.has(s.playerInId);
+              const isPostSub = benchSet.has(s.playerOutId) && pitchSet.has(s.playerInId);
+              if (!isPreSub && !isPostSub) return false;
+            }
+            return true;
+          })
+        : undefined;
+
+      const newSquad: MatchSquad = {
+        ...rawSquad,
+        plannedInGameSubs:
+          sanitizedPlannedSubs && sanitizedPlannedSubs.length > 0 ? sanitizedPlannedSubs : undefined,
+      };
 
       // 1. Optimistic React state update (0ms UI latency)
       setFixtures((prev) =>
@@ -1022,6 +1066,7 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const updatedSquad: MatchSquad = {
       ...activeFixture.matchSquad,
       lineupsByPeriod: emptyLineups,
+      plannedInGameSubs: undefined,
       manualOverrides: true,
     };
     await updateMatchSquad(updatedSquad);
@@ -1031,6 +1076,7 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const replaceSquadPlayer = async (outgoingPlayerId: string, incomingPlayerId: string) => {
     if (!activeFixture || !activeFixture.matchSquad) return;
     const currentSquad = activeFixture.matchSquad;
+    const incomingPlayer = players.find((p) => p.id === incomingPlayerId);
 
     // 1. Update selectedPlayerIds: replace outgoing with incoming
     const updatedSelected = currentSquad.selectedPlayerIds.map((id) =>
@@ -1055,11 +1101,27 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       subs: lineup.subs.map((id) => (id === outgoingPlayerId ? incomingPlayerId : id)),
     }));
 
+    // 4. Update plannedInGameSubs so outgoing rested player is replaced by incoming player
+    const updatedPlannedSubs = currentSquad.plannedInGameSubs?.map((s) => ({
+      ...s,
+      playerOutId: s.playerOutId === outgoingPlayerId ? incomingPlayerId : s.playerOutId,
+      playerOutName:
+        s.playerOutId === outgoingPlayerId
+          ? incomingPlayer?.name || s.playerOutName
+          : s.playerOutName,
+      playerInId: s.playerInId === outgoingPlayerId ? incomingPlayerId : s.playerInId,
+      playerInName:
+        s.playerInId === outgoingPlayerId
+          ? incomingPlayer?.name || s.playerInName
+          : s.playerInName,
+    }));
+
     const updatedSquad: MatchSquad = {
       ...currentSquad,
       selectedPlayerIds: updatedSelected,
       restedPlayerIds: updatedRested,
       lineupsByPeriod: updatedLineups,
+      plannedInGameSubs: updatedPlannedSubs,
       manualOverrides: true,
     };
 

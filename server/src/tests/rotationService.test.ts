@@ -13,6 +13,8 @@ import {
   getFixedPositionsMap,
   InMatchTracker,
   generateWhatsAppAnnouncement,
+  filterActivePlannedInGameSubs,
+  reconcileMatchSquadPlannedSubs,
 } from '../services/rotationService.js';
 import { Player, Fixture, TeamSettings } from '../types.js';
 
@@ -1405,6 +1407,130 @@ describe('rotationService: Position Preference & Substitutions Suite', () => {
 
       // No planned in-game subs should be scheduled
       assert.equal(squad.plannedInGameSubs?.length || 0, 0);
+    });
+
+    it('excludes rested players and reconciles plannedInGameSubs when players are rested or promoted to pitch (Issue #38)', () => {
+      const mockPlayers = [
+        createMockPlayer('p1', 'Player 1', ['Goalkeeper']),
+        createMockPlayer('p2', 'Player 2', ['Defence']),
+        createMockPlayer('p3', 'Player 3', ['Defence']),
+        createMockPlayer('p4', 'Player 4', ['Midfield']),
+        createMockPlayer('p5', 'Player 5', ['Midfield']),
+        createMockPlayer('p6', 'Player 6', ['Attack']),
+        createMockPlayer('p7', 'Player 7', ['Attack']),
+        createMockPlayer('p8', 'Player 8', ['Defence']),
+        createMockPlayer('p9', 'Player 9', ['Midfield']),
+      ];
+
+      const fixture = createMockFixture({
+        subTimingMode: 'in_game_rolling',
+        preserveLineupAcrossBreaks: true,
+        midPeriodSubIntervalMinutes: 12.5,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+      });
+
+      const settings = createMockSettings({
+        pitchPlayerCount: 7,
+        matchdaySquadCap: 9,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+        subTimingMode: 'in_game_rolling',
+        preserveLineupAcrossBreaks: true,
+      });
+
+      const initialSquad = generateFairRotation(fixture, mockPlayers, settings);
+      assert.ok(initialSquad.plannedInGameSubs && initialSquad.plannedInGameSubs.length === 4);
+
+      // Case A: Coach moves bench player 'p8' to Rested
+      const squadAfterRestingBench = {
+        ...initialSquad,
+        selectedPlayerIds: initialSquad.selectedPlayerIds.filter((id) => id !== 'p8'),
+        restedPlayerIds: ['p8'],
+        lineupsByPeriod: initialSquad.lineupsByPeriod.map((l) => ({
+          ...l,
+          subs: l.subs.filter((id) => id !== 'p8'),
+        })),
+      };
+
+      // Even before server reconciliation, filterActivePlannedInGameSubs must exclude rested 'p8'
+      const filteredSubsA = filterActivePlannedInGameSubs(squadAfterRestingBench);
+      assert.equal(
+        filteredSubsA.some((s) => s.playerInId === 'p8' || s.playerOutId === 'p8'),
+        false,
+        'filterActivePlannedInGameSubs must immediately strip rested bench player p8'
+      );
+
+      // Reconciling squad updates plannedInGameSubs cleanly for remaining bench player p9
+      const reconciledA = reconcileMatchSquadPlannedSubs(
+        fixture,
+        squadAfterRestingBench,
+        mockPlayers,
+        settings
+      );
+      assert.ok(reconciledA.plannedInGameSubs);
+      assert.equal(reconciledA.plannedInGameSubs!.length, 2, 'Only 1 sub per period (p9) should remain');
+      assert.equal(
+        reconciledA.plannedInGameSubs!.some((s) => s.playerInId === 'p8' || s.playerOutId === 'p8'),
+        false,
+        'Rested player p8 must not appear in reconciled plannedInGameSubs'
+      );
+
+      // Case B: Coach moves starting pitch player 'p2' to Rested, promoting bench sub 'p8' to pitch
+      const squadAfterRestingStarter = {
+        ...initialSquad,
+        selectedPlayerIds: initialSquad.selectedPlayerIds.filter((id) => id !== 'p2'),
+        restedPlayerIds: ['p2'],
+        lineupsByPeriod: initialSquad.lineupsByPeriod.map((l) => {
+          const wasOnPitch = l.onPitch.find((op) => op.playerId === 'p2');
+          const newOnPitch = l.onPitch.filter((op) => op.playerId !== 'p2');
+          const newSubs = l.subs.filter((id) => id !== 'p8');
+          if (wasOnPitch) {
+            newOnPitch.push({ playerId: 'p8', position: wasOnPitch.position });
+          }
+          return { ...l, onPitch: newOnPitch, subs: newSubs };
+        }),
+      };
+
+      // filterActivePlannedInGameSubs must exclude rested 'p2' AND promoted starter 'p8' (since p8 is now onPitch)
+      const filteredSubsB = filterActivePlannedInGameSubs(squadAfterRestingStarter);
+      assert.equal(
+        filteredSubsB.some((s) => s.playerInId === 'p2' || s.playerOutId === 'p2'),
+        false,
+        'Rested starter p2 must be excluded'
+      );
+      assert.equal(
+        filteredSubsB.some((s) => s.playerInId === 'p8'),
+        false,
+        'Promoted starter p8 is now on the pitch and must not be listed as coming off the bench'
+      );
+
+      const reconciledB = reconcileMatchSquadPlannedSubs(
+        fixture,
+        squadAfterRestingStarter,
+        mockPlayers,
+        settings
+      );
+      assert.ok(reconciledB.plannedInGameSubs);
+      assert.equal(reconciledB.plannedInGameSubs!.length, 2);
+      reconciledB.plannedInGameSubs!.forEach((s) => {
+        assert.notEqual(s.playerOutId, 'p2');
+        assert.notEqual(s.playerInId, 'p2');
+        assert.equal(s.playerInId, 'p9', 'Only remaining bench sub p9 should be scheduled to come on');
+      });
+
+      // Verify WhatsApp announcement also excludes rested players from PLANNED IN-GAME ROLLING SUBS
+      const announcement = generateWhatsAppAnnouncement(
+        { ...fixture, matchSquad: squadAfterRestingBench },
+        mockPlayers,
+        settings
+      );
+      const rollingSection = announcement.split('🔄 *RESTED')[0].split('⏱️ *PLANNED IN-GAME ROLLING SUBS*')[1] || '';
+      assert.equal(
+        rollingSection.includes('Player 8'),
+        false,
+        'WhatsApp planned rolling subs section must not include rested Player 8'
+      );
     });
   });
 

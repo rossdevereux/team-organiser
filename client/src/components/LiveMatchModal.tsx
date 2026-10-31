@@ -206,8 +206,25 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
   useEffect(() => {
     if (!soundEnabled || !isRunning || !activeFixture?.matchSquad?.plannedInGameSubs) return;
     const currentMins = Math.floor(elapsedSeconds / 60);
+    const restedSet = new Set(activeFixture.matchSquad.restedPlayerIds || []);
+    const selectedSet = new Set(activeFixture.matchSquad.selectedPlayerIds || []);
+    const periodLineup = activeFixture.matchSquad.lineupsByPeriod?.find(
+      (l) => l.period === activePeriod
+    );
+    const pitchIds = new Set((periodLineup?.onPitch || []).map((op) => op.playerId));
+    const benchIds = new Set(periodLineup?.subs || []);
+
     activeFixture.matchSquad.plannedInGameSubs.forEach((s) => {
-      if (s.period === activePeriod && currentMins >= Math.floor(s.targetMinute)) {
+      if (
+        s.period === activePeriod &&
+        currentMins >= Math.floor(s.targetMinute) &&
+        !restedSet.has(s.playerOutId) &&
+        !restedSet.has(s.playerInId) &&
+        (selectedSet.size === 0 ||
+          (selectedSet.has(s.playerOutId) && selectedSet.has(s.playerInId))) &&
+        pitchIds.has(s.playerOutId) &&
+        benchIds.has(s.playerInId)
+      ) {
         const key = `${s.period}_${s.playerInId}_${s.targetMinute}`;
         if (!plannedWhistlesPlayed.current.has(key)) {
           plannedWhistlesPlayed.current.add(key);
@@ -369,8 +386,28 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
 
   const currentSubs = (currentLineup?.subs || []).map((subId) => playerMap.get(subId)).filter(Boolean);
 
+  const restedIdsSet = new Set(activeFixture.matchSquad?.restedPlayerIds || []);
+  const selectedIdsSet = new Set(activeFixture.matchSquad?.selectedPlayerIds || []);
+  const currentPitchIdsSet = new Set((currentLineup?.onPitch || []).map((op) => op.playerId));
+  const currentBenchIdsSet = new Set(currentLineup?.subs || []);
+
+  const validSuggestedChanges = suggestedChanges.filter(
+    (sc) =>
+      !restedIdsSet.has(sc.offPlayerId) &&
+      !restedIdsSet.has(sc.onPlayerId) &&
+      currentPitchIdsSet.has(sc.offPlayerId) &&
+      currentBenchIdsSet.has(sc.onPlayerId)
+  );
+
   const periodPlannedSubs = (activeFixture.matchSquad?.plannedInGameSubs || []).filter(
-    (s) => s.period === activePeriod
+    (s) =>
+      s.period === activePeriod &&
+      !restedIdsSet.has(s.playerOutId) &&
+      !restedIdsSet.has(s.playerInId) &&
+      (selectedIdsSet.size === 0 ||
+        (selectedIdsSet.has(s.playerOutId) && selectedIdsSet.has(s.playerInId))) &&
+      currentPitchIdsSet.has(s.playerOutId) &&
+      currentBenchIdsSet.has(s.playerInId)
   );
   const unexecutedPlannedSubs = periodPlannedSubs.filter((s) => {
     return !subLog.some(
@@ -745,12 +782,12 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
             </div>
 
             {/* Quick Suggested Substitution Action */}
-            {suggestedChanges.length > 0 && (
+            {validSuggestedChanges.length > 0 && (
               <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-2">
                 <span className="text-[10px] uppercase font-bold tracking-wider text-amber-400 block">
                   Upcoming Suggested Rotation:
                 </span>
-                {suggestedChanges.slice(0, 1).map((sc, idx) => (
+                {validSuggestedChanges.slice(0, 1).map((sc, idx) => (
                   <div key={idx} className="flex items-center justify-between text-xs">
                     <div className="font-semibold text-slate-200 break-words leading-tight" title={`OFF: ${sc.offPlayerName} ➡️ ON: ${sc.onPlayerName}`}>
                       <span className="text-rose-400">OFF:</span> {sc.offPlayerName} ➡️{' '}

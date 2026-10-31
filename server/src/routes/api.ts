@@ -7,6 +7,7 @@ import {
   generateWhatsAppAnnouncement,
   generateSuggestedSubstitutions,
   rebalanceRemainingPeriods,
+  reconcileMatchSquadPlannedSubs,
 } from '../services/rotationService.js';
 import { calculateSeasonDashboardSummary } from '../services/dashboardService.js';
 import { getChangelogData } from '../services/changelogService.js';
@@ -873,7 +874,21 @@ router.put('/fixtures/:id/squad', requireActiveSubscription, async (req: Authent
       return res.status(400).json({ error: 'Invalid match squad payload' });
     }
 
-    const updatedFixture = await storage.updateMatchSquad(id, matchSquad);
+    const existingFixture = await storage.getFixtureById(id);
+    if (!existingFixture) {
+      return res.status(404).json({ error: 'Fixture not found' });
+    }
+
+    const players = await storage.getPlayers(existingFixture.teamId);
+    const settings = await storage.getSettings(existingFixture.teamId);
+    const reconciledSquad = reconcileMatchSquadPlannedSubs(
+      existingFixture,
+      matchSquad,
+      players,
+      settings
+    );
+
+    const updatedFixture = await storage.updateMatchSquad(id, reconciledSquad);
     if (!updatedFixture) {
       return res.status(404).json({ error: 'Fixture not found' });
     }

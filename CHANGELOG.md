@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Exclude Rested Players & Reconcile Scheduled Mid-Game Rolling Substitutions on Squad Updates** ([#38](https://github.com/rossdevereux/team-organiser/issues/38)):
+  - Added `filterActivePlannedInGameSubs`, `buildPlannedInGameSubs`, and `reconcileMatchSquadPlannedSubs` in [`rotationService.ts`](server/src/services/rotationService.ts) and wired server-side reconciliation into `PUT /api/fixtures/:id/squad` ([`api.ts`](server/src/routes/api.ts)), `rebalanceRemainingPeriods`, `calculateMatchStats`, `generateSuggestedSubstitutions`, and `generateWhatsAppAnnouncement`.
+  - Updated `updateMatchSquad`, `commitSquadUpdate`, `replaceSquadPlayer`, and `resetMatchSheet` in [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx) to immediately sanitize and reconcile `plannedInGameSubs` when players are moved to Rested, replaced, or promoted from the bench onto the pitch.
+  - Updated [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx) (`periodPlannedSubs`, `validSuggestedChanges`, and the automatic whistle alert `useEffect`) to strictly filter out any rested or deselected players and verify that `playerOutId` is currently on the pitch and `playerInId` is currently on the bench.
+  - Added regression test suite in [`rotationService.test.ts`](server/src/tests/rotationService.test.ts) covering resting bench players and resting starting players (promoting a bench substitute).
+
 ## [1.7.2] - 2026-10-31
 
 ### Added

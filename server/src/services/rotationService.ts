@@ -208,6 +208,54 @@ export const isPlayerEligibleForFixture = (
 };
 
 /**
+ * Filters out any stale or invalid planned in-game substitutions where either player:
+ * - Is in restedPlayerIds or departedPlayerIds
+ * - Is not in selectedPlayerIds
+ * - Is missing from the period's active lineup (onPitch + subs), or where both players are simultaneously onPitch or simultaneously on subs
+ */
+export const filterActivePlannedInGameSubs = (
+  matchSquad?: MatchSquad | null,
+  departedPlayerIds?: Set<string>
+): PlannedInGameSub[] => {
+  if (!matchSquad || !matchSquad.plannedInGameSubs || matchSquad.plannedInGameSubs.length === 0) {
+    return [];
+  }
+
+  const restedSet = new Set(matchSquad.restedPlayerIds || []);
+  const selectedSet = new Set(matchSquad.selectedPlayerIds || []);
+
+  return matchSquad.plannedInGameSubs.filter((s) => {
+    if (!s.playerOutId || !s.playerInId || s.playerOutId === s.playerInId) return false;
+    if (restedSet.has(s.playerOutId) || restedSet.has(s.playerInId)) return false;
+    if (departedPlayerIds && (departedPlayerIds.has(s.playerOutId) || departedPlayerIds.has(s.playerInId))) {
+      return false;
+    }
+    if (selectedSet.size > 0 && (!selectedSet.has(s.playerOutId) || !selectedSet.has(s.playerInId))) {
+      return false;
+    }
+
+    const lineup = matchSquad.lineupsByPeriod?.find((l) => l.period === s.period);
+    if (lineup) {
+      const pitchSet = new Set(lineup.onPitch.map((op) => op.playerId));
+      const benchSet = new Set(lineup.subs);
+      const outOnPitch = pitchSet.has(s.playerOutId);
+      const outOnBench = benchSet.has(s.playerOutId);
+      const inOnPitch = pitchSet.has(s.playerInId);
+      const inOnBench = benchSet.has(s.playerInId);
+
+      // Both players must be part of the active period lineup (one on pitch, one on bench)
+      const isPreSubState = outOnPitch && inOnBench;
+      const isExecutedPostSubState = outOnBench && inOnPitch;
+      if (!isPreSubState && !isExecutedPostSubState) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+};
+
+/**
  * Calculates fair play statistics for a match squad, taking into account
  * any post-match recordings (full participation credit vs exact minutes).
  */
@@ -222,8 +270,13 @@ export const calculateMatchStats = (
   const duration = fixture?.periodDurationMinutes || settings.periodDurationMinutes || 25;
   const totalMatchMinutes = periodCount * duration;
   const playerMap = new Map(players.map((p) => [p.id, p]));
+  const restedSet = new Set(matchSquad.restedPlayerIds || []);
+  const departedSet = new Set((fixture?.earlyDepartures || []).map((d) => d.playerId));
+  const activePlannedSubs = filterActivePlannedInGameSubs(matchSquad);
 
-  const stats: MatchPlayerStats[] = matchSquad.selectedPlayerIds.map((playerId) => {
+  const activeSelectedIds = matchSquad.selectedPlayerIds.filter((id) => !restedSet.has(id));
+
+  const stats: MatchPlayerStats[] = activeSelectedIds.map((playerId) => {
     const player = playerMap.get(playerId) || {
       id: playerId,
       teamId: fixture?.teamId || '',
@@ -239,17 +292,16 @@ export const calculateMatchStats = (
     const positionsPlayed: string[] = [];
     let calculatedMinutes = 0;
 
-    const hasPlannedSubs =
-      matchSquad.plannedInGameSubs && matchSquad.plannedInGameSubs.length > 0;
+    const hasPlannedSubs = activePlannedSubs.length > 0;
 
-    if (hasPlannedSubs) {
+    if (hasPlannedSubs && !departedSet.has(playerId)) {
       for (let p = 1; p <= periodCount; p++) {
         const lineup = matchSquad.lineupsByPeriod.find((l) => l.period === p);
         const pitchEntry = lineup?.onPitch.find((item) => item.playerId === playerId);
-        const subOut = matchSquad.plannedInGameSubs?.find(
+        const subOut = activePlannedSubs.find(
           (s) => s.period === p && s.playerOutId === playerId
         );
-        const subIn = matchSquad.plannedInGameSubs?.find(
+        const subIn = activePlannedSubs.find(
           (s) => s.period === p && s.playerInId === playerId
         );
 
@@ -741,118 +793,18 @@ export const generateFairRotation = (
   }
 
   // Generate scheduled in-game rolling substitutions when continuity or in-game rolling mode is active
-  const plannedInGameSubs: PlannedInGameSub[] = [];
-
-  if (shouldPreserveLineup || subTimingMode === 'in_game_rolling') {
-    const duration = fixture.periodDurationMinutes || settings.periodDurationMinutes || 25;
-    const targetInterval =
-      fixture.midPeriodSubIntervalMinutes ??
-      settings.midPeriodSubIntervalMinutes ??
-      (duration / 2);
-
-    const subbedOffCounts = new Map<string, number>();
-    selectedPlayers.forEach((p) => subbedOffCounts.set(p.id, 0));
-    const playerMap = new Map<string, Player>(players.map((p) => [p.id, p]));
-
-    for (let period = 1; period <= periodCount; period++) {
-      const lineup = lineupsByPeriod.find((l) => l.period === period);
-      if (!lineup || lineup.subs.length === 0) continue;
-
-      const benchSubIds = [...lineup.subs];
-      const availableOutfield = lineup.onPitch.filter(
-        (op) => !fixedMap.has(op.playerId)
-      );
-
-      if (availableOutfield.length === 0) continue;
-
-      // Sort outfield candidates to sub off:
-      // 1. Players subbed off fewest times this match (ensures bench time is rotated fairly)
-      // 2. Goalkeepers are last priority to sub off
-      // 3. Historical minutes tie-breaker
-      availableOutfield.sort((a, b) => {
-        const aCount = subbedOffCounts.get(a.playerId) || 0;
-        const bCount = subbedOffCounts.get(b.playerId) || 0;
-        if (aCount !== bCount) return aCount - bCount;
-
-        const aIsGk = positionToBroad(a.position) === 'Goalkeeper' ? 1 : 0;
-        const bIsGk = positionToBroad(b.position) === 'Goalkeeper' ? 1 : 0;
-        if (aIsGk !== bIsGk) return aIsGk - bIsGk;
-
-        const aPl = playerMap.get(a.playerId);
-        const bPl = playerMap.get(b.playerId);
-        return (bPl?.totalMinutesPlayed || 0) - (aPl?.totalMinutesPlayed || 0);
-      });
-
-      const subsToRotateCount = Math.min(benchSubIds.length, availableOutfield.length);
-      const chosenOutfield = availableOutfield.slice(0, subsToRotateCount);
-      const chosenSubs = benchSubIds
-        .slice(0, subsToRotateCount)
-        .map((id) => playerMap.get(id))
-        .filter((p): p is Player => Boolean(p));
-
-      const weights: number[][] = chosenSubs.map((subPl) =>
-        chosenOutfield.map((outfieldSlot) =>
-          getPositionPreferenceScore(
-            subPl,
-            positionToBroad(outfieldSlot.position),
-            outfieldSlot.position
-          )
+  const plannedInGameSubs: PlannedInGameSub[] =
+    shouldPreserveLineup || subTimingMode === 'in_game_rolling'
+      ? buildPlannedInGameSubs(
+          lineupsByPeriod,
+          selectedPlayers,
+          players,
+          fixture,
+          settings,
+          fixedMap,
+          restedIds
         )
-      );
-
-      const assignments = maxWeightBipartiteMatching(weights);
-      const assignedOutfieldIndices = new Set<number>();
-      const unassignedSubs: Player[] = [];
-
-      chosenSubs.forEach((subPl, subIdx) => {
-        const slotIdx = assignments[subIdx];
-        if (
-          slotIdx !== undefined &&
-          slotIdx >= 0 &&
-          slotIdx < chosenOutfield.length &&
-          !assignedOutfieldIndices.has(slotIdx)
-        ) {
-          assignedOutfieldIndices.add(slotIdx);
-          const outSlot = chosenOutfield[slotIdx];
-          const outPl = playerMap.get(outSlot.playerId);
-
-          plannedInGameSubs.push({
-            period,
-            targetMinute: targetInterval,
-            matchMinute: (period - 1) * duration + Math.round(targetInterval),
-            playerOutId: outSlot.playerId,
-            playerOutName: outPl?.name,
-            playerInId: subPl.id,
-            playerInName: subPl.name,
-            position: outSlot.position,
-            reason: 'Mid-period rolling substitution',
-          });
-          subbedOffCounts.set(outSlot.playerId, (subbedOffCounts.get(outSlot.playerId) || 0) + 1);
-        } else {
-          unassignedSubs.push(subPl);
-        }
-      });
-
-      chosenOutfield.forEach((outSlot, slotIdx) => {
-        if (!assignedOutfieldIndices.has(slotIdx) && unassignedSubs.length > 0) {
-          const subPl = unassignedSubs.shift()!;
-          const outPl = playerMap.get(outSlot.playerId);
-          plannedInGameSubs.push({
-            period,
-            targetMinute: targetInterval,
-            matchMinute: (period - 1) * duration + Math.round(targetInterval),
-            playerOutId: outSlot.playerId,
-            playerOutName: outPl?.name,
-            playerInId: subPl.id,
-            playerInName: subPl.name,
-            position: outSlot.position,
-            reason: 'Mid-period rolling substitution',
-          });
-          subbedOffCounts.set(outSlot.playerId, (subbedOffCounts.get(outSlot.playerId) || 0) + 1);
-        }
-      });
-    }
-  }
+      : [];
 
   const fixedPositionsRecord: Record<string, string> = {};
   if (fixture.fixedPlayerPositions) {
@@ -873,6 +825,243 @@ export const generateFairRotation = (
     fixedPlayerPositions:
       Object.keys(fixedPositionsRecord).length > 0 ? fixedPositionsRecord : undefined,
     plannedInGameSubs: plannedInGameSubs.length > 0 ? plannedInGameSubs : undefined,
+  };
+};
+
+/**
+ * Builds scheduled in-game rolling substitutions for the given period lineups and active players,
+ * strictly excluding rested and departed players.
+ */
+export const buildPlannedInGameSubs = (
+  lineupsByPeriod: PeriodLineup[],
+  selectedPlayers: Player[],
+  players: Player[],
+  fixture: Fixture,
+  settings: TeamSettings,
+  fixedMap: Map<string, string>,
+  restedPlayerIds: string[] = [],
+  departedPlayerIds: Set<string> = new Set()
+): PlannedInGameSub[] => {
+  const periodCount = fixture.matchPeriodCount || settings.matchPeriodCount || 2;
+  const duration = fixture.periodDurationMinutes || settings.periodDurationMinutes || 25;
+  const targetInterval =
+    fixture.midPeriodSubIntervalMinutes ??
+    settings.midPeriodSubIntervalMinutes ??
+    duration / 2;
+
+  const restedSet = new Set(restedPlayerIds);
+  const activeSelectedPlayers = selectedPlayers.filter(
+    (p) => !restedSet.has(p.id) && !departedPlayerIds.has(p.id)
+  );
+  const activeSelectedSet = new Set(activeSelectedPlayers.map((p) => p.id));
+
+  const subbedOffCounts = new Map<string, number>();
+  activeSelectedPlayers.forEach((p) => subbedOffCounts.set(p.id, 0));
+  const playerMap = new Map<string, Player>(players.map((p) => [p.id, p]));
+  const plannedInGameSubs: PlannedInGameSub[] = [];
+
+  for (let period = 1; period <= periodCount; period++) {
+    const lineup = lineupsByPeriod.find((l) => l.period === period);
+    if (!lineup || lineup.subs.length === 0) continue;
+
+    const benchSubIds = lineup.subs.filter(
+      (id) => activeSelectedSet.has(id) && !restedSet.has(id) && !departedPlayerIds.has(id)
+    );
+    if (benchSubIds.length === 0) continue;
+
+    const availableOutfield = lineup.onPitch.filter(
+      (op) =>
+        activeSelectedSet.has(op.playerId) &&
+        !restedSet.has(op.playerId) &&
+        !departedPlayerIds.has(op.playerId) &&
+        !fixedMap.has(op.playerId)
+    );
+
+    if (availableOutfield.length === 0) continue;
+
+    // Sort outfield candidates to sub off:
+    // 1. Players subbed off fewest times this match (ensures bench time is rotated fairly)
+    // 2. Goalkeepers are last priority to sub off
+    // 3. Historical minutes tie-breaker
+    availableOutfield.sort((a, b) => {
+      const aCount = subbedOffCounts.get(a.playerId) || 0;
+      const bCount = subbedOffCounts.get(b.playerId) || 0;
+      if (aCount !== bCount) return aCount - bCount;
+
+      const aIsGk = positionToBroad(a.position) === 'Goalkeeper' ? 1 : 0;
+      const bIsGk = positionToBroad(b.position) === 'Goalkeeper' ? 1 : 0;
+      if (aIsGk !== bIsGk) return aIsGk - bIsGk;
+
+      const aPl = playerMap.get(a.playerId);
+      const bPl = playerMap.get(b.playerId);
+      return (bPl?.totalMinutesPlayed || 0) - (aPl?.totalMinutesPlayed || 0);
+    });
+
+    const subsToRotateCount = Math.min(benchSubIds.length, availableOutfield.length);
+    const chosenOutfield = availableOutfield.slice(0, subsToRotateCount);
+    const chosenSubs = benchSubIds
+      .slice(0, subsToRotateCount)
+      .map((id) => playerMap.get(id))
+      .filter((p): p is Player => Boolean(p));
+
+    const weights: number[][] = chosenSubs.map((subPl) =>
+      chosenOutfield.map((outfieldSlot) =>
+        getPositionPreferenceScore(
+          subPl,
+          positionToBroad(outfieldSlot.position),
+          outfieldSlot.position
+        )
+      )
+    );
+
+    const assignments = maxWeightBipartiteMatching(weights);
+    const assignedOutfieldIndices = new Set<number>();
+    const unassignedSubs: Player[] = [];
+
+    chosenSubs.forEach((subPl, subIdx) => {
+      const slotIdx = assignments[subIdx];
+      if (
+        slotIdx !== undefined &&
+        slotIdx >= 0 &&
+        slotIdx < chosenOutfield.length &&
+        !assignedOutfieldIndices.has(slotIdx)
+      ) {
+        assignedOutfieldIndices.add(slotIdx);
+        const outSlot = chosenOutfield[slotIdx];
+        const outPl = playerMap.get(outSlot.playerId);
+
+        plannedInGameSubs.push({
+          period,
+          targetMinute: targetInterval,
+          matchMinute: (period - 1) * duration + Math.round(targetInterval),
+          playerOutId: outSlot.playerId,
+          playerOutName: outPl?.name,
+          playerInId: subPl.id,
+          playerInName: subPl.name,
+          position: outSlot.position,
+          reason: 'Mid-period rolling substitution',
+        });
+        subbedOffCounts.set(outSlot.playerId, (subbedOffCounts.get(outSlot.playerId) || 0) + 1);
+      } else {
+        unassignedSubs.push(subPl);
+      }
+    });
+
+    chosenOutfield.forEach((outSlot, slotIdx) => {
+      if (!assignedOutfieldIndices.has(slotIdx) && unassignedSubs.length > 0) {
+        const subPl = unassignedSubs.shift()!;
+        const outPl = playerMap.get(outSlot.playerId);
+        plannedInGameSubs.push({
+          period,
+          targetMinute: targetInterval,
+          matchMinute: (period - 1) * duration + Math.round(targetInterval),
+          playerOutId: outSlot.playerId,
+          playerOutName: outPl?.name,
+          playerInId: subPl.id,
+          playerInName: subPl.name,
+          position: outSlot.position,
+          reason: 'Mid-period rolling substitution',
+        });
+        subbedOffCounts.set(outSlot.playerId, (subbedOffCounts.get(outSlot.playerId) || 0) + 1);
+      }
+    });
+  }
+
+  return plannedInGameSubs;
+};
+
+/**
+ * Reconciles `plannedInGameSubs` when a MatchSquad is updated (e.g. resting a player,
+ * replacing a player, adding a player, or swapping pitch/bench positions) so that
+ * rested or deselected players never appear in Scheduled Mid-Game Rolling Substitutions.
+ */
+export const reconcileMatchSquadPlannedSubs = (
+  fixture: Fixture,
+  matchSquad: MatchSquad,
+  players: Player[],
+  settings: TeamSettings
+): MatchSquad => {
+  const subTimingMode: SubstitutionTimingMode =
+    fixture.subTimingMode || settings.subTimingMode || 'at_breaks';
+  const shouldPreserveLineup =
+    fixture.preserveLineupAcrossBreaks ??
+    settings.preserveLineupAcrossBreaks ??
+    subTimingMode === 'in_game_rolling';
+
+  const hasExistingPlannedSubs = Boolean(
+    matchSquad.plannedInGameSubs && matchSquad.plannedInGameSubs.length > 0
+  );
+
+  if (!shouldPreserveLineup && subTimingMode !== 'in_game_rolling' && !hasExistingPlannedSubs) {
+    return matchSquad;
+  }
+
+  const restedSet = new Set(matchSquad.restedPlayerIds || []);
+  const departedSet = new Set((fixture.earlyDepartures || []).map((d) => d.playerId));
+  const activeSelectedIds = (matchSquad.selectedPlayerIds || []).filter(
+    (id) => !restedSet.has(id) && !departedSet.has(id)
+  );
+  const selectedPlayers = activeSelectedIds
+    .map((id) => players.find((p) => p.id === id))
+    .filter((p): p is Player => Boolean(p));
+
+  const fixedMap = getFixedPositionsMap(
+    { ...fixture, matchSquad },
+    players
+  );
+
+  // Filter existing planned subs to those that are still strictly valid
+  const validExisting = filterActivePlannedInGameSubs(matchSquad, departedSet);
+
+  // Check if every period's active bench subs are already validly covered by validExisting
+  const allPeriodsSynced = (matchSquad.lineupsByPeriod || []).every((lineup) => {
+    const activeBenchIds = lineup.subs.filter(
+      (id) => !restedSet.has(id) && !departedSet.has(id) && activeSelectedIds.includes(id)
+    );
+    const periodSubs = validExisting.filter((s) => s.period === lineup.period);
+    if (periodSubs.length !== activeBenchIds.length) return false;
+    const scheduledInIds = new Set(periodSubs.map((s) => s.playerInId));
+    return activeBenchIds.every((id) => scheduledInIds.has(id));
+  });
+
+  if (hasExistingPlannedSubs && validExisting.length === matchSquad.plannedInGameSubs!.length && allPeriodsSynced) {
+    return {
+      ...matchSquad,
+      plannedInGameSubs: validExisting.length > 0 ? validExisting : undefined,
+    };
+  }
+
+  // Otherwise regenerate fresh planned in-game subs for periods that need reconciliation,
+  // while preserving any period that has already had live substitutions executed in subLog.
+  const regeneratedAll = buildPlannedInGameSubs(
+    matchSquad.lineupsByPeriod || [],
+    selectedPlayers,
+    players,
+    fixture,
+    settings,
+    fixedMap,
+    matchSquad.restedPlayerIds || [],
+    departedSet
+  );
+
+  const executedPeriods = new Set(
+    (fixture.liveMatchState?.subLog || []).map((log) => log.period)
+  );
+
+  const finalPlannedSubs: PlannedInGameSub[] = [];
+  const periodCount = fixture.matchPeriodCount || settings.matchPeriodCount || 2;
+
+  for (let p = 1; p <= periodCount; p++) {
+    if (executedPeriods.has(p)) {
+      finalPlannedSubs.push(...validExisting.filter((s) => s.period === p));
+    } else {
+      finalPlannedSubs.push(...regeneratedAll.filter((s) => s.period === p));
+    }
+  }
+
+  return {
+    ...matchSquad,
+    plannedInGameSubs: finalPlannedSubs.length > 0 ? finalPlannedSubs : undefined,
   };
 };
 
@@ -1158,10 +1347,31 @@ export const rebalanceRemainingPeriods = (
     });
   }
 
+  // Reconcile plannedInGameSubs so departed or rested players are never kept in scheduled rolling subs
+  let updatedPlannedSubs = fixture.matchSquad.plannedInGameSubs;
+  if (updatedPlannedSubs && updatedPlannedSubs.length > 0) {
+    const priorSubs = filterActivePlannedInGameSubs(fixture.matchSquad).filter(
+      (s) => s.period < departurePeriod && !allDepartedIds.has(s.playerOutId) && !allDepartedIds.has(s.playerInId)
+    );
+    const regeneratedSubs = buildPlannedInGameSubs(
+      newLineups,
+      activePlayers,
+      players,
+      fixture,
+      settings,
+      fixedMap,
+      fixture.matchSquad.restedPlayerIds || [],
+      allDepartedIds
+    ).filter((s) => s.period >= departurePeriod);
+    const combined = [...priorSubs, ...regeneratedSubs];
+    updatedPlannedSubs = combined.length > 0 ? combined : undefined;
+  }
+
   return {
     ...fixture.matchSquad,
     manualOverrides: true,
     lineupsByPeriod: newLineups,
+    plannedInGameSubs: updatedPlannedSubs,
   };
 };
 
@@ -1308,9 +1518,12 @@ export const generateSuggestedSubstitutions = (
   const safeInterval = Math.max(5, Math.min(25, intervalMinutes));
 
   // Helper to initialise a clean match tracking state for all squad players from Period 1 kick-off
+  const restedSet = new Set(squad.restedPlayerIds || []);
+  const departedSet = new Set((fixture.earlyDepartures || []).map((d) => d.playerId));
   const initSquadTracker = (): Map<string, InMatchTracker> => {
     const tracker = new Map<string, InMatchTracker>();
     squad.selectedPlayerIds.forEach((id) => {
+      if (restedSet.has(id) || departedSet.has(id)) return;
       const pl = playerMap.get(id) || {
         id,
         teamId: fixture?.teamId || '',
@@ -1864,10 +2077,12 @@ export const generateWhatsAppAnnouncement = (
     settings.subTimingMode === 'in_game_rolling' ||
     settings.preserveLineupAcrossBreaks;
 
+  const activePlannedSubs = filterActivePlannedInGameSubs(squad);
+
   const plannedSubsText =
-    isRolling && squad?.plannedInGameSubs && squad.plannedInGameSubs.length > 0
+    isRolling && activePlannedSubs.length > 0
       ? `\n⏱️ *PLANNED IN-GAME ROLLING SUBS*\n` +
-        squad.plannedInGameSubs
+        activePlannedSubs
           .map(
             (s) =>
               `• Half ${s.period} (~${s.targetMinute}m / Min ${s.matchMinute}): ${s.playerInName || 'Sub'} ➔ ${s.playerOutName || 'Player'} (${s.position})`
