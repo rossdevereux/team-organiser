@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-31
+
 ### Added
 - **Interactive Match Substitution Scheduler, Multi-Player Swaps & "Everyone Rests Once" Rule** ([#39](https://github.com/rossdevereux/team-organiser/issues/39)):
   - **Choose How Many Players to Sub at Once:** In **Suggested Substitutions**, you can now choose whether to swap `Auto`, `1 Sub`, `2 Subs`, `3 Subs`, or `All Bench` at each interval mark.
