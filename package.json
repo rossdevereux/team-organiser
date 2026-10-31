@@ -1,6 +1,7 @@
 {
   "name": "team-organiser",
   "version": "1.7.3",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "private": true,
   "description": "Decoupled, zero-idle-cost full-stack TypeScript project with React, Cloud Run, and Firebase Hosting",
   "scripts": {

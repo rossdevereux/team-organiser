@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Repository Licensing (`PolyForm-Noncommercial-1.0.0` + Commercial Dual-License)**:
+  - Updated [`LICENSE`](LICENSE), [`README.md`](README.md), [`package.json`](package.json), [`client/package.json`](client/package.json), and [`server/package.json`](server/package.json) to dual-license SubShuffle under the **PolyForm Noncommercial License 1.0.0** for personal/non-commercial use while requiring a separate commercial agreement for any paid hosting, resale, or commercial monetization.
+
 ## [1.7.3] - 2026-10-31
 
 ### Fixed
