@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-31
+
 ### Added
 - **In-App Help & Feedback Desk** ([#36](https://github.com/rossdevereux/team-organiser/issues/36)):
   - Coaches can now report bugs, suggest features, or ask questions directly inside SubShuffle via the **💬 Help & Feedback** option in the User Profile menu, page footer, or error recovery banner.

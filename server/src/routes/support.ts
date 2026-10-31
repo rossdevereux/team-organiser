@@ -180,7 +180,7 @@ export async function submitSupportTicket(
     currentPath: clientTelemetry?.currentPath || '/',
     viewport: clientTelemetry?.viewport || 'unknown',
     userAgent: clientTelemetry?.userAgent || 'unknown',
-    appVersion: clientTelemetry?.appVersion || '1.6.1',
+    appVersion: clientTelemetry?.appVersion || '1.7.0',
     onlineStatus: clientTelemetry?.onlineStatus ?? true,
     timestamp: clientTelemetry?.timestamp || new Date().toISOString(),
   };

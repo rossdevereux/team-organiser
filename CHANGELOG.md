@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-31
+
 ### Added
 - **In-App Support Modal with Automated Diagnostic Telemetry & Jira Service Management (JSM) Integration** ([#36](https://github.com/rossdevereux/team-organiser/issues/36)):
   - Built [`server/src/routes/support.ts`](server/src/routes/support.ts) exposing `POST /api/support/ticket` (secured with `requireAuth`) to dispatch categorized coach feedback and bug reports to Jira Cloud REST API v3 (`https://subshuffle.atlassian.net/rest/api/3/issue`) in the `OPS` service project.
