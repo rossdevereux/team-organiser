@@ -1,6 +1,6 @@
 {
   "name": "team-organiser-server",
-  "version": "1.7.3",
+  "version": "1.8.0",
   "license": "PolyForm-Noncommercial-1.0.0",
   "description": "Standalone Node.js + Express TypeScript API containerised for Google Cloud Run",
   "type": "module",
