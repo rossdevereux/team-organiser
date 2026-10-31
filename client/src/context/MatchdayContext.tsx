@@ -74,7 +74,7 @@ interface MatchdayContextType {
   autoRotateCurrentFixture: (selectedPlayerIds?: string[]) => Promise<void>;
   undoAutoRotate: () => Promise<void>;
   resetMatchSheet: () => Promise<void>;
-  updateMatchSquad: (newSquad: MatchSquad) => Promise<void>;
+  updateMatchSquad: (newSquad: MatchSquad, immediate?: boolean) => Promise<void>;
   // Team actions
   createTeam: (teamData: Partial<Team>) => Promise<Team | null>;
   updateTeam: (team: Team) => Promise<void>;
@@ -989,26 +989,69 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const fixtureId = activeFixture.id;
 
       // Sanitize plannedInGameSubs immediately against restedPlayerIds, selectedPlayerIds, and lineupsByPeriod
+      // while simulating multi-window schedules chronologically within each period.
       const restedSet = new Set(rawSquad.restedPlayerIds || []);
       const selectedSet = new Set(rawSquad.selectedPlayerIds || []);
-      const sanitizedPlannedSubs = rawSquad.plannedInGameSubs
-        ? rawSquad.plannedInGameSubs.filter((s) => {
-            if (!s.playerOutId || !s.playerInId || s.playerOutId === s.playerInId) return false;
-            if (restedSet.has(s.playerOutId) || restedSet.has(s.playerInId)) return false;
-            if (selectedSet.size > 0 && (!selectedSet.has(s.playerOutId) || !selectedSet.has(s.playerInId))) {
-              return false;
+      const sanitizedPlannedSubs = (() => {
+        if (!rawSquad.plannedInGameSubs || rawSquad.plannedInGameSubs.length === 0) {
+          return undefined;
+        }
+
+        const baseValid = rawSquad.plannedInGameSubs.filter((s) => {
+          if (!s.playerOutId || !s.playerInId || s.playerOutId === s.playerInId) return false;
+          if (restedSet.has(s.playerOutId) || restedSet.has(s.playerInId)) return false;
+          if (
+            selectedSet.size > 0 &&
+            (!selectedSet.has(s.playerOutId) || !selectedSet.has(s.playerInId))
+          ) {
+            return false;
+          }
+          const lineup = rawSquad.lineupsByPeriod.find((l) => l.period === s.period);
+          if (lineup) {
+            const pitchSet = new Set(lineup.onPitch.map((op) => op.playerId));
+            const benchSet = new Set(lineup.subs);
+            const outInLineup = pitchSet.has(s.playerOutId) || benchSet.has(s.playerOutId);
+            const inInLineup = pitchSet.has(s.playerInId) || benchSet.has(s.playerInId);
+            if (!outInLineup || !inInLineup) return false;
+          }
+          return true;
+        });
+
+        const accepted = new Set<typeof baseValid[number]>();
+        const periods = Array.from(new Set(baseValid.map((s) => s.period)));
+
+        for (const period of periods) {
+          const periodSubs = baseValid
+            .filter((s) => s.period === period)
+            .sort((a, b) => a.targetMinute - b.targetMinute);
+
+          const lineup = rawSquad.lineupsByPeriod.find((l) => l.period === period);
+          if (!lineup) {
+            periodSubs.forEach((s) => accepted.add(s));
+            continue;
+          }
+
+          const simPitch = new Set(lineup.onPitch.map((op) => op.playerId));
+          const simBench = new Set(lineup.subs);
+
+          for (const s of periodSubs) {
+            const isPreSub = simPitch.has(s.playerOutId) && simBench.has(s.playerInId);
+            const isPostSub = simBench.has(s.playerOutId) && simPitch.has(s.playerInId);
+
+            if (isPreSub) {
+              accepted.add(s);
+              simPitch.delete(s.playerOutId);
+              simBench.add(s.playerOutId);
+              simBench.delete(s.playerInId);
+              simPitch.add(s.playerInId);
+            } else if (isPostSub) {
+              accepted.add(s);
             }
-            const lineup = rawSquad.lineupsByPeriod.find((l) => l.period === s.period);
-            if (lineup) {
-              const pitchSet = new Set(lineup.onPitch.map((op) => op.playerId));
-              const benchSet = new Set(lineup.subs);
-              const isPreSub = pitchSet.has(s.playerOutId) && benchSet.has(s.playerInId);
-              const isPostSub = benchSet.has(s.playerOutId) && pitchSet.has(s.playerInId);
-              if (!isPreSub && !isPostSub) return false;
-            }
-            return true;
-          })
-        : undefined;
+          }
+        }
+
+        return baseValid.filter((s) => accepted.has(s));
+      })();
 
       const newSquad: MatchSquad = {
         ...rawSquad,

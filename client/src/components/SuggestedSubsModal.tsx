@@ -108,6 +108,41 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
     (s) => !restedSet.has(s.playerOutId) && !restedSet.has(s.playerInId)
   );
 
+  const previewPlanSubs: PlannedInGameSub[] = [];
+  if (currentPlan) {
+    currentPlan.windows.forEach((w) => {
+      const periodStartMin = (w.period - 1) * periodDuration;
+      const targetMinute = Math.max(1, Math.min(periodDuration - 1, w.minute - periodStartMin));
+      w.subChanges.forEach((ch) => {
+        previewPlanSubs.push({
+          period: w.period,
+          targetMinute,
+          matchMinute: w.minute,
+          playerOutId: ch.offPlayerId,
+          playerOutName: ch.offPlayerName,
+          playerInId: ch.onPlayerId,
+          playerInName: ch.onPlayerName,
+          position: ch.position,
+          reason: ch.reason,
+        });
+      });
+    });
+  }
+
+  const isCurrentPlanSynced =
+    previewPlanSubs.length > 0 &&
+    previewPlanSubs.length === currentScheduledSubs.length &&
+    previewPlanSubs.every((ps, idx) => {
+      const cs = currentScheduledSubs[idx];
+      return (
+        cs &&
+        cs.period === ps.period &&
+        Math.round(cs.targetMinute) === Math.round(ps.targetMinute) &&
+        cs.playerOutId === ps.playerOutId &&
+        cs.playerInId === ps.playerInId
+      );
+    });
+
   const handleCopyPlan = () => {
     if (!currentPlan) return;
     let text = `⏱ *SUBSHUFFLE SIDELINE SUB PLAN* vs ${fixture.opponent}\n`;
@@ -199,18 +234,27 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
         }
       }
 
-      await updateMatchSquad({
-        ...fixture.matchSquad,
-        manualOverrides: true,
-        lineupsByPeriod: updatedLineups.length > 0 ? updatedLineups : fixture.matchSquad.lineupsByPeriod,
-        plannedInGameSubs: newPlannedSubs,
-      });
+      await updateMatchSquad(
+        {
+          ...fixture.matchSquad,
+          manualOverrides: true,
+          lineupsByPeriod:
+            updatedLineups.length > 0 ? updatedLineups : fixture.matchSquad.lineupsByPeriod,
+          plannedInGameSubs: newPlannedSubs,
+        },
+        true
+      );
 
       setAppliedSuccess(true);
       setTimeout(() => setAppliedSuccess(false), 3500);
     } finally {
       setApplying(false);
     }
+  };
+
+  const handleApplyAndClose = async () => {
+    await handleApplyPlanToSchedule();
+    onClose();
   };
 
   const handleAddCustomScheduledSub = async () => {
@@ -239,11 +283,14 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
       (a, b) => a.period - b.period || a.targetMinute - b.targetMinute
     );
 
-    await updateMatchSquad({
-      ...fixture.matchSquad,
-      manualOverrides: true,
-      plannedInGameSubs: nextSubs,
-    });
+    await updateMatchSquad(
+      {
+        ...fixture.matchSquad,
+        manualOverrides: true,
+        plannedInGameSubs: nextSubs,
+      },
+      true
+    );
 
     setCustomOffId('');
     setCustomOnId('');
@@ -253,11 +300,14 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
   const handleRemoveScheduledSub = async (idxToRemove: number) => {
     if (!fixture.matchSquad) return;
     const nextSubs = currentScheduledSubs.filter((_, idx) => idx !== idxToRemove);
-    await updateMatchSquad({
-      ...fixture.matchSquad,
-      manualOverrides: true,
-      plannedInGameSubs: nextSubs.length > 0 ? nextSubs : undefined,
-    });
+    await updateMatchSquad(
+      {
+        ...fixture.matchSquad,
+        manualOverrides: true,
+        plannedInGameSubs: nextSubs.length > 0 ? nextSubs : undefined,
+      },
+      true
+    );
   };
 
   const INTERVAL_PRESETS = [5, 8, 10, 12, 15];
@@ -408,11 +458,24 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
           {/* Active Live Match Schedule Panel */}
           <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-2.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Calendar className="w-4 h-4 text-sky-400 shrink-0" />
                 <span className="font-bold text-white text-xs">
                   Scheduled Live Match Substitutions ({currentScheduledSubs.length})
                 </span>
+                {previewPlanSubs.length > 0 && (
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                      isCurrentPlanSynced
+                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                        : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                    }`}
+                  >
+                    {isCurrentPlanSynced
+                      ? '✓ Synced with Live Match'
+                      : 'Previewing Plan — Click Apply below to sync'}
+                  </span>
+                )}
               </div>
               <button
                 type="button"
@@ -660,27 +723,42 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
           <span className="text-slate-400 text-[11px] hidden md:inline leading-tight">
             Apply any plan to save scheduled mid-game subs directly into Live Match & Fair Play stats.
           </span>
-          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+          <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
             {currentPlan && currentPlan.windows.length > 0 && (
-              <button
-                type="button"
-                disabled={applying}
-                onClick={handleApplyPlanToSchedule}
-                className={`flex-1 sm:flex-initial min-h-[44px] px-4 py-2 rounded-xl font-bold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                  appliedSuccess
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                }`}
-              >
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span>
-                  {appliedSuccess
-                    ? 'Applied to Live Match!'
-                    : applying
-                    ? 'Applying...'
-                    : 'Apply Plan to Match Schedule'}
-                </span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  disabled={applying}
+                  onClick={handleApplyPlanToSchedule}
+                  className={`flex-1 sm:flex-initial min-h-[44px] px-4 py-2 rounded-xl font-bold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                    appliedSuccess || isCurrentPlanSynced
+                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                      : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                  }`}
+                >
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>
+                    {appliedSuccess
+                      ? 'Applied to Live Match!'
+                      : applying
+                      ? 'Applying...'
+                      : isCurrentPlanSynced
+                      ? 'Plan Synced to Schedule'
+                      : 'Apply Plan to Match Schedule'}
+                  </span>
+                </button>
+                {!isCurrentPlanSynced && (
+                  <button
+                    type="button"
+                    disabled={applying}
+                    onClick={handleApplyAndClose}
+                    className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Check className="w-4 h-4 shrink-0" />
+                    <span>Apply & Close</span>
+                  </button>
+                )}
+              </>
             )}
             <button
               type="button"

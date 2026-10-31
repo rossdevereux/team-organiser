@@ -314,15 +314,6 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
   const seconds = elapsedSeconds % 60;
   const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-  // Time to next substitution
-  const secondsIntoCurrentInterval = elapsedSeconds % intervalSeconds;
-  const secondsUntilNextSub =
-    intervalSeconds - (secondsIntoCurrentInterval === 0 && elapsedSeconds > 0 ? 0 : secondsIntoCurrentInterval);
-  const subMinutes = Math.floor(secondsUntilNextSub / 60);
-  const subSecs = secondsUntilNextSub % 60;
-  const formattedSubCountdown = `${String(subMinutes).padStart(2, '0')}:${String(subSecs).padStart(2, '0')}`;
-  const subProgressPercent = Math.min(100, Math.round((secondsIntoCurrentInterval / intervalSeconds) * 100));
-
   const handleToggleTimer = async () => {
     if (!activeFixture) return;
     const isNowRunning = !isRunning;
@@ -547,6 +538,49 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     return valid;
   })();
 
+  const totalMatchPlannedCount = (activeFixture.matchSquad?.plannedInGameSubs || []).filter(
+    (s) =>
+      !restedIdsSet.has(s.playerOutId) &&
+      !restedIdsSet.has(s.playerInId) &&
+      (selectedIdsSet.size === 0 ||
+        (selectedIdsSet.has(s.playerOutId) && selectedIdsSet.has(s.playerInId))) &&
+      !subLog.some(
+        (log) =>
+          log.period === s.period &&
+          log.offPlayerId === s.playerOutId &&
+          log.onPlayerId === s.playerInId
+      )
+  ).length;
+
+  const nextScheduledTargetMinute =
+    unexecutedPlannedSubs.length > 0 ? unexecutedPlannedSubs[0].targetMinute : null;
+  const nextScheduledWindowSubs =
+    nextScheduledTargetMinute !== null
+      ? unexecutedPlannedSubs.filter(
+          (s) => Math.round(s.targetMinute) === Math.round(nextScheduledTargetMinute)
+        )
+      : [];
+
+  // Time to next substitution (uses next scheduled window when available, otherwise interval)
+  const secondsIntoCurrentInterval = elapsedSeconds % intervalSeconds;
+  const defaultSecondsUntilNextSub =
+    intervalSeconds -
+    (secondsIntoCurrentInterval === 0 && elapsedSeconds > 0 ? 0 : secondsIntoCurrentInterval);
+  const secondsUntilNextSub =
+    nextScheduledTargetMinute !== null
+      ? Math.max(0, Math.round(nextScheduledTargetMinute * 60) - elapsedSeconds)
+      : defaultSecondsUntilNextSub;
+  const subMinutes = Math.floor(secondsUntilNextSub / 60);
+  const subSecs = secondsUntilNextSub % 60;
+  const formattedSubCountdown = `${String(subMinutes).padStart(2, '0')}:${String(subSecs).padStart(2, '0')}`;
+  const subProgressPercent =
+    nextScheduledTargetMinute !== null
+      ? Math.min(
+          100,
+          Math.round((elapsedSeconds / Math.max(1, Math.round(nextScheduledTargetMinute * 60))) * 100)
+        )
+      : Math.min(100, Math.round((secondsIntoCurrentInterval / intervalSeconds) * 100));
+
   const periodDurationMins =
     activeFixture?.periodDurationMinutes || settings.periodDurationMinutes || 25;
 
@@ -581,11 +615,14 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
       (a, b) => a.period - b.period || a.targetMinute - b.targetMinute
     );
 
-    await updateMatchSquad({
-      ...activeFixture.matchSquad,
-      manualOverrides: true,
-      plannedInGameSubs: updatedPlanned,
-    });
+    await updateMatchSquad(
+      {
+        ...activeFixture.matchSquad,
+        manualOverrides: true,
+        plannedInGameSubs: updatedPlanned,
+      },
+      true
+    );
 
     setSchedOffId('');
     setSchedOnId('');
@@ -605,11 +642,14 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
         )
     );
 
-    await updateMatchSquad({
-      ...activeFixture.matchSquad,
-      manualOverrides: true,
-      plannedInGameSubs: updatedPlanned.length > 0 ? updatedPlanned : undefined,
-    });
+    await updateMatchSquad(
+      {
+        ...activeFixture.matchSquad,
+        manualOverrides: true,
+        plannedInGameSubs: updatedPlanned.length > 0 ? updatedPlanned : undefined,
+      },
+      true
+    );
   };
 
   const effectivePeriodCount = activeFixture?.matchPeriodCount || settings.matchPeriodCount || 2;
@@ -1006,7 +1046,9 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
                   <span>Next Rotation Buzzer</span>
                 </span>
                 <span className="text-[11px] font-mono text-slate-400">
-                  Every {settings.defaultSubIntervalMinutes || 10}m interval
+                  {nextScheduledTargetMinute !== null
+                    ? `Next Window: Min ${Math.round(nextScheduledTargetMinute)}'`
+                    : `Every ${settings.defaultSubIntervalMinutes || 10}m interval`}
                 </span>
               </div>
 
@@ -1043,28 +1085,74 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
               </p>
             </div>
 
-            {/* Quick Suggested Substitution Action */}
-            {validSuggestedChanges.length > 0 && (
+            {/* Quick Scheduled or Suggested Substitution Action */}
+            {nextScheduledWindowSubs.length > 0 ? (
               <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-2">
                 <span className="text-[10px] uppercase font-bold tracking-wider text-amber-400 block">
-                  Upcoming Suggested Rotation:
+                  Upcoming Scheduled Rotation (~Min {Math.round(nextScheduledTargetMinute || 0)}'):
                 </span>
-                {validSuggestedChanges.slice(0, 1).map((sc, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-xs">
-                    <div className="font-semibold text-slate-200 break-words leading-tight" title={`OFF: ${sc.offPlayerName} ➡️ ON: ${sc.onPlayerName}`}>
-                      <span className="text-rose-400">OFF:</span> {sc.offPlayerName} ➡️{' '}
-                      <span className="text-emerald-400">ON:</span> {sc.onPlayerName}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleExecuteQuickSub(sc.offPlayerId, sc.onPlayerId, sc.position)}
-                      className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition cursor-pointer shrink-0"
-                    >
-                      Execute Sub
-                    </button>
-                  </div>
-                ))}
+                <div className="space-y-1.5 max-h-28 overflow-y-auto">
+                  {nextScheduledWindowSubs.map((ps, idx) => {
+                    const outName =
+                      ps.playerOutName || playerMap.get(ps.playerOutId)?.name || 'Player';
+                    const inName =
+                      ps.playerInName || playerMap.get(ps.playerInId)?.name || 'Player';
+                    return (
+                      <div
+                        key={`${ps.playerOutId}-${ps.playerInId}-${idx}`}
+                        className="flex items-center justify-between gap-2 text-xs"
+                      >
+                        <div
+                          className="font-semibold text-slate-200 break-words leading-tight"
+                          title={`OFF: ${outName} ➡️ ON: ${inName}`}
+                        >
+                          <span className="text-rose-400">OFF:</span> {outName} ➡️{' '}
+                          <span className="text-emerald-400">ON:</span> {inName}
+                        </div>
+                        {ps.canExecuteNow && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleExecuteQuickSub(ps.playerOutId, ps.playerInId, ps.position)
+                            }
+                            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition cursor-pointer shrink-0"
+                          >
+                            Execute Sub
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+            ) : (
+              validSuggestedChanges.length > 0 && (
+                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-2">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-amber-400 block">
+                    Upcoming Suggested Rotation:
+                  </span>
+                  {validSuggestedChanges.slice(0, 1).map((sc, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs">
+                      <div
+                        className="font-semibold text-slate-200 break-words leading-tight"
+                        title={`OFF: ${sc.offPlayerName} ➡️ ON: ${sc.onPlayerName}`}
+                      >
+                        <span className="text-rose-400">OFF:</span> {sc.offPlayerName} ➡️{' '}
+                        <span className="text-emerald-400">ON:</span> {sc.onPlayerName}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleExecuteQuickSub(sc.offPlayerId, sc.onPlayerId, sc.position)
+                        }
+                        className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition cursor-pointer shrink-0"
+                      >
+                        Execute Sub
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
           </div>
         </div>
@@ -1078,7 +1166,9 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
             </span>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
-                {unexecutedPlannedSubs.length} Scheduled
+                {totalMatchPlannedCount > unexecutedPlannedSubs.length
+                  ? `${unexecutedPlannedSubs.length} in Period ${activePeriod} (${totalMatchPlannedCount} total)`
+                  : `${unexecutedPlannedSubs.length} Scheduled`}
               </span>
               <button
                 type="button"
