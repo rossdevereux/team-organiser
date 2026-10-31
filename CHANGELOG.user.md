@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-10-31
+
 ### Fixed
 - **Exclude Rested Players from Scheduled Mid-Game Rolling Substitutions** ([#38](https://github.com/rossdevereux/team-organiser/issues/38)):
   - Fixed an issue in **Live Match** where moving a player to **Rested** for the week (or replacing a squad player) could leave that player listed inside **Scheduled Mid-Game Rolling Substitutions**.

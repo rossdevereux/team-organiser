@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.3] - 2026-10-31
+
 ### Fixed
 - **Exclude Rested Players & Reconcile Scheduled Mid-Game Rolling Substitutions on Squad Updates** ([#38](https://github.com/rossdevereux/team-organiser/issues/38)):
   - Added `filterActivePlannedInGameSubs`, `buildPlannedInGameSubs`, and `reconcileMatchSquadPlannedSubs` in [`rotationService.ts`](server/src/services/rotationService.ts) and wired server-side reconciliation into `PUT /api/fixtures/:id/squad` ([`api.ts`](server/src/routes/api.ts)), `rebalanceRemainingPeriods`, `calculateMatchStats`, `generateSuggestedSubstitutions`, and `generateWhatsAppAnnouncement`.
