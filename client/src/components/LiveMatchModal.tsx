@@ -19,8 +19,16 @@ import {
   ChevronRight,
   ShieldCheck,
   HeartPulse,
+  Plus,
+  Trash2,
 } from 'lucide-react';
-import { SingleSubChange, LiveMatchPeriodTimer, LiveMatchState, Player } from '../types';
+import {
+  SingleSubChange,
+  LiveMatchPeriodTimer,
+  LiveMatchState,
+  Player,
+  PlannedInGameSub,
+} from '../types';
 import { ScoreScorersModal } from './ScoreScorersModal';
 import { EmergencyDepartureModal } from './EmergencyDepartureModal';
 import { trackLiveMatchStarted, trackLiveSubstitution } from '../utils/analytics';
@@ -77,6 +85,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     getSuggestedSubs,
     updateFixtureScore,
     updateLiveMatchState,
+    updateMatchSquad,
     executeLiveSubstitution,
     activeTeam,
   } = useMatchday();
@@ -123,6 +132,10 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [highContrast, setHighContrast] = useState<boolean>(false);
   const [suggestedChanges, setSuggestedChanges] = useState<SingleSubChange[]>([]);
+  const [showAddScheduledSub, setShowAddScheduledSub] = useState<boolean>(false);
+  const [schedTargetMin, setSchedTargetMin] = useState<number>(10);
+  const [schedOffId, setSchedOffId] = useState<string>('');
+  const [schedOnId, setSchedOnId] = useState<string>('');
   const [selectedOffId, setSelectedOffId] = useState<string>('');
   const [selectedOnId, setSelectedOnId] = useState<string>('');
   const [isScoreModalOpen, setIsScoreModalOpen] = useState<boolean>(false);
@@ -399,24 +412,108 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
       currentBenchIdsSet.has(sc.onPlayerId)
   );
 
-  const periodPlannedSubs = (activeFixture.matchSquad?.plannedInGameSubs || []).filter(
-    (s) =>
-      s.period === activePeriod &&
-      !restedIdsSet.has(s.playerOutId) &&
-      !restedIdsSet.has(s.playerInId) &&
-      (selectedIdsSet.size === 0 ||
-        (selectedIdsSet.has(s.playerOutId) && selectedIdsSet.has(s.playerInId))) &&
-      currentPitchIdsSet.has(s.playerOutId) &&
-      currentBenchIdsSet.has(s.playerInId)
-  );
-  const unexecutedPlannedSubs = periodPlannedSubs.filter((s) => {
-    return !subLog.some(
-      (log) =>
-        log.period === activePeriod &&
-        log.offPlayerId === s.playerOutId &&
-        log.onPlayerId === s.playerInId
+  const rawPeriodPlannedSubs = (activeFixture.matchSquad?.plannedInGameSubs || [])
+    .filter(
+      (s) =>
+        s.period === activePeriod &&
+        !restedIdsSet.has(s.playerOutId) &&
+        !restedIdsSet.has(s.playerInId) &&
+        (selectedIdsSet.size === 0 ||
+          (selectedIdsSet.has(s.playerOutId) && selectedIdsSet.has(s.playerInId))) &&
+        (currentPitchIdsSet.has(s.playerOutId) || currentBenchIdsSet.has(s.playerOutId)) &&
+        (currentPitchIdsSet.has(s.playerInId) || currentBenchIdsSet.has(s.playerInId)) &&
+        !subLog.some(
+          (log) =>
+            log.period === activePeriod &&
+            log.offPlayerId === s.playerOutId &&
+            log.onPlayerId === s.playerInId
+        )
+    )
+    .sort((a, b) => a.targetMinute - b.targetMinute);
+
+  const unexecutedPlannedSubs = (() => {
+    const simPitch = new Set(currentPitchIdsSet);
+    const simBench = new Set(currentBenchIdsSet);
+    const valid: (PlannedInGameSub & { canExecuteNow: boolean })[] = [];
+
+    for (const s of rawPeriodPlannedSubs) {
+      if (simPitch.has(s.playerOutId) && simBench.has(s.playerInId)) {
+        const canExecuteNow =
+          currentPitchIdsSet.has(s.playerOutId) && currentBenchIdsSet.has(s.playerInId);
+        valid.push({ ...s, canExecuteNow });
+        simPitch.delete(s.playerOutId);
+        simBench.add(s.playerOutId);
+        simBench.delete(s.playerInId);
+        simPitch.add(s.playerInId);
+      }
+    }
+    return valid;
+  })();
+
+  const periodDurationMins =
+    activeFixture?.periodDurationMinutes || settings.periodDurationMinutes || 25;
+
+  const handleAddLiveScheduledSub = async () => {
+    if (!activeFixture?.matchSquad || !schedOffId || !schedOnId || schedOffId === schedOnId) {
+      return;
+    }
+    const offPl = playerMap.get(schedOffId);
+    const onPl = playerMap.get(schedOnId);
+    const pitchEntry = currentLineup?.onPitch.find((op) => op.playerId === schedOffId);
+    const pos =
+      pitchEntry?.position || onPl?.preferredPositions?.[0]?.slice(0, 3).toUpperCase() || 'MID';
+    const clampedMin = Math.max(1, Math.min(periodDurationMins - 1, schedTargetMin));
+    const matchMinute = (activePeriod - 1) * periodDurationMins + clampedMin;
+
+    const newSub: PlannedInGameSub = {
+      period: activePeriod,
+      targetMinute: clampedMin,
+      matchMinute,
+      playerOutId: schedOffId,
+      playerOutName: offPl?.name || 'Player',
+      playerInId: schedOnId,
+      playerInName: onPl?.name || 'Player',
+      position: pos,
+      reason: 'Scheduled during Live Match',
+    };
+
+    const existingSubs = (activeFixture.matchSquad.plannedInGameSubs || []).filter(
+      (s) => !restedIdsSet.has(s.playerOutId) && !restedIdsSet.has(s.playerInId)
     );
-  });
+    const updatedPlanned = [...existingSubs, newSub].sort(
+      (a, b) => a.period - b.period || a.targetMinute - b.targetMinute
+    );
+
+    await updateMatchSquad({
+      ...activeFixture.matchSquad,
+      manualOverrides: true,
+      plannedInGameSubs: updatedPlanned,
+    });
+
+    setSchedOffId('');
+    setSchedOnId('');
+    setShowAddScheduledSub(false);
+  };
+
+  const handleRemoveLiveScheduledSub = async (targetSub: PlannedInGameSub) => {
+    if (!activeFixture?.matchSquad) return;
+    const existingSubs = activeFixture.matchSquad.plannedInGameSubs || [];
+    const updatedPlanned = existingSubs.filter(
+      (s) =>
+        !(
+          s.period === targetSub.period &&
+          s.targetMinute === targetSub.targetMinute &&
+          s.playerOutId === targetSub.playerOutId &&
+          s.playerInId === targetSub.playerInId
+        )
+    );
+
+    await updateMatchSquad({
+      ...activeFixture.matchSquad,
+      manualOverrides: true,
+      plannedInGameSubs: updatedPlanned.length > 0 ? updatedPlanned : undefined,
+    });
+  };
 
   const effectivePeriodCount = activeFixture?.matchPeriodCount || settings.matchPeriodCount || 2;
 
@@ -808,62 +905,167 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
         </div>
 
         {/* Scheduled Mid-Game Rolling Substitutions Cue */}
-        {unexecutedPlannedSubs.length > 0 && (
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-amber-500/40 space-y-2.5 shadow-lg animate-fade-in">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-amber-400" />
-                <span>Scheduled Mid-Game Rolling Substitutions</span>
-              </span>
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-amber-500/40 space-y-2.5 shadow-lg animate-fade-in">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+              <Clock className="w-4 h-4 text-amber-400" />
+              <span>Scheduled Mid-Game Rolling Substitutions</span>
+            </span>
+            <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
                 {unexecutedPlannedSubs.length} Scheduled
               </span>
+              <button
+                type="button"
+                onClick={() => setShowAddScheduledSub((prev) => !prev)}
+                className="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/40 font-bold text-[11px] flex items-center gap-1 transition cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{showAddScheduledSub ? 'Cancel' : 'Schedule Sub'}</span>
+              </button>
             </div>
+          </div>
+
+          {showAddScheduledSub && (
+            <div className="p-3 rounded-xl bg-slate-900/95 border border-slate-800 grid grid-cols-1 sm:grid-cols-4 gap-2.5 items-end text-xs">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                  Minute in Period {activePeriod}
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={periodDurationMins - 1}
+                  value={schedTargetMin}
+                  onChange={(e) => setSchedTargetMin(Number(e.target.value))}
+                  className="w-full min-h-[36px] px-2.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-rose-300 uppercase mb-1">
+                  Player OFF
+                </label>
+                <select
+                  value={schedOffId}
+                  onChange={(e) => setSchedOffId(e.target.value)}
+                  className="w-full min-h-[36px] px-2.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
+                >
+                  <option value="">Select OFF...</option>
+                  {(currentLineup?.onPitch || [])
+                    .filter((op) => !restedIdsSet.has(op.playerId))
+                    .map((op) => {
+                      const pl = playerMap.get(op.playerId);
+                      return (
+                        <option key={op.playerId} value={op.playerId}>
+                          {pl?.name || 'Player'} ({op.position})
+                        </option>
+                      );
+                    })}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-emerald-300 uppercase mb-1">
+                  Player ON
+                </label>
+                <select
+                  value={schedOnId}
+                  onChange={(e) => setSchedOnId(e.target.value)}
+                  className="w-full min-h-[36px] px-2.5 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
+                >
+                  <option value="">Select ON...</option>
+                  {(currentLineup?.subs || [])
+                    .filter((id) => !restedIdsSet.has(id) && id !== schedOffId)
+                    .map((id) => {
+                      const pl = playerMap.get(id);
+                      return (
+                        <option key={id} value={id}>
+                          {pl?.name || 'Sub'}
+                        </option>
+                      );
+                    })}
+                </select>
+              </div>
+              <button
+                type="button"
+                disabled={!schedOffId || !schedOnId || schedOffId === schedOnId}
+                onClick={handleAddLiveScheduledSub}
+                className="min-h-[36px] px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add to Schedule</span>
+              </button>
+            </div>
+          )}
+
+          {unexecutedPlannedSubs.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {unexecutedPlannedSubs.map((ps, idx) => {
                 const isDue = elapsedSeconds >= ps.targetMinute * 60;
                 return (
                   <div
-                    key={idx}
+                    key={`${ps.period}-${ps.targetMinute}-${ps.playerOutId}-${ps.playerInId}-${idx}`}
                     className={`p-3 rounded-xl border flex items-center justify-between gap-2 text-xs transition ${
                       isDue
                         ? 'bg-amber-500/25 border-amber-400 text-white shadow-md'
                         : 'bg-slate-900/90 border-slate-800 text-slate-300'
                     }`}
                   >
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="font-bold flex items-center gap-1.5">
                         <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-amber-400 font-mono">
-                          ~Min {ps.targetMinute}
+                          ~Min {Math.round(ps.targetMinute)}
                         </span>
                         <span>{ps.position}</span>
                       </div>
-                      <div className="text-[11px] text-slate-300 mt-1">
+                      <div className="text-[11px] text-slate-300 mt-1 truncate">
                         <span className="text-rose-400 font-semibold">OFF:</span>{' '}
                         {ps.playerOutName || playerMap.get(ps.playerOutId)?.name || 'Player'} ➔{' '}
                         <span className="text-emerald-400 font-semibold">ON:</span>{' '}
                         {ps.playerInName || playerMap.get(ps.playerInId)?.name || 'Player'}
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleExecuteQuickSub(ps.playerOutId, ps.playerInId, ps.position)
-                      }
-                      className={`px-3 py-2 rounded-xl font-bold text-xs shadow-md transition cursor-pointer shrink-0 ${
-                        isDue
-                          ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-amber-400/30 ring-2 ring-amber-300 animate-pulse'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
-                      }`}
-                    >
-                      Execute Sub
-                    </button>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {ps.canExecuteNow ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleExecuteQuickSub(ps.playerOutId, ps.playerInId, ps.position)
+                          }
+                          className={`px-3 py-2 rounded-xl font-bold text-xs shadow-md transition cursor-pointer shrink-0 ${
+                            isDue
+                              ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-amber-400/30 ring-2 ring-amber-300 animate-pulse'
+                              : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                          }`}
+                        >
+                          Execute Sub
+                        </button>
+                      ) : (
+                        <span className="px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-semibold text-slate-400">
+                          Next Window
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLiveScheduledSub(ps)}
+                        aria-label="Remove scheduled substitution"
+                        title="Remove scheduled substitution"
+                        className="p-2 rounded-xl bg-slate-950/80 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-slate-800 transition cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 );
               })}
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="text-[11px] text-slate-300/90">
+              No remaining scheduled subs for Period {activePeriod}. Click{' '}
+              <strong className="text-amber-300">+ Schedule Sub</strong> above to queue a mid-game swap, or use{' '}
+              <strong className="text-amber-300">Suggested Subs</strong> on the Pitch view to apply a multi-window schedule.
+            </p>
+          )}
+        </div>
 
         {/* Sideline 1-Tap Substitution Controls */}
         <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">

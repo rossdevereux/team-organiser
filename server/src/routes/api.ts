@@ -28,6 +28,7 @@ import {
   EarlyDeparture,
   UserOnboardingState,
   DEFAULT_ONBOARDING_STATE,
+  SubsPerWindowOption,
 } from '../types.js';
 
 const router = Router();
@@ -1361,6 +1362,18 @@ router.get('/fixtures/:id/suggested-subs', async (req: Request, res: Response) =
   try {
     const id = req.params.id as string;
     const interval = req.query.interval ? parseInt(req.query.interval as string, 10) : 10;
+    const rawSubsPerWindow = req.query.subsPerWindow as string | undefined;
+    let subsPerWindow: SubsPerWindowOption = 'auto';
+    if (rawSubsPerWindow === 'all_bench' || rawSubsPerWindow === 'auto') {
+      subsPerWindow = rawSubsPerWindow;
+    } else if (rawSubsPerWindow) {
+      const parsedCount = parseInt(rawSubsPerWindow, 10);
+      if (!isNaN(parsedCount) && parsedCount >= 1) {
+        subsPerWindow = parsedCount;
+      }
+    }
+    const ensureEveryoneSubbedOnce = req.query.ensureEveryoneSubbedOnce === 'true';
+
     const fixture = await storage.getFixtureById(id);
     if (!fixture) {
       return res.status(404).json({ error: 'Fixture not found' });
@@ -1368,11 +1381,16 @@ router.get('/fixtures/:id/suggested-subs', async (req: Request, res: Response) =
 
     const players = await storage.getPlayers(fixture.teamId);
     const settings = await storage.getSettings(fixture.teamId);
-    const plans = generateSuggestedSubstitutions(fixture, players, settings, interval);
+    const plans = generateSuggestedSubstitutions(fixture, players, settings, interval, {
+      subsPerWindow,
+      ensureEveryoneSubbedOnce,
+    });
 
     res.json({
       fixtureId: fixture.id,
       interval,
+      subsPerWindow,
+      ensureEveryoneSubbedOnce,
       plans,
     });
   } catch (err: any) {
