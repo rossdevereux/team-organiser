@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-10-31
+
+### Fixed
+- **Unify Live Match Substitution Schedule Data Source & Preserve Multi-Window Plans on Apply**:
+  - Fixed `updateMatchSquad` in [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx) to chronologically simulate multi-window substitutions per period (`simPitch` and `simBench`) rather than checking against the static minute-`0'` lineup, preventing Window 2+ substitutions (where a starter subbed off in Window 1 rotates back onto the pitch in Window 2) from being stripped when applying a plan from [`SuggestedSubsModal.tsx`](client/src/components/SuggestedSubsModal.tsx).
+  - Unified the **Next Rotation Buzzer** card and the **Scheduled Mid-Game Rolling Substitutions** panel in [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx) to read from the same primary data source (`activeFixture.matchSquad.plannedInGameSubs` via `unexecutedPlannedSubs`), so the buzzer countdown and upcoming rotation preview match the applied schedule instead of querying default 10-minute suggested subs independently.
+  - Updated `handleApplyPlanToSchedule`, `handleAddCustomScheduledSub`, and `handleRemoveScheduledSub` in [`SuggestedSubsModal.tsx`](client/src/components/SuggestedSubsModal.tsx) and `handleAddLiveScheduledSub` / `handleRemoveLiveScheduledSub` in [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx) to persist immediately (`updateMatchSquad(..., true)`), and added a live sync indicator badge plus an **Apply & Close** action in `SuggestedSubsModal.tsx`.
+
 ## [1.8.0] - 2026-10-31
 
 ### Added
