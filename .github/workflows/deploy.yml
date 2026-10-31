@@ -75,6 +75,12 @@ jobs:
           SERVICE_NAME="${{ needs.set-env.outputs.cloud_run_service }}"
           IMAGE_TAG="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY_REPO }}/${SERVICE_NAME}:${{ github.sha }}"
 
+          SECRETS_SPEC="STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest,STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest"
+          if gcloud secrets describe JIRA_USER_EMAIL --project="${{ env.GCP_PROJECT_ID }}" >/dev/null 2>&1 && \
+             gcloud secrets describe JIRA_API_TOKEN --project="${{ env.GCP_PROJECT_ID }}" >/dev/null 2>&1; then
+            SECRETS_SPEC="${SECRETS_SPEC},JIRA_USER_EMAIL=JIRA_USER_EMAIL:latest,JIRA_API_TOKEN=JIRA_API_TOKEN:latest"
+          fi
+
           gcloud run deploy "$SERVICE_NAME" \
             --image "$IMAGE_TAG" \
             --region ${{ env.GCP_REGION }} \
@@ -85,8 +91,8 @@ jobs:
             --max-instances ${{ needs.set-env.outputs.max_instances }} \
             --memory 512Mi \
             --cpu 1 \
-            --update-env-vars NODE_ENV=production \
-            --update-secrets STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest,STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest
+            --update-env-vars NODE_ENV=production,JIRA_HOST=subshuffle.atlassian.net \
+            --update-secrets "$SECRETS_SPEC"
 
   # Deploy Frontend to Firebase Hosting
   deploy-frontend:

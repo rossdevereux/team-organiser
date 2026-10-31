@@ -10,6 +10,7 @@ import { requireAuth, optionalAuth, AuthenticatedRequest } from './middleware/au
 import apiRouter from './routes/api.js';
 import adminRouter from './routes/admin.js';
 import billingRouter from './routes/billing.js';
+import supportRouter from './routes/support.js';
 
 dotenv.config();
 
@@ -108,6 +109,9 @@ app.use('/api/admin', adminRouter);
 
 // Mount SubShuffle Stripe Billing & Monetisation routes
 app.use('/api/billing', billingRouter);
+
+// Mount SubShuffle Support & Jira Service Management routes
+app.use('/api/support', supportRouter);
 
 // Fallback for unmatched /api routes
 app.all('/api/*', (_req: Request, res: Response) => {

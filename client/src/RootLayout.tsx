@@ -25,11 +25,14 @@ import {
   MessageSquare,
   X,
   Wand2,
+  LifeBuoy,
 } from 'lucide-react';
 
 import { GlobalModals } from './components/GlobalModals';
 import { AppVersion } from './components/AppVersion';
 import { ReleaseNotesModal } from './components/ReleaseNotesModal';
+import { SupportTicketModal } from './components/support/SupportTicketModal';
+import { AppErrorBoundary } from './components/support/AppErrorBoundary';
 import { trackLineupAutoBalanced, trackPageView } from './utils/analytics';
 
 function DashboardShell() {
@@ -70,6 +73,7 @@ function DashboardShell() {
   const [showcaseOpen, setShowcaseOpen] = useState(false);
   const [editActiveFixtureOpen, setEditActiveFixtureOpen] = useState(false);
   const [changelogOpen, setChangelogOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
 
   const location = useLocation();
   const isPublicRoute = ['/', '/calculator', '/features', '/rules', '/guide'].includes(location.pathname);
@@ -88,11 +92,16 @@ function DashboardShell() {
     const handleOpenSquad = () => {
       setSquadSelectorOpen(true);
     };
+    const handleOpenSupport = () => {
+      setSupportOpen(true);
+    };
     window.addEventListener('beforeprint', handleBeforePrint);
     window.addEventListener('subshuffle:open-squad-selector', handleOpenSquad);
+    window.addEventListener('subshuffle:open-support', handleOpenSupport);
     return () => {
       window.removeEventListener('beforeprint', handleBeforePrint);
       window.removeEventListener('subshuffle:open-squad-selector', handleOpenSquad);
+      window.removeEventListener('subshuffle:open-support', handleOpenSupport);
     };
   }, [location.pathname]);
 
@@ -178,6 +187,14 @@ function DashboardShell() {
           editActiveFixtureOpen={editActiveFixtureOpen}
           onEditActiveFixtureClose={() => setEditActiveFixtureOpen(false)}
         />
+        <SupportTicketModal
+          isOpen={supportOpen}
+          onClose={() => setSupportOpen(false)}
+          userEmail={currentUser?.email || undefined}
+          userId={currentUser?.uid || undefined}
+          activeTeamId={activeTeam?.id}
+          activeFixtureId={activeFixture?.id}
+        />
       </div>
     );
   }
@@ -261,14 +278,24 @@ function DashboardShell() {
 
         {/* Error Notice */}
         {error && (
-          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between">
+          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between gap-3">
             <span>{error}</span>
-            <button
-              onClick={() => window.location.reload()}
-              className="font-bold underline hover:text-white"
-            >
-              Retry
-            </button>
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSupportOpen(true)}
+                className="font-bold underline hover:text-white cursor-pointer"
+                data-testid="error-banner-support-button"
+              >
+                Help &amp; Feedback
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="font-bold underline hover:text-white cursor-pointer"
+              >
+                Retry
+              </button>
+            </div>
           </div>
         )}
 
@@ -539,6 +566,17 @@ function DashboardShell() {
             <span>{activeTeam?.name} ({settings.pitchPlayerCount}-a-side)</span>
             <span>•</span>
             <AppVersion onClick={() => setChangelogOpen(true)} />
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => setSupportOpen(true)}
+              className="hover:text-amber-300 text-slate-400 transition cursor-pointer flex items-center gap-1 font-semibold"
+              title="Open pitchside support and feature feedback desk"
+              data-testid="footer-support-button"
+            >
+              <LifeBuoy className="w-3.5 h-3.5 text-amber-400" />
+              <span>Help &amp; Feedback</span>
+            </button>
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">
@@ -603,6 +641,16 @@ function DashboardShell() {
         isOpen={changelogOpen}
         onClose={() => setChangelogOpen(false)}
       />
+
+      {/* In-App Support & Feedback Modal (JSM) */}
+      <SupportTicketModal
+        isOpen={supportOpen}
+        onClose={() => setSupportOpen(false)}
+        userEmail={currentUser?.email || undefined}
+        userId={currentUser?.uid || undefined}
+        activeTeamId={activeTeam?.id}
+        activeFixtureId={activeFixture?.id}
+      />
     </div>
   );
 }
@@ -622,14 +670,16 @@ function DesignSystemWrapper({ children }: { children: React.ReactNode }) {
 
 export function RootLayout() {
   return (
-    <ToastProvider>
-      <MatchdayProvider>
-        <OnboardingProvider>
-          <DesignSystemWrapper>
-            <DashboardShell />
-          </DesignSystemWrapper>
-        </OnboardingProvider>
-      </MatchdayProvider>
-    </ToastProvider>
+    <AppErrorBoundary>
+      <ToastProvider>
+        <MatchdayProvider>
+          <OnboardingProvider>
+            <DesignSystemWrapper>
+              <DashboardShell />
+            </DesignSystemWrapper>
+          </OnboardingProvider>
+        </MatchdayProvider>
+      </ToastProvider>
+    </AppErrorBoundary>
   );
 }

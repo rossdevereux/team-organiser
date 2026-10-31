@@ -1,3 +1,7 @@
+---
+trigger: manual
+---
+
 ## name: git-branching-and-production-gatekeeper
 description: Strictly enforces committing and deploying to the beta environment first, prohibiting direct commits or merges to main without explicit user command.
 trigger: on-task-complete, on-git-commit, on-git-push

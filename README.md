@@ -123,6 +123,11 @@ FIREBASE_PROJECT_ID=team-organiser-prod
 # Optional: Stripe Billing (runs in offline simulated mode if omitted)
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Optional: Jira Service Management Support Desk (runs in simulated mode if omitted)
+JIRA_HOST=subshuffle.atlassian.net
+JIRA_USER_EMAIL=your-atlassian-email@example.com
+JIRA_API_TOKEN=your_atlassian_api_token
 ```
 
 ### 3. Run Development Servers
@@ -426,6 +431,22 @@ gcloud firestore fields ttls update expireAt \
   --enable-ttl \
   --project=team-organiser-prod
 ```
+
+---
+
+## 🎫 Jira Service Management (JSM) Support Desk Setup
+
+SubShuffle includes an in-app **Help & Feedback** modal (`POST /api/support/ticket`) that creates categorized issues directly in Jira Service Management (`OPS` project on `subshuffle.atlassian.net`) with an Atlassian Document Format (ADF) description and automated diagnostic telemetry (`SupportTelemetry`).
+
+- **Category to Issue Type ID Mapping (`OPS`):**
+  - `bug` -> `10002` (Problem)
+  - `feature` -> `10003` (Suggestion)
+  - `question` -> `10001` (Question)
+- **Cloud Run Secret Provisioning:**
+  Run the helper script once to store `JIRA_USER_EMAIL` and `JIRA_API_TOKEN` in Google Cloud Secret Manager and attach them to `team-organiser-api` and `backend-api-beta`:
+  ```powershell
+  .\scripts\setup-jira-secrets.ps1
+  ```
 
 ---
 

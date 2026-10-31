@@ -49,6 +49,7 @@ This guide walks you through every stage of your season, from your initial team 
   - [Free Trial & Grassroots Pricing](#free-trial--grassroots-pricing)
   - [Complimentary Free for Life Access](#complimentary-free-for-life-access)
   - [Backups & Disaster Recovery](#backups--disaster-recovery)
+  - [In-App Help & Feedback (Support Desk)](#in-app-help--feedback-support-desk)
 - [8. Frequently Asked Questions (FAQ) & Touchline Tips](#8-frequently-asked-questions-faq--touchline-tips)
 
 ---
@@ -331,6 +332,19 @@ In the **Admin Portal** under **Backups & Disaster Recovery**:
 - Click **Export JSON Backup** to download an encrypted snapshot of all your teams, players, fixtures, and settings.
 - Restore backups seamlessly onto any device.
 
+### In-App Help & Feedback (Support Desk)
+Need help on matchday, want to suggest a grassroots feature, or spotted a bug on the touchline? You can raise a support ticket directly inside SubShuffle without leaving your pitch view:
+1. Open the **Help & Feedback** modal from any of three convenient places:
+   - Your **User Profile Menu** (top-right avatar -> **💬 Help & Feedback**).
+   - The **Application Footer** next to the SubShuffle version badge (**💬 Help & Feedback**).
+   - Any error notification banner or recovery screen (**💬 Help & Feedback**).
+2. Choose your category:
+   - **🐛 Report a Bug:** Something isn't working as expected on the touchline.
+   - **💡 Suggest a Feature:** Share an idea to improve grassroots matchday management.
+   - **❓ Ask a Question:** Get help with squad setup, FA rules, or billing.
+3. Enter a short **Summary** and **Description**, then tap **🚀 Submit Ticket**.
+4. SubShuffle automatically attaches diagnostic context (your active team and fixture IDs, screen size, app version, and online status) so you never have to look up technical browser details, and gives you an instant support reference number (e.g. `OPS-42`).
+
 ---
 
 ## 8. Frequently Asked Questions (FAQ) & Touchline Tips
@@ -355,6 +369,9 @@ In the **Admin Portal** under **Backups & Disaster Recovery**:
 
 **Q: How can I download a VAT receipt to claim my subscription back from my grassroots club?**  
 *A: Open **Settings** (gear icon) and select the **Billing & Plan** tab. Under **Payment History & Receipts**, you can view your past payments and click **📄 Receipt ↗** next to any invoice to view or download an official PDF receipt for your club treasurer. Receipts are automatically retained for 24 months.*
+
+**Q: How do I report an issue or request a new coaching feature?**  
+*A: Tap your profile avatar in the top right (or look in the page footer) and select **💬 Help & Feedback**. Pick whether you are reporting a bug, suggesting a feature, or asking a question, type a quick summary, and submit. You will immediately receive an `OPS` ticket reference key.*
 
 ---
 

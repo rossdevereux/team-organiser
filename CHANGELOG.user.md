@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- **In-App Help & Feedback Desk** ([#36](https://github.com/rossdevereux/team-organiser/issues/36)):
+  - Coaches can now report bugs, suggest features, or ask questions directly inside SubShuffle via the **💬 Help & Feedback** option in the User Profile menu, page footer, or error recovery banner.
+  - Automatically attaches matchday diagnostic context (active team/fixture, screen viewport, app version, and online status) so you never have to look up technical browser details, and provides an instant support ticket reference number (e.g. `OPS-42`).
 - **Dedicated Beta Testing Environment (`beta.subshuffle.com`)** ([#33](https://github.com/rossdevereux/team-organiser/issues/33)):
   - Launched a dedicated staging environment at `beta.subshuffle.com` with a clear **Beta Test** header badge so new features can be tested safely before Sunday morning matchdays.
 - **Payment History & VAT Receipts in Settings** ([#35](https://github.com/rossdevereux/team-organiser/issues/35)):

@@ -482,3 +482,34 @@ export interface TeamDashboardSummary {
   };
   milestones: TeamMilestoneBadge[];
 }
+
+// ================= In-App Support & Jira Service Management Models =================
+
+export type SupportTicketCategory = 'bug' | 'feature' | 'question';
+
+export interface SupportTelemetry {
+  userEmail: string;
+  userId: string;
+  activeTeamId?: string;
+  activeFixtureId?: string;
+  currentPath: string;
+  viewport: string;
+  userAgent: string;
+  appVersion: string;
+  onlineStatus: boolean;
+  timestamp: string;
+}
+
+export interface SupportTicketRequest {
+  category: SupportTicketCategory;
+  summary: string;
+  description: string;
+  telemetry?: Partial<SupportTelemetry>;
+}
+
+export interface SupportTicketResponse {
+  success: boolean;
+  ticketKey: string;
+  issueTypeId: string;
+  simulated?: boolean;
+}
