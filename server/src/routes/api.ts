@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { getAuth } from 'firebase-admin/auth';
 import { storage } from '../db/storage.js';
 import {
   generateFairRotation,
@@ -226,7 +227,6 @@ router.post('/teams/:id/share', async (req: AuthenticatedRequest, res: Response)
 
     // 1. Attempt to resolve email to Firebase Auth user ID via Admin SDK
     try {
-      const { getAuth } = await import('firebase-admin/auth');
       const userRecord = await getAuth().getUserByEmail(normalizedEmail);
       if (userRecord && userRecord.uid) {
         resolvedUserId = userRecord.uid;

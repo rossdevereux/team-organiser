@@ -232,6 +232,7 @@ export async function submitSupportTicket(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(jiraPayload),
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (response.status === 429) {

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Cloud Run & Firebase Functions Best Practices Skill (`cloud-run-functions-best-practices`)**:
+  - Created [`.agents/skills/cloud-run-functions-best-practices/SKILL.md`](.agents/skills/cloud-run-functions-best-practices/SKILL.md) and [`references/cloud-run-and-firebase-tips.md`](.agents/skills/cloud-run-functions-best-practices/references/cloud-run-and-firebase-tips.md) encoding official Google Cloud Run and Firebase Functions guidelines on cold-start mitigation, global/lazy SDK initialization, HTTP keep-alive connection reuse, Promise lifecycle & CPU throttling guards, idempotency & out-of-order event reconciliation, `/tmp` (`tmpfs`) memory cleanup, and Secret Manager deployment hygiene.
+
+### Changed
+- **Backend Cloud Run & Functions Best-Practices Audit & Hardening**:
+  - **Outbound Timeout Guard ([`support.ts`](server/src/routes/support.ts)):** Added `AbortSignal.timeout(10_000)` to Jira Service Management REST API `fetch` calls to prevent hung upstream sockets from stalling Cloud Run request concurrency slots.
+  - **Lazy Singleton Stripe Client ([`billing.ts`](server/src/routes/billing.ts)):** Replaced eager module-load Stripe SDK instantiation with `getStripeClient()` lazy initialization configured with `timeout: 10_000` and `maxNetworkRetries: 2`, avoiding cold-start penalties on non-billing routes and ensuring env vars are read after `dotenv` initialization.
+  - **Stateless Cloud Run Disk Guard ([`storage.ts`](server/src/db/storage.ts)):** Guarded `saveToFile()` so synchronous `fs.writeFileSync(STORE_FILE)` is skipped when Cloud Firestore is active (`isFirestoreAvailable`) or when running inside Cloud Run (`K_SERVICE`), eliminating event-loop blocking, `EACCES` permission errors, and container `tmpfs` RAM growth on warm instances.
+  - **Production Module-Scope Caching ([`changelogService.ts`](server/src/services/changelogService.ts)):** Cached parsed `CHANGELOG.md` AST and package version in memory when `NODE_ENV === 'production'` instead of running synchronous `readFileSync` on every request.
+  - **Warm-Instance Auth & Claims Optimization ([`auth.ts`](server/src/middleware/auth.ts), [`claims.ts`](server/src/auth/claims.ts), [`api.ts`](server/src/routes/api.ts), [`index.ts`](server/src/index.ts)):** Added `bootstrappedOwnerUids` warm-instance cache to prevent redundant `setCustomUserClaims` network calls, parallelized user subscription enrichment via `Promise.all` in `listAllUsersWithClaims()`, moved `getAuth` to top-level static import in `api.ts`, and moved `import 'dotenv/config'` to the top of `index.ts` with an `.unref()`ed shutdown timer.
+
 ## [1.7.1] - 2026-10-31
 
 ### Changed

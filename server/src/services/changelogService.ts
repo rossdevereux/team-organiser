@@ -130,10 +130,16 @@ export const findChangelogPath = (): string | null => {
   return null;
 };
 
+let cachedCurrentVersion: string | null = null;
+let cachedChangelogResponse: ChangelogResponse | null = null;
+
 /**
  * Finds current package version from root or server package.json.
  */
 export const getCurrentVersion = (): string => {
+  if (cachedCurrentVersion && process.env.NODE_ENV === 'production') {
+    return cachedCurrentVersion;
+  }
   const candidatePkgPaths = [
     resolve(process.cwd(), 'package.json'),
     resolve(process.cwd(), '../package.json'),
@@ -145,7 +151,10 @@ export const getCurrentVersion = (): string => {
     if (existsSync(p)) {
       try {
         const pkg = JSON.parse(readFileSync(p, 'utf-8'));
-        if (pkg.version) return pkg.version;
+        if (pkg.version) {
+          cachedCurrentVersion = pkg.version;
+          return pkg.version;
+        }
       } catch {
         // continue
       }
@@ -158,11 +167,14 @@ export const getCurrentVersion = (): string => {
  * Loads and returns the complete structured changelog data.
  */
 export const getChangelogData = (): ChangelogResponse => {
+  if (cachedChangelogResponse && process.env.NODE_ENV === 'production') {
+    return cachedChangelogResponse;
+  }
   const currentVersion = getCurrentVersion();
   const filePath = findChangelogPath();
 
   if (!filePath) {
-    return {
+    const fallback: ChangelogResponse = {
       currentVersion,
       releases: [
         {
@@ -178,16 +190,24 @@ export const getChangelogData = (): ChangelogResponse => {
         },
       ],
     };
+    if (process.env.NODE_ENV === 'production') {
+      cachedChangelogResponse = fallback;
+    }
+    return fallback;
   }
 
   try {
     const rawMarkdown = readFileSync(filePath, 'utf-8');
     const releases = parseChangelogMarkdown(rawMarkdown);
-    return {
+    const response: ChangelogResponse = {
       currentVersion,
       releases,
       rawMarkdown,
     };
+    if (process.env.NODE_ENV === 'production') {
+      cachedChangelogResponse = response;
+    }
+    return response;
   } catch (err) {
     console.error('Failed to read or parse CHANGELOG.md:', err);
     return {

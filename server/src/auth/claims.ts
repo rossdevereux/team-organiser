@@ -246,19 +246,20 @@ export async function listAllUsersWithClaims(): Promise<AdminUser[]> {
     await storage.upsertAdminUser(defaultViewer);
   }
 
-  // 4. Attach subscription details for all users
-  const enrichedUsers: AdminUser[] = [];
-  for (const user of usersMap.values()) {
-    try {
-      const sub = await storage.getUserSubscription(user.uid);
-      enrichedUsers.push({
-        ...user,
-        subscription: sub,
-      });
-    } catch {
-      enrichedUsers.push(user);
-    }
-  }
+  // 4. Attach subscription details concurrently across all users
+  const enrichedUsers: AdminUser[] = await Promise.all(
+    Array.from(usersMap.values()).map(async (user) => {
+      try {
+        const sub = await storage.getUserSubscription(user.uid);
+        return {
+          ...user,
+          subscription: sub,
+        };
+      } catch {
+        return user;
+      }
+    })
+  );
 
   return enrichedUsers;
 }

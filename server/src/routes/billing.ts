@@ -37,21 +37,35 @@ export const PRICING_PLANS = {
   },
 };
 
-// Initialize Stripe client if secret key is configured
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
-export const stripe = stripeSecretKey
-  ? new Stripe(stripeSecretKey, {
+// Lazily initialize and reuse Stripe client across warm container invocations
+let cachedStripeClient: Stripe | null | undefined = undefined;
+
+export function getStripeClient(): Stripe | null {
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
+  if (!stripeSecretKey) {
+    if (cachedStripeClient === undefined) {
+      console.log('💳 Stripe: No STRIPE_SECRET_KEY found. Running in offline/simulated mode.');
+      cachedStripeClient = null;
+    }
+    return null;
+  }
+
+  if (!cachedStripeClient) {
+    cachedStripeClient = new Stripe(stripeSecretKey, {
       apiVersion: '2024-12-18.acacia' as any,
-    })
-  : null;
-
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
-
-if (!stripe) {
-  console.log('💳 Stripe: No STRIPE_SECRET_KEY found. Running in offline/simulated mode.');
-} else {
-  console.log('💳 Stripe: Initialized with API key.');
+      maxNetworkRetries: 2,
+      timeout: 10_000,
+    });
+    console.log('💳 Stripe: Initialized lazy singleton client with API key.');
+  }
+  return cachedStripeClient;
 }
+
+function getWebhookSecret(): string | undefined {
+  return process.env.STRIPE_WEBHOOK_SECRET?.trim() || undefined;
+}
+
+export const stripe = getStripeClient();
 
 /**
  * Maps a Stripe subscription status string to internal SubscriptionStatus.
@@ -140,7 +154,7 @@ export async function processStripeWebhookEvent(
   options: WebhookProcessOptions = {}
 ): Promise<WebhookProcessResult> {
   const storageInstance = options.storageInstance || storage;
-  const stripeClient = options.stripeClient !== undefined ? options.stripeClient : stripe;
+  const stripeClient = options.stripeClient !== undefined ? options.stripeClient : getStripeClient();
   const updateSubscription =
     options.claimsUpdater ||
     (async (uid: string, sub: UserSubscription) => {
@@ -507,7 +521,7 @@ router.get('/subscription', requireAuth, async (req: AuthenticatedRequest, res: 
       subscription: sub,
       trialDaysRemaining: daysRemaining,
       isSubscriptionActive: active,
-      stripeConfigured: !!stripe,
+      stripeConfigured: !!getStripeClient(),
       pricingPlans: PRICING_PLANS,
     });
   } catch (err: any) {
@@ -547,9 +561,10 @@ router.post('/create-checkout-session', requireAuth, async (req: AuthenticatedRe
 
     const planConfig = PRICING_PLANS[plan as keyof typeof PRICING_PLANS];
     const currentSub = await storage.getUserSubscription(uid);
+    const stripeClient = getStripeClient();
 
     // Fallback in dev/test when Stripe is not configured
-    if (!stripe) {
+    if (!stripeClient) {
       const mockSessionId = `mock_session_${Date.now()}`;
       return res.json({
         url: successUrl ? `${successUrl}?simulated=true&plan=${plan}` : `/#checkout-success?simulated=true&plan=${plan}`,
@@ -595,7 +610,7 @@ router.post('/create-checkout-session', requireAuth, async (req: AuthenticatedRe
       sessionParams.customer_email = email;
     }
 
-    const session = await stripe.checkout.sessions.create(sessionParams);
+    const session = await stripeClient.checkout.sessions.create(sessionParams);
 
     return res.json({
       url: session.url,
@@ -619,15 +634,16 @@ router.post('/create-portal-session', requireAuth, async (req: AuthenticatedRequ
     const currentSub = await storage.getUserSubscription(uid);
     const origin = req.headers.origin || 'http://localhost:5173';
     const finalReturnUrl = returnUrl || `${origin}/lineup`;
+    const stripeClient = getStripeClient();
 
-    if (!stripe || !currentSub?.stripeCustomerId) {
+    if (!stripeClient || !currentSub?.stripeCustomerId) {
       return res.json({
         url: `${origin}/#billing-portal?simulated=true`,
         simulated: true,
       });
     }
 
-    const portalSession = await stripe.billingPortal.sessions.create({
+    const portalSession = await stripeClient.billingPortal.sessions.create({
       customer: currentSub.stripeCustomerId,
       return_url: finalReturnUrl,
     });
@@ -651,10 +667,12 @@ router.post('/webhook', async (req: AuthenticatedRequest, res: Response) => {
 
   try {
     const sig = req.headers['stripe-signature'] as string;
+    const stripeClient = getStripeClient();
+    const webhookSecret = getWebhookSecret();
 
-    if (stripe && webhookSecret && sig) {
+    if (stripeClient && webhookSecret && sig) {
       const rawBody = req.rawBody || (req.body instanceof Buffer ? req.body : Buffer.from(JSON.stringify(req.body)));
-      event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
+      event = stripeClient.webhooks.constructEvent(rawBody, sig, webhookSecret);
     } else {
       // In development / testing environments without live Stripe webhook secret
       event = req.body;

@@ -638,6 +638,14 @@ export class StorageManager {
   }
 
   private saveToFile() {
+    // Skip local disk writes in Cloud Run, when Cloud Firestore is active, or during concurrent unit test runs
+    if (
+      this.isFirestoreAvailable ||
+      Boolean(process.env.K_SERVICE) ||
+      Boolean(process.env.NODE_TEST_CONTEXT)
+    ) {
+      return;
+    }
     try {
       if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });

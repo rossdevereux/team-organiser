@@ -1,7 +1,7 @@
+import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import compression from 'compression';
-import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -11,8 +11,6 @@ import apiRouter from './routes/api.js';
 import adminRouter from './routes/admin.js';
 import billingRouter from './routes/billing.js';
 import supportRouter from './routes/support.js';
-
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -173,7 +171,7 @@ const handleShutdown = (signal: string) => {
   setTimeout(() => {
     console.error('Forcefully terminating server.');
     process.exit(1);
-  }, 10000);
+  }, 10000).unref();
 };
 
 process.on('SIGTERM', () => handleShutdown('SIGTERM'));

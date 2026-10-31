@@ -7,6 +7,9 @@ import { SubscriptionStatus, SubscriptionTier } from '../types.js';
 // Ensure Firebase Admin is initialized
 initFirebaseAdmin();
 
+// Cache UIDs already bootstrapped as owner on this warm container instance
+const bootstrappedOwnerUids = new Set<string>();
+
 export interface AuthenticatedRequest extends Request {
   user?: {
     uid: string;
@@ -118,13 +121,18 @@ export const requireAuth = async (
     const initialAdminEmail = process.env.INITIAL_ADMIN_EMAIL?.trim().toLowerCase();
     if (req.user.email && initialAdminEmail && req.user.email.toLowerCase() === initialAdminEmail) {
       if (req.user.role !== 'owner') {
-        try {
-          await getAuth().setCustomUserClaims(req.user.uid, { role: 'owner' });
-          console.log(`👑 Auto-bootstrapped owner claim for initial admin: ${req.user.email}`);
-        } catch (e: any) {
-          console.warn(`Initial admin claim set warning: ${e?.message}`);
+        if (!bootstrappedOwnerUids.has(req.user.uid)) {
+          try {
+            await getAuth().setCustomUserClaims(req.user.uid, { role: 'owner' });
+            bootstrappedOwnerUids.add(req.user.uid);
+            console.log(`👑 Auto-bootstrapped owner claim for initial admin: ${req.user.email}`);
+          } catch (e: any) {
+            console.warn(`Initial admin claim set warning: ${e?.message}`);
+          }
         }
         req.user.role = 'owner';
+      } else {
+        bootstrappedOwnerUids.add(req.user.uid);
       }
     }
 
