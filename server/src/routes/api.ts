@@ -8,6 +8,7 @@ import {
   generateSuggestedSubstitutions,
   rebalanceRemainingPeriods,
   reconcileMatchSquadPlannedSubs,
+  clampLiveMatchStateTimers,
 } from '../services/rotationService.js';
 import { calculateSeasonDashboardSummary } from '../services/dashboardService.js';
 import { getChangelogData } from '../services/changelogService.js';
@@ -1267,7 +1268,16 @@ router.put('/fixtures/:id/live-state', requireActiveSubscription, async (req: Au
       await storage.updateMatchSquad(id, matchSquad);
     }
 
-    const updated = await storage.updateLiveMatchState(id, liveMatchState);
+    const existingFixture = await storage.getFixtureById(id);
+    const settings = existingFixture ? await storage.getSettings(existingFixture.teamId) : undefined;
+    const periodDurationMins =
+      existingFixture?.periodDurationMinutes || settings?.periodDurationMinutes || 25;
+    const { state: clampedLiveState } = clampLiveMatchStateTimers(
+      liveMatchState,
+      periodDurationMins
+    );
+
+    const updated = await storage.updateLiveMatchState(id, clampedLiveState);
     if (!updated) {
       return res.status(404).json({ error: 'Fixture not found' });
     }
@@ -1285,9 +1295,23 @@ router.put('/fixtures/:id/live-state', requireActiveSubscription, async (req: Au
 router.get('/fixtures/:id/live-status', async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const fixture = await storage.getFixtureById(id);
+    let fixture = await storage.getFixtureById(id);
     if (!fixture) {
       return res.status(404).json({ error: 'Fixture not found' });
+    }
+
+    if (fixture.liveMatchState) {
+      const settings = await storage.getSettings(fixture.teamId);
+      const periodDurationMins =
+        fixture.periodDurationMinutes || settings?.periodDurationMinutes || 25;
+      const { state: clampedState, didAutoStop } = clampLiveMatchStateTimers(
+        fixture.liveMatchState,
+        periodDurationMins
+      );
+      if (didAutoStop) {
+        const persisted = await storage.updateLiveMatchState(id, clampedState);
+        if (persisted) fixture = persisted;
+      }
     }
 
     // Determine normalized match runtime status

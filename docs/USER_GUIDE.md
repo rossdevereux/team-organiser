@@ -240,6 +240,7 @@ On matchday morning, tap **Live Match** in the top toolbar:
 - Tap **Start Period** to start the pitchside stopwatch.
 - The timer runs accurately pitchside and automatically synchronizes with the cloud — if your phone battery dies, you refresh your screen, or you switch apps, the clock continues running with zero time drift.
 - Tap **Pause** at any point for referee injury stoppages.
+- **Auto-Stop at Period End & Stoppage Time:** When the stopwatch reaches your configured period duration (e.g. `25:00`), it automatically stops and sounds the referee whistle so the clock never runs on forever if you put your phone in your pocket. A **Period Complete** banner appears with a 1-tap button to advance to the next period (or **Complete Match** at full-time), plus **+1m Stoppage** and **+3m Stoppage** buttons if the referee plays injury time.
 - **Period Continuity Banner:** When rolling substitutions or lineup continuity is active, kicking off Period 2 highlights a reassuring banner (`⚡ Starting Half 2 with the same lineup`), confirming that your active outfield players resume without an unnecessary half-time reset.
 
 ### Sideline Substitution Alarms

@@ -8,6 +8,9 @@
   - **"Ensure Everyone is a Sub at Least Once" Toggle:** Turn on the new fairness rule to guarantee every non-fixed starter takes a turn on the bench before any player is subbed off a second time.
   - **One-Tap Apply to Live Match Schedule:** Click **Apply Plan to Match Schedule** inside **Suggested Substitutions** to save any multi-window substitution plan directly into your **Live Match** view, Fair Play minutes bar, and WhatsApp team sheet.
   - **Schedule or Remove Subs Inside Live Match:** Use the new **+ Schedule Sub** button inside the **Live Match** modal (or **+ Add Custom Sub** inside **Suggested Substitutions**) to queue or remove custom mid-game substitutions on the fly.
+- **Automatic Period Timer Stop & Stoppage Time Controls** ([#40](https://github.com/rossdevereux/team-organiser/issues/40)):
+  - **Auto-Stop at Half-Time / Full-Time:** The **Live Match** stopwatch now automatically stops when a period reaches its configured length (e.g. `25:00`) and sounds the referee whistle, preventing runaway clocks if you close your phone or get busy on the touchline.
+  - **One-Tap Next Period & Stoppage Time:** When a period finishes, a **Period Complete** banner lets you advance to the next half/period (or complete the match) with one tap, or add **+1m Stoppage** / **+3m Stoppage** if the referee plays injury time.
 
 ## [1.7.3] - 2026-10-31
 

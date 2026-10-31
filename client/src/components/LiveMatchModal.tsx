@@ -108,6 +108,10 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     };
 
   const isRunning = Boolean(activePeriodTimer.isRunning);
+  const basePeriodDurationSeconds =
+    (activeFixture?.periodDurationMinutes || settings.periodDurationMinutes || 25) * 60;
+  const stoppageSeconds = activePeriodTimer.stoppageSeconds || 0;
+  const periodDurationSeconds = basePeriodDurationSeconds + stoppageSeconds;
 
   // Re-render tick every second while timer is running so elapsedSeconds advances smoothly
   const [, setTicker] = useState<number>(0);
@@ -119,15 +123,17 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     return () => clearInterval(interval);
   }, [isOpen, isRunning]);
 
-  // Derive current elapsed seconds (identical across all devices derived from startedAt)
-  const elapsedSeconds =
+  // Derive current elapsed seconds (clamped to periodDurationSeconds to prevent runaway clocks)
+  const rawElapsedSeconds =
     isRunning && activePeriodTimer.startedAt
-      ? activePeriodTimer.elapsedSeconds +
+      ? (activePeriodTimer.elapsedSeconds || 0) +
         Math.max(
           0,
           Math.floor((Date.now() - new Date(activePeriodTimer.startedAt).getTime()) / 1000)
         )
       : activePeriodTimer.elapsedSeconds || 0;
+  const elapsedSeconds = Math.min(periodDurationSeconds, rawElapsedSeconds);
+  const isPeriodComplete = elapsedSeconds >= periodDurationSeconds;
 
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [highContrast, setHighContrast] = useState<boolean>(false);
@@ -145,6 +151,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
   } | null>(null);
   const whistlePlayedWindow = useRef<number>(-1);
   const plannedWhistlesPlayed = useRef<Set<string>>(new Set());
+  const periodEndWhistlePlayed = useRef<Set<string>>(new Set());
 
   const subLog = activeFixture?.liveMatchState?.subLog || [];
 
@@ -169,7 +176,56 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
   };
 
   const intervalSeconds = (settings.defaultSubIntervalMinutes || 10) * 60;
-  const periodDurationSeconds = (settings.periodDurationMinutes || 25) * 60;
+
+  // Auto-stop period timer when it reaches periodDurationSeconds (and clamp stale runaway clocks)
+  useEffect(() => {
+    if (!isOpen || !activeFixture || !isRunning || rawElapsedSeconds < periodDurationSeconds) {
+      return;
+    }
+
+    const endKey = `${activeFixture.id}_p${activePeriod}_${periodDurationSeconds}`;
+    // Sound end-of-period whistle if timer reached duration live (within 10s of threshold)
+    if (
+      soundEnabled &&
+      rawElapsedSeconds - periodDurationSeconds <= 10 &&
+      !periodEndWhistlePlayed.current.has(endKey)
+    ) {
+      periodEndWhistlePlayed.current.add(endKey);
+      playRefWhistle();
+    }
+
+    const stoppedPeriodTimer: LiveMatchPeriodTimer = {
+      isRunning: false,
+      startedAt: undefined,
+      elapsedSeconds: periodDurationSeconds,
+      stoppageSeconds: activePeriodTimer.stoppageSeconds,
+    };
+
+    const prevTimers = activeFixture.liveMatchState?.periodTimers || {};
+    const updatedLiveState: LiveMatchState = {
+      isRunning: false,
+      currentPeriod: activePeriod,
+      startedAt: undefined,
+      elapsedSeconds: periodDurationSeconds,
+      periodTimers: {
+        ...prevTimers,
+        [activePeriod]: stoppedPeriodTimer,
+      },
+      subLog: activeFixture.liveMatchState?.subLog || [],
+    };
+
+    updateLiveMatchState(activeFixture.id, updatedLiveState, undefined, true);
+  }, [
+    isOpen,
+    activeFixture,
+    isRunning,
+    rawElapsedSeconds,
+    periodDurationSeconds,
+    activePeriod,
+    activePeriodTimer.stoppageSeconds,
+    soundEnabled,
+    updateLiveMatchState,
+  ]);
 
   // Close on Escape key press
   useEffect(() => {
@@ -297,7 +353,8 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
     const updatedPeriodTimer: LiveMatchPeriodTimer = {
       isRunning: isNowRunning,
       startedAt,
-      elapsedSeconds: newElapsed,
+      elapsedSeconds: Math.min(periodDurationSeconds, newElapsed),
+      stoppageSeconds: activePeriodTimer.stoppageSeconds,
     };
 
     const prevTimers = activeFixture.liveMatchState?.periodTimers || {};
@@ -310,12 +367,51 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
       isRunning: isNowRunning,
       currentPeriod: activePeriod,
       startedAt,
-      elapsedSeconds: newElapsed,
+      elapsedSeconds: updatedPeriodTimer.elapsedSeconds,
       periodTimers: updatedTimers,
       subLog: activeFixture.liveMatchState?.subLog || [],
     };
 
     await updateLiveMatchState(activeFixture.id, updatedLiveState);
+  };
+
+  const handleAddStoppageTime = async (extraMinutes: number) => {
+    if (!activeFixture) return;
+    const nowIso = new Date().toISOString();
+    const newStoppageSeconds = (activePeriodTimer.stoppageSeconds || 0) + extraMinutes * 60;
+    const updatedPeriodTimer: LiveMatchPeriodTimer = {
+      isRunning: true,
+      startedAt: nowIso,
+      elapsedSeconds,
+      stoppageSeconds: newStoppageSeconds,
+    };
+
+    const prevTimers = activeFixture.liveMatchState?.periodTimers || {};
+    const updatedLiveState: LiveMatchState = {
+      isRunning: true,
+      currentPeriod: activePeriod,
+      startedAt: nowIso,
+      elapsedSeconds,
+      periodTimers: {
+        ...prevTimers,
+        [activePeriod]: updatedPeriodTimer,
+      },
+      subLog: activeFixture.liveMatchState?.subLog || [],
+    };
+
+    await updateLiveMatchState(activeFixture.id, updatedLiveState);
+  };
+
+  const handleCompleteMatch = async () => {
+    if (!activeFixture) return;
+    await updateFixtureScore(activeFixture.id, {
+      homeScore,
+      awayScore,
+      scorers: liveScorers,
+      status: 'Completed',
+      isLive: false,
+    });
+    onClose();
   };
 
   const handleResetTimer = async () => {
@@ -324,6 +420,7 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
       isRunning: false,
       startedAt: undefined,
       elapsedSeconds: 0,
+      stoppageSeconds: 0,
     };
 
     const prevTimers = activeFixture.liveMatchState?.periodTimers || {};
@@ -763,10 +860,13 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
             <div className="flex items-center gap-3 pt-2">
               <button
                 type="button"
+                disabled={isPeriodComplete && !isRunning}
                 onClick={handleToggleTimer}
-                className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-wide transition shadow-xl cursor-pointer ${
+                className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-wide transition shadow-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                   isRunning
                     ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
+                    : isPeriodComplete
+                    ? 'bg-slate-800 text-emerald-300 border border-emerald-500/40'
                     : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30'
                 }`}
               >
@@ -774,6 +874,11 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
                   <>
                     <Pause className="w-5 h-5" />
                     <span>Pause Timer</span>
+                  </>
+                ) : isPeriodComplete ? (
+                  <>
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                    <span>Period Complete</span>
                   </>
                 ) : (
                   <>
@@ -802,6 +907,66 @@ export const LiveMatchModal: React.FC<LiveMatchModalProps> = ({ isOpen, onClose 
                 <span>Test Whistle</span>
               </button>
             </div>
+
+            {/* Period End Action & Stoppage Time Banner */}
+            {isPeriodComplete && !isRunning && (
+              <div className="w-full p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-2.5 text-xs animate-fade-in">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-emerald-300 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span>
+                      {activePeriod < effectivePeriodCount
+                        ? `${effectivePeriodCount === 2 ? `Half ${activePeriod}` : `Period ${activePeriod}`} Complete (${Math.floor(periodDurationSeconds / 60)}:00)`
+                        : `Full Time Reached (${Math.floor(periodDurationSeconds / 60)}:00)`}
+                    </span>
+                  </span>
+                  {stoppageSeconds > 0 && (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200">
+                      +{Math.round(stoppageSeconds / 60)}m stoppage played
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {activePeriod < effectivePeriodCount ? (
+                    <button
+                      type="button"
+                      onClick={() => handleSelectPeriod(activePeriod + 1)}
+                      className="flex-1 min-h-[38px] px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow transition cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <span>
+                        Go to {effectivePeriodCount === 2 ? `Half ${activePeriod + 1}` : `Period ${activePeriod + 1}`}
+                      </span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleCompleteMatch}
+                      className="flex-1 min-h-[38px] px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Complete Match</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleAddStoppageTime(1)}
+                    className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 font-bold text-[11px] transition cursor-pointer"
+                    title="Add 1 minute of injury/stoppage time and resume clock"
+                  >
+                    +1m Stoppage
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddStoppageTime(3)}
+                    className="min-h-[38px] px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 font-bold text-[11px] transition cursor-pointer"
+                    title="Add 3 minutes of injury/stoppage time and resume clock"
+                  >
+                    +3m Stoppage
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Period Switcher */}
             <div className="flex items-center gap-2 pt-2 text-xs">
