@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-10-31
+
+### Fixed
+- **Live Match Scheduled Substitutions Sync & Multi-Window Preservation**:
+  - Fixed an issue where applying a multi-window substitution plan in **Suggested Substitutions** could drop later substitution windows in the same half/period when a starter subbed off early was scheduled to rotate back onto the pitch later in that period.
+  - Unified the **Next Rotation Buzzer** card and **Scheduled Mid-Game Rolling Substitutions** panel inside **Live Match** so both panels read from your applied match schedule (`plannedInGameSubs`) and count down to your next scheduled substitution window.
+  - Added a live **Synced with Live Match** status badge and an **Apply & Close** button in **Suggested Substitutions** so changes save immediately without waiting for background auto-save.
+
 ## [1.8.0] - 2026-10-31
 
 ### Added
