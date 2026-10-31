@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
-import { Fixture, SuggestedSubPlan } from '../types';
 import {
-  Clock,
+  Fixture,
+  SuggestedSubPlan,
+  SubsPerWindowOption,
+  PlannedInGameSub,
+  PeriodLineup,
+} from '../types';
+import {
   ArrowRightLeft,
   X,
-  Sliders,
   Check,
   Copy,
   Users,
-  Shield,
-  Sparkles,
   Timer,
   CheckCircle2,
   Calendar,
   Lock,
+  Plus,
+  Trash2,
+  Scale,
 } from 'lucide-react';
 
 interface SuggestedSubsModalProps {
@@ -29,14 +34,29 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { getSuggestedSubs, settings, players } = useMatchday();
+  const { getSuggestedSubs, updateMatchSquad, settings, players } = useMatchday();
   const { t } = useTranslation();
 
   const [interval, setInterval] = useState<number>(settings.defaultSubIntervalMinutes || 10);
+  const [subsPerWindow, setSubsPerWindow] = useState<SubsPerWindowOption>('auto');
+  const [ensureEveryoneSubbedOnce, setEnsureEveryoneSubbedOnce] = useState<boolean>(false);
   const [plans, setPlans] = useState<SuggestedSubPlan[]>([]);
   const [activePlanIndex, setActivePlanIndex] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
+  const [applying, setApplying] = useState<boolean>(false);
+  const [appliedSuccess, setAppliedSuccess] = useState<boolean>(false);
+
+  // Custom sub builder state
+  const [showCustomForm, setShowCustomForm] = useState<boolean>(false);
+  const [customPeriod, setCustomPeriod] = useState<number>(1);
+  const [customMinute, setCustomMinute] = useState<number>(10);
+  const [customOffId, setCustomOffId] = useState<string>('');
+  const [customOnId, setCustomOnId] = useState<string>('');
+
+  const periodCount = fixture?.matchPeriodCount || settings.matchPeriodCount || 2;
+  const periodDuration = fixture?.periodDurationMinutes || settings.periodDurationMinutes || 25;
+  const totalMatchMinutes = periodCount * periodDuration;
 
   const fixedPositionsMap: Record<string, string> = fixture?.fixedPlayerPositions || {};
   const fixedPlayerDetails = Object.entries(fixedPositionsMap)
@@ -46,21 +66,21 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
     })
     .filter(Boolean);
 
-  const totalMatchMinutes =
-    (fixture?.matchPeriodCount || settings.matchPeriodCount || 2) *
-    (fixture?.periodDurationMinutes || settings.periodDurationMinutes || 25);
-
   useEffect(() => {
     if (!isOpen || !fixture || !fixture.matchSquad) return;
 
     let isMounted = true;
     const fetchPlans = async () => {
       setLoading(true);
+      setAppliedSuccess(false);
       try {
-        const fetched = await getSuggestedSubs(fixture.id, interval);
+        const fetched = await getSuggestedSubs(fixture.id, interval, {
+          subsPerWindow,
+          ensureEveryoneSubbedOnce,
+        });
         if (isMounted) {
           setPlans(fetched);
-          setActivePlanIndex(0);
+          setActivePlanIndex((prev) => (prev < fetched.length ? prev : 0));
         }
       } catch (err) {
         console.error('Error fetching suggested subs:', err);
@@ -73,17 +93,29 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [fixture, interval, isOpen]);
+  }, [fixture?.id, interval, subsPerWindow, ensureEveryoneSubbedOnce, isOpen]);
 
   if (!isOpen || !fixture || !fixture.matchSquad) return null;
 
   const currentPlan = plans[activePlanIndex] || null;
+  const restedSet = new Set(fixture.matchSquad.restedPlayerIds || []);
+  const activeSelectedPlayers = (fixture.matchSquad.selectedPlayerIds || [])
+    .filter((id) => !restedSet.has(id))
+    .map((id) => players.find((p) => p.id === id))
+    .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+  const currentScheduledSubs = (fixture.matchSquad.plannedInGameSubs || []).filter(
+    (s) => !restedSet.has(s.playerOutId) && !restedSet.has(s.playerInId)
+  );
 
   const handleCopyPlan = () => {
     if (!currentPlan) return;
     let text = `⏱ *SUBSHUFFLE SIDELINE SUB PLAN* vs ${fixture.opponent}\n`;
     text += `⏱ Strategy: ${currentPlan.strategyName}\n`;
     text += `⏱ Interval: Every ${interval} mins (${totalMatchMinutes}m match)\n`;
+    if (ensureEveryoneSubbedOnce) {
+      text += `⚖️ Fairness Rule: Ensure everyone is a sub at least once\n`;
+    }
     if (fixedPlayerDetails.length > 0) {
       text += `🔒 Fixed All Match: ${fixedPlayerDetails.map((f) => `${f.name} (${f.position})`).join(', ')}\n`;
     }
@@ -103,7 +135,139 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleApplyPlanToSchedule = async () => {
+    if (!currentPlan || !fixture.matchSquad) return;
+    setApplying(true);
+    try {
+      const newPlannedSubs: PlannedInGameSub[] = [];
+      currentPlan.windows.forEach((w) => {
+        const periodStartMin = (w.period - 1) * periodDuration;
+        const targetMinute = Math.max(1, Math.min(periodDuration - 1, w.minute - periodStartMin));
+        w.subChanges.forEach((ch) => {
+          newPlannedSubs.push({
+            period: w.period,
+            targetMinute,
+            matchMinute: w.minute,
+            playerOutId: ch.offPlayerId,
+            playerOutName: ch.offPlayerName,
+            playerInId: ch.onPlayerId,
+            playerInName: ch.onPlayerName,
+            position: ch.position,
+            reason: ch.reason,
+          });
+        });
+      });
+
+      // Carry forward end-of-period pitch/bench state into Period 2+ starting lineups
+      const existingLineups = fixture.matchSquad.lineupsByPeriod || [];
+      const updatedLineups: PeriodLineup[] = [];
+
+      if (existingLineups.length > 0) {
+        let simOnPitch = existingLineups[0].onPitch.map((op) => ({ ...op }));
+        let simSubs = [...existingLineups[0].subs];
+
+        for (let p = 1; p <= periodCount; p++) {
+          const baseLineup = existingLineups.find((l) => l.period === p);
+          if (p === 1 && baseLineup) {
+            simOnPitch = baseLineup.onPitch.map((op) => ({ ...op }));
+            simSubs = [...baseLineup.subs];
+          }
+
+          // Record period p starting lineup
+          updatedLineups.push({
+            period: p,
+            onPitch: simOnPitch.map((op) => ({ ...op })),
+            subs: [...simSubs],
+          });
+
+          // Simulate period p windows to compute starting state for period p + 1
+          const periodWindows = currentPlan.windows
+            .filter((w) => w.period === p)
+            .sort((a, b) => a.minute - b.minute);
+
+          for (const win of periodWindows) {
+            for (const ch of win.subChanges) {
+              const pitchIdx = simOnPitch.findIndex((op) => op.playerId === ch.offPlayerId);
+              const benchIdx = simSubs.findIndex((id) => id === ch.onPlayerId);
+              if (pitchIdx !== -1 && benchIdx !== -1) {
+                const pos = ch.position || simOnPitch[pitchIdx].position;
+                simOnPitch[pitchIdx] = { playerId: ch.onPlayerId, position: pos };
+                simSubs[benchIdx] = ch.offPlayerId;
+              }
+            }
+          }
+        }
+      }
+
+      await updateMatchSquad({
+        ...fixture.matchSquad,
+        manualOverrides: true,
+        lineupsByPeriod: updatedLineups.length > 0 ? updatedLineups : fixture.matchSquad.lineupsByPeriod,
+        plannedInGameSubs: newPlannedSubs,
+      });
+
+      setAppliedSuccess(true);
+      setTimeout(() => setAppliedSuccess(false), 3500);
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const handleAddCustomScheduledSub = async () => {
+    if (!fixture.matchSquad || !customOffId || !customOnId || customOffId === customOnId) return;
+    const offPl = players.find((p) => p.id === customOffId);
+    const onPl = players.find((p) => p.id === customOnId);
+    const periodLineup = fixture.matchSquad.lineupsByPeriod.find((l) => l.period === customPeriod);
+    const pitchEntry = periodLineup?.onPitch.find((op) => op.playerId === customOffId);
+    const pos = pitchEntry?.position || onPl?.preferredPositions?.[0]?.slice(0, 3).toUpperCase() || 'MID';
+    const clampedTargetMin = Math.max(1, Math.min(periodDuration - 1, customMinute));
+    const matchMinute = (customPeriod - 1) * periodDuration + clampedTargetMin;
+
+    const newSub: PlannedInGameSub = {
+      period: customPeriod,
+      targetMinute: clampedTargetMin,
+      matchMinute,
+      playerOutId: customOffId,
+      playerOutName: offPl?.name || 'Player',
+      playerInId: customOnId,
+      playerInName: onPl?.name || 'Player',
+      position: pos,
+      reason: 'Custom scheduled substitution',
+    };
+
+    const nextSubs = [...currentScheduledSubs, newSub].sort(
+      (a, b) => a.period - b.period || a.targetMinute - b.targetMinute
+    );
+
+    await updateMatchSquad({
+      ...fixture.matchSquad,
+      manualOverrides: true,
+      plannedInGameSubs: nextSubs,
+    });
+
+    setCustomOffId('');
+    setCustomOnId('');
+    setShowCustomForm(false);
+  };
+
+  const handleRemoveScheduledSub = async (idxToRemove: number) => {
+    if (!fixture.matchSquad) return;
+    const nextSubs = currentScheduledSubs.filter((_, idx) => idx !== idxToRemove);
+    await updateMatchSquad({
+      ...fixture.matchSquad,
+      manualOverrides: true,
+      plannedInGameSubs: nextSubs.length > 0 ? nextSubs : undefined,
+    });
+  };
+
   const INTERVAL_PRESETS = [5, 8, 10, 12, 15];
+  const SUBS_PER_WINDOW_OPTIONS: { value: SubsPerWindowOption; label: string }[] = [
+    { value: 'auto', label: 'Auto' },
+    { value: 1, label: '1 Sub' },
+    { value: 2, label: '2 Subs' },
+    { value: 3, label: '3 Subs' },
+    { value: 'all_bench', label: 'All Bench' },
+  ];
 
   return (
     <div
@@ -144,6 +308,7 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
 
         {/* Configuration Bar */}
         <div className="p-3.5 sm:p-4 bg-slate-950/80 border-b border-slate-800 space-y-2.5 shrink-0">
+          {/* Row 1: Interval & Copy */}
           <div className="flex flex-wrap items-center justify-between gap-2.5 text-xs">
             <div className="flex items-center gap-2 min-w-0 overflow-x-auto no-scrollbar py-0.5">
               <Timer className="w-4 h-4 text-sky-400 shrink-0" />
@@ -154,7 +319,7 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
                     key={intVal}
                     type="button"
                     onClick={() => setInterval(intVal)}
-                    className={`min-h-[38px] px-2.5 py-1 rounded-lg font-bold text-xs transition cursor-pointer flex items-center justify-center ${
+                    className={`min-h-[36px] px-2.5 py-1 rounded-lg font-bold text-xs transition cursor-pointer flex items-center justify-center ${
                       interval === intVal
                         ? 'bg-sky-600 text-white shadow'
                         : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-white'
@@ -169,10 +334,50 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
             <button
               type="button"
               onClick={handleCopyPlan}
-              className="min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition cursor-pointer shrink-0 ml-auto"
+              className="min-h-[36px] flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition cursor-pointer shrink-0 ml-auto"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? t('common.copied') : t('common.copyToClipboard')}</span>
+            </button>
+          </div>
+
+          {/* Row 2: Subs per Window & Everyone Rests Once */}
+          <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+            <div className="flex items-center gap-2 min-w-0 overflow-x-auto no-scrollbar py-0.5">
+              <Users className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span className="font-semibold text-white shrink-0">Subs / Window:</span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {SUBS_PER_WINDOW_OPTIONS.map((opt) => (
+                  <button
+                    key={String(opt.value)}
+                    type="button"
+                    onClick={() => setSubsPerWindow(opt.value)}
+                    className={`min-h-[34px] px-2.5 py-1 rounded-lg font-bold text-xs transition cursor-pointer flex items-center justify-center whitespace-nowrap ${
+                      subsPerWindow === opt.value
+                        ? 'bg-emerald-600 text-white shadow'
+                        : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-white'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setEnsureEveryoneSubbedOnce((prev) => !prev)}
+              aria-pressed={ensureEveryoneSubbedOnce}
+              className={`min-h-[34px] px-3 py-1 rounded-xl font-bold text-xs border transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                ensureEveryoneSubbedOnce
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-sm'
+                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+              }`}
+              title="Guarantees every non-fixed starter rotates onto the bench at least once before any player is subbed off twice"
+            >
+              <Scale className="w-3.5 h-3.5 shrink-0" />
+              <span>Ensure everyone is a sub at least once</span>
+              {ensureEveryoneSubbedOnce && <Check className="w-3.5 h-3.5 text-amber-300 shrink-0" />}
             </button>
           </div>
 
@@ -200,6 +405,135 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
 
         {/* Content Body: Timeline (Single scroll container with pb-32 safe clearance) */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 overscroll-contain pb-32 sm:pb-8 text-xs">
+          {/* Active Live Match Schedule Panel */}
+          <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-sky-400 shrink-0" />
+                <span className="font-bold text-white text-xs">
+                  Scheduled Live Match Substitutions ({currentScheduledSubs.length})
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCustomForm((prev) => !prev)}
+                className="min-h-[32px] px-2.5 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/30 font-bold text-[11px] flex items-center gap-1 transition cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{showCustomForm ? 'Cancel' : 'Add Custom Sub'}</span>
+              </button>
+            </div>
+
+            {showCustomForm && (
+              <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 grid grid-cols-1 sm:grid-cols-5 gap-2 items-end">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                    Period
+                  </label>
+                  <select
+                    value={customPeriod}
+                    onChange={(e) => setCustomPeriod(Number(e.target.value))}
+                    className="w-full min-h-[36px] px-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
+                  >
+                    {Array.from({ length: periodCount }, (_, idx) => idx + 1).map((p) => (
+                      <option key={p} value={p}>
+                        Period {p}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                    Min in Period
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={periodDuration - 1}
+                    value={customMinute}
+                    onChange={(e) => setCustomMinute(Number(e.target.value))}
+                    className="w-full min-h-[36px] px-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-rose-300 uppercase mb-1">
+                    Player OFF
+                  </label>
+                  <select
+                    value={customOffId}
+                    onChange={(e) => setCustomOffId(e.target.value)}
+                    className="w-full min-h-[36px] px-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
+                  >
+                    <option value="">Select OFF...</option>
+                    {activeSelectedPlayers.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-emerald-300 uppercase mb-1">
+                    Player ON
+                  </label>
+                  <select
+                    value={customOnId}
+                    onChange={(e) => setCustomOnId(e.target.value)}
+                    className="w-full min-h-[36px] px-2 rounded-lg bg-slate-950 border border-slate-700 text-white text-xs"
+                  >
+                    <option value="">Select ON...</option>
+                    {activeSelectedPlayers
+                      .filter((p) => p.id !== customOffId)
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  disabled={!customOffId || !customOnId || customOffId === customOnId}
+                  onClick={handleAddCustomScheduledSub}
+                  className="min-h-[36px] px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Schedule</span>
+                </button>
+              </div>
+            )}
+
+            {currentScheduledSubs.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {currentScheduledSubs.map((sub, sIdx) => (
+                  <div
+                    key={`${sub.period}-${sub.targetMinute}-${sub.playerOutId}-${sub.playerInId}-${sIdx}`}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px]"
+                  >
+                    <span className="font-mono font-bold text-amber-300">
+                      P{sub.period} · {Math.round(sub.targetMinute)}'
+                    </span>
+                    <span className="text-rose-300 font-semibold">{sub.playerOutName || 'OFF'}</span>
+                    <span className="text-slate-500">→</span>
+                    <span className="text-emerald-300 font-semibold">{sub.playerInName || 'ON'}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveScheduledSub(sIdx)}
+                      aria-label="Remove scheduled substitution"
+                      className="ml-1 text-slate-500 hover:text-rose-400 transition cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[11px] text-slate-400">
+                Click <strong className="text-emerald-300">Apply Plan to Match Schedule</strong> below to sync the suggested timeline below directly into Live Match, or add individual custom subs above.
+              </p>
+            )}
+          </div>
+
           {fixedPlayerDetails.length > 0 && (
             <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 flex items-start gap-2.5">
               <Lock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
@@ -322,17 +656,40 @@ export const SuggestedSubsModal: React.FC<SuggestedSubsModalProps> = ({
         </div>
 
         {/* Sticky Pinned Footer (Always visible, safe padding) */}
-        <div className="p-3.5 sm:p-4 border-t border-slate-800 bg-slate-900/95 backdrop-blur-md shrink-0 flex items-center justify-between gap-3 text-xs">
-          <span className="text-slate-400 text-[11px] hidden sm:inline leading-tight">
-            Sideline changes update fresh legs while maintaining equal playing time parity.
+        <div className="p-3.5 sm:p-4 border-t border-slate-800 bg-slate-900/95 backdrop-blur-md shrink-0 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <span className="text-slate-400 text-[11px] hidden md:inline leading-tight">
+            Apply any plan to save scheduled mid-game subs directly into Live Match & Fair Play stats.
           </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full sm:w-auto min-h-[44px] px-6 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs shadow-md transition cursor-pointer flex items-center justify-center"
-          >
-            Done
-          </button>
+          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+            {currentPlan && currentPlan.windows.length > 0 && (
+              <button
+                type="button"
+                disabled={applying}
+                onClick={handleApplyPlanToSchedule}
+                className={`flex-1 sm:flex-initial min-h-[44px] px-4 py-2 rounded-xl font-bold text-xs shadow-md transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                  appliedSuccess
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>
+                  {appliedSuccess
+                    ? 'Applied to Live Match!'
+                    : applying
+                    ? 'Applying...'
+                    : 'Apply Plan to Match Schedule'}
+                </span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="min-h-[44px] px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition cursor-pointer flex items-center justify-center"
+            >
+              Done
+            </button>
+          </div>
         </div>
       </div>
     </div>

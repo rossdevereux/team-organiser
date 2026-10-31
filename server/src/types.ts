@@ -267,6 +267,13 @@ export interface SeasonPlayerStats {
 }
 
 // Sideline Substitution Guidance Models
+export type SubsPerWindowOption = 'auto' | 'all_bench' | number;
+
+export interface SuggestedSubsOptions {
+  subsPerWindow?: SubsPerWindowOption;
+  ensureEveryoneSubbedOnce?: boolean;
+}
+
 export interface SingleSubChange {
   offPlayerId: string;
   offPlayerName: string;

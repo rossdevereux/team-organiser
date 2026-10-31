@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+- **Interactive Match Substitution Scheduler, Multi-Player Swaps & "Everyone Rests Once" Rule** ([#39](https://github.com/rossdevereux/team-organiser/issues/39)):
+  - **Choose How Many Players to Sub at Once:** In **Suggested Substitutions**, you can now choose whether to swap `Auto`, `1 Sub`, `2 Subs`, `3 Subs`, or `All Bench` at each interval mark.
+  - **"Ensure Everyone is a Sub at Least Once" Toggle:** Turn on the new fairness rule to guarantee every non-fixed starter takes a turn on the bench before any player is subbed off a second time.
+  - **One-Tap Apply to Live Match Schedule:** Click **Apply Plan to Match Schedule** inside **Suggested Substitutions** to save any multi-window substitution plan directly into your **Live Match** view, Fair Play minutes bar, and WhatsApp team sheet.
+  - **Schedule or Remove Subs Inside Live Match:** Use the new **+ Schedule Sub** button inside the **Live Match** modal (or **+ Add Custom Sub** inside **Suggested Substitutions**) to queue or remove custom mid-game substitutions on the fly.
+
 ## [1.7.3] - 2026-10-31
 
 ### Fixed
