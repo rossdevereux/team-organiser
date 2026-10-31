@@ -1307,7 +1307,7 @@ export const generateSuggestedSubstitutions = (
 
   const safeInterval = Math.max(5, Math.min(25, intervalMinutes));
 
-  // Helper to initialise a clean match tracking state for all squad players
+  // Helper to initialise a clean match tracking state for all squad players from Period 1 kick-off
   const initSquadTracker = (): Map<string, InMatchTracker> => {
     const tracker = new Map<string, InMatchTracker>();
     squad.selectedPlayerIds.forEach((id) => {
@@ -1330,6 +1330,31 @@ export const generateSuggestedSubstitutions = (
         stintMinutes: 0,
       });
     });
+
+    // Seed initial kick-off positions once from Period 1 starting lineup.
+    // Subsequent periods carry forward the live pitch/bench state from earlier substitutions.
+    const initialLineup = squad.lineupsByPeriod[0];
+    if (initialLineup) {
+      initialLineup.onPitch.forEach((entry) => {
+        const t = tracker.get(entry.playerId);
+        if (t) {
+          t.isOnPitch = true;
+          t.currentPosition = entry.position;
+          t.hasPlayedThisMatch = true;
+          t.stintMinutes = 0;
+        }
+      });
+
+      initialLineup.subs.forEach((subId) => {
+        const t = tracker.get(subId);
+        if (t) {
+          t.isOnPitch = false;
+          t.currentPosition = undefined;
+          t.stintMinutes = 0;
+        }
+      });
+    }
+
     return tracker;
   };
 
@@ -1353,26 +1378,6 @@ export const generateSuggestedSubstitutions = (
     const lineup = squad.lineupsByPeriod[pIdx];
     const period = lineup.period;
     const periodStartMinute = (period - 1) * duration;
-
-    // Synchronise starters at the beginning of each period
-    lineup.onPitch.forEach((entry) => {
-      const t = tracker1.get(entry.playerId);
-      if (t) {
-        t.isOnPitch = true;
-        t.currentPosition = entry.position;
-        t.hasPlayedThisMatch = true;
-        t.stintMinutes = 0;
-      }
-    });
-
-    lineup.subs.forEach((subId) => {
-      const t = tracker1.get(subId);
-      if (t) {
-        t.isOnPitch = false;
-        t.currentPosition = undefined;
-        t.stintMinutes = 0;
-      }
-    });
 
     // Sub interval marks within the period (e.g., at 10m, 20m)
     const subMinutes: number[] = [];
@@ -1413,18 +1418,18 @@ export const generateSuggestedSubstitutions = (
 
       // Sort bench candidates:
       // 1. Unused players who haven't played AT ALL yet
-      // 2. Players subbed on fewer times
-      // 3. Lowest in-game minutes so far
+      // 2. Lowest in-game minutes so far (ensures starters subbed off early rotate back on fairly)
+      // 3. Players subbed on fewer times
       // 4. Lowest historical season minutes
       benchCandidates.sort((a, b) => {
         if (a.hasPlayedThisMatch !== b.hasPlayedThisMatch) {
           return a.hasPlayedThisMatch ? 1 : -1;
         }
-        if (a.timesSubbedOn !== b.timesSubbedOn) {
-          return a.timesSubbedOn - b.timesSubbedOn;
-        }
         if (a.minutesThisMatch !== b.minutesThisMatch) {
           return a.minutesThisMatch - b.minutesThisMatch;
+        }
+        if (a.timesSubbedOn !== b.timesSubbedOn) {
+          return a.timesSubbedOn - b.timesSubbedOn;
         }
         return (a.player.totalMinutesPlayed || 0) - (b.player.totalMinutesPlayed || 0);
       });
@@ -1527,30 +1532,26 @@ export const generateSuggestedSubstitutions = (
     const period = lineup.period;
     const periodStartMinute = (period - 1) * duration;
 
-    lineup.onPitch.forEach((entry) => {
-      const t = tracker2.get(entry.playerId);
-      if (t) {
-        t.isOnPitch = true;
-        t.currentPosition = entry.position;
-        t.hasPlayedThisMatch = true;
-      }
-    });
-
-    lineup.subs.forEach((subId) => {
-      const t = tracker2.get(subId);
-      if (t) {
-        t.isOnPitch = false;
-        t.currentPosition = undefined;
-      }
-    });
-
     const subMinutes: number[] = [];
     for (let m = safeInterval; m < duration; m += safeInterval) {
       subMinutes.push(m);
     }
 
+    let lastTickMinute = 0;
+
     subMinutes.forEach((minuteOffset) => {
       const matchClockMinute = periodStartMinute + minuteOffset;
+      const elapsedSinceLastTick = minuteOffset - lastTickMinute;
+      lastTickMinute = minuteOffset;
+
+      // Advance minutes for all players currently on pitch
+      tracker2.forEach((t) => {
+        if (t.isOnPitch) {
+          t.minutesThisMatch += elapsedSinceLastTick;
+          t.stintMinutes += elapsedSinceLastTick;
+        }
+      });
+
       const subChanges: SingleSubChange[] = [];
 
       const bench = Array.from(tracker2.values()).filter(
@@ -1560,16 +1561,26 @@ export const generateSuggestedSubstitutions = (
         (t) => t.isOnPitch && t.currentPosition !== 'GK' && !fixedPlayerIds.has(t.playerId)
       );
 
-      // Prioritise bench players by lowest minutes / unplayed
+      if (bench.length === 0 || onPitch.length === 0) return;
+
+      // Prioritise bench players by unplayed first, then lowest match minutes, then fewest timesSubbedOn
       bench.sort((a, b) => {
         if (a.hasPlayedThisMatch !== b.hasPlayedThisMatch) return a.hasPlayedThisMatch ? 1 : -1;
-        return a.minutesThisMatch - b.minutesThisMatch;
+        if (a.minutesThisMatch !== b.minutesThisMatch) return a.minutesThisMatch - b.minutesThisMatch;
+        if (a.timesSubbedOn !== b.timesSubbedOn) return a.timesSubbedOn - b.timesSubbedOn;
+        return (a.player.totalMinutesPlayed || 0) - (b.player.totalMinutesPlayed || 0);
       });
 
-      bench.forEach((inc) => {
-        if (subChanges.some((c) => c.onPlayerId === inc.playerId)) return;
+      const maxSwaps = Math.min(
+        bench.length,
+        Math.max(1, Math.floor(bench.length / Math.max(1, subMinutes.length)) || 1)
+      );
+
+      for (const inc of bench) {
+        if (subChanges.length >= maxSwaps) break;
+        if (subChanges.some((c) => c.onPlayerId === inc.playerId)) continue;
         // Skip pure goalkeepers from outfield rotations
-        if (inc.player.preferredPositions.length === 1 && inc.player.preferredPositions[0] === 'Goalkeeper') return;
+        if (inc.player.preferredPositions.length === 1 && inc.player.preferredPositions[0] === 'Goalkeeper') continue;
 
         // Try preferences in order: 1st preference, then 2nd, then 3rd
         for (let rank = 0; rank < inc.player.preferredPositions.length; rank++) {
@@ -1578,12 +1589,16 @@ export const generateSuggestedSubstitutions = (
 
           const matchingOutfield = onPitch.filter(
             (out) =>
+              out.isOnPitch &&
               positionToBroad(out.currentPosition || '') === broad &&
               !subChanges.some((c) => c.offPlayerId === out.playerId)
           );
 
           if (matchingOutfield.length > 0) {
-            matchingOutfield.sort((a, b) => b.minutesThisMatch - a.minutesThisMatch);
+            matchingOutfield.sort((a, b) => {
+              if (b.minutesThisMatch !== a.minutesThisMatch) return b.minutesThisMatch - a.minutesThisMatch;
+              return b.stintMinutes - a.stintMinutes;
+            });
             const out = matchingOutfield[0];
             const pos = out.currentPosition || 'MID';
 
@@ -1596,18 +1611,21 @@ export const generateSuggestedSubstitutions = (
               onPlayerName: inc.player.name,
               position: pos,
               positionCategory: broad,
-              reason: `Like-for-like ${broad} rotation (${rankDesc}, ${inc.player.totalMinutesPlayed}m season)`,
+              reason: `Like-for-like ${broad} rotation (${rankDesc}, ${out.minutesThisMatch}m played)`,
             });
 
             out.isOnPitch = false;
             out.currentPosition = undefined;
+            out.stintMinutes = 0;
             inc.isOnPitch = true;
             inc.currentPosition = pos;
             inc.hasPlayedThisMatch = true;
+            inc.timesSubbedOn += 1;
+            inc.stintMinutes = 0;
             break;
           }
         }
-      });
+      }
 
       if (subChanges.length > 0) {
         positionalWindows.push({
@@ -1616,6 +1634,15 @@ export const generateSuggestedSubstitutions = (
           subChanges,
           description: `Like-for-like positional rotation at ${matchClockMinute}'`,
         });
+      }
+    });
+
+    // Advance remaining minutes in the period
+    const remainingPeriodMinutes = duration - lastTickMinute;
+    tracker2.forEach((t) => {
+      if (t.isOnPitch) {
+        t.minutesThisMatch += remainingPeriodMinutes;
+        t.stintMinutes += remainingPeriodMinutes;
       }
     });
   }
@@ -1631,25 +1658,20 @@ export const generateSuggestedSubstitutions = (
     const period = lineup.period;
     const periodStartMinute = (period - 1) * duration;
 
-    lineup.onPitch.forEach((entry) => {
-      const t = tracker3.get(entry.playerId);
-      if (t) {
-        t.isOnPitch = true;
-        t.currentPosition = entry.position;
-        t.hasPlayedThisMatch = true;
-      }
-    });
-
-    lineup.subs.forEach((subId) => {
-      const t = tracker3.get(subId);
-      if (t) {
-        t.isOnPitch = false;
-        t.currentPosition = undefined;
-      }
-    });
+    let lastTickMinute = 0;
 
     for (let m = safeInterval; m < duration; m += safeInterval) {
       const matchClockMinute = periodStartMinute + m;
+      const elapsedSinceLastTick = m - lastTickMinute;
+      lastTickMinute = m;
+
+      // Advance minutes for all players currently on pitch
+      tracker3.forEach((t) => {
+        if (t.isOnPitch) {
+          t.minutesThisMatch += elapsedSinceLastTick;
+          t.stintMinutes += elapsedSinceLastTick;
+        }
+      });
 
       const bench = Array.from(tracker3.values()).filter(
         (t) => !t.isOnPitch && !fixedPlayerIds.has(t.playerId)
@@ -1660,10 +1682,11 @@ export const generateSuggestedSubstitutions = (
 
       if (bench.length === 0 || onPitch.length === 0) break;
 
-      // Pick top bench candidate (unplayed first, then lowest match minutes, then lowest season minutes)
+      // Pick top bench candidate (unplayed first, then lowest match minutes, then fewest timesSubbedOn, then lowest season minutes)
       bench.sort((a, b) => {
         if (a.hasPlayedThisMatch !== b.hasPlayedThisMatch) return a.hasPlayedThisMatch ? 1 : -1;
         if (a.minutesThisMatch !== b.minutesThisMatch) return a.minutesThisMatch - b.minutesThisMatch;
+        if (a.timesSubbedOn !== b.timesSubbedOn) return a.timesSubbedOn - b.timesSubbedOn;
         return (a.player.totalMinutesPlayed || 0) - (b.player.totalMinutesPlayed || 0);
       });
 
@@ -1719,7 +1742,7 @@ export const generateSuggestedSubstitutions = (
               positionCategory: targetCategory,
               reason: !inc.hasPlayedThisMatch
                 ? `Unused sub priority: ${inc.player.name} rotated into ${targetCategory} (${rankLabel})`
-                : `Single rolling rotation: ${out.player.name} rested for ${inc.player.name} into ${targetCategory} (${rankLabel})`,
+                : `Single rolling rotation: ${out.player.name} (${out.minutesThisMatch}m played) rested for ${inc.player.name} into ${targetCategory} (${rankLabel})`,
             },
           ],
           description: `Single rolling sub at ${matchClockMinute}'`,
@@ -1727,11 +1750,23 @@ export const generateSuggestedSubstitutions = (
 
         out.isOnPitch = false;
         out.currentPosition = undefined;
+        out.stintMinutes = 0;
         inc.isOnPitch = true;
         inc.currentPosition = targetPos;
         inc.hasPlayedThisMatch = true;
+        inc.timesSubbedOn += 1;
+        inc.stintMinutes = 0;
       }
     }
+
+    // Advance remaining minutes in the period
+    const remainingPeriodMinutes = duration - lastTickMinute;
+    tracker3.forEach((t) => {
+      if (t.isOnPitch) {
+        t.minutesThisMatch += remainingPeriodMinutes;
+        t.stintMinutes += remainingPeriodMinutes;
+      }
+    });
   }
 
   return [

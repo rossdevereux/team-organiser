@@ -904,6 +904,112 @@ describe('rotationService: Position Preference & Substitutions Suite', () => {
       const fixedMap = getFixedPositionsMap(fixture, players);
       assert.equal(fixedMap.has('gk_unlocked'), false, 'gk_unlocked must not be present in fixed map');
     });
+
+    it('maintains forward-looking pitch and bench state across periods without duplicate ON or OFF suggestions (Issue #37)', () => {
+      const players = [
+        createMockPlayer('gk1', 'Keeper One', ['Goalkeeper']),
+        createMockPlayer('d1', 'Def One', ['Defence']),
+        createMockPlayer('d2', 'Def Two', ['Defence']),
+        createMockPlayer('m1', 'Oliver Hazzard', ['Midfield']),
+        createMockPlayer('m2', 'Archie Thompson', ['Midfield']),
+        createMockPlayer('m3', 'James Rehill', ['Midfield']),
+        createMockPlayer('a1', 'Attacker One', ['Attack']),
+        createMockPlayer('sub1', 'Harry Fox', ['Midfield']),
+        createMockPlayer('sub2', 'Caden Shough', ['Midfield']),
+      ];
+
+      const period1Lineup = {
+        period: 1,
+        onPitch: [
+          { playerId: 'gk1', position: 'GK' },
+          { playerId: 'd1', position: 'DEF_L' },
+          { playerId: 'd2', position: 'DEF_R' },
+          { playerId: 'm1', position: 'MID_C' },
+          { playerId: 'm2', position: 'MID_R' },
+          { playerId: 'm3', position: 'MID_L' },
+          { playerId: 'a1', position: 'FWD' },
+        ],
+        subs: ['sub1', 'sub2'],
+      };
+
+      // Period 2 lineup repeats Period 1 baseline (as in rolling-sub / preserveLineupAcrossBreaks mode)
+      const period2Lineup = {
+        period: 2,
+        onPitch: period1Lineup.onPitch.map((p) => ({ ...p })),
+        subs: [...period1Lineup.subs],
+      };
+
+      const fixture = createMockFixture({
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+        matchSquad: {
+          fixtureId: 'fix-37',
+          manualOverrides: false,
+          selectedPlayerIds: players.map((p) => p.id),
+          restedPlayerIds: [],
+          lineupsByPeriod: [period1Lineup, period2Lineup],
+        },
+      });
+
+      const settings = createMockSettings({
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+      });
+
+      const plans = generateSuggestedSubstitutions(fixture, players, settings, 10);
+      assert.equal(plans.length, 3, 'Should return all 3 substitution strategies');
+
+      for (const plan of plans) {
+        const activePitch = new Set<string>(period1Lineup.onPitch.map((p) => p.playerId));
+        const activeBench = new Set<string>(period1Lineup.subs);
+
+        for (const window of plan.windows) {
+          for (const change of window.subChanges) {
+            assert.equal(
+              activePitch.has(change.offPlayerId),
+              true,
+              `[${plan.strategyName} @ ${window.minute}'] Expected outgoing player ${change.offPlayerName} (${change.offPlayerId}) to be ON the pitch`
+            );
+            assert.equal(
+              activeBench.has(change.onPlayerId),
+              true,
+              `[${plan.strategyName} @ ${window.minute}'] Expected incoming player ${change.onPlayerName} (${change.onPlayerId}) to be ON the bench`
+            );
+            assert.equal(
+              activePitch.has(change.onPlayerId),
+              false,
+              `[${plan.strategyName} @ ${window.minute}'] Incoming player ${change.onPlayerName} (${change.onPlayerId}) must not already be ON the pitch`
+            );
+
+            // Advance forward-looking state
+            activePitch.delete(change.offPlayerId);
+            activeBench.add(change.offPlayerId);
+            activeBench.delete(change.onPlayerId);
+            activePitch.add(change.onPlayerId);
+          }
+        }
+      }
+
+      // Specifically verify Strategy 1 (Equal Game Time & Unused Subs):
+      // 10' -> sub1 (Harry Fox) ON for m1 (Oliver Hazzard)
+      // 20' -> sub2 (Caden Shough) ON for m2 (Archie Thompson)
+      // 35' -> m1 (Oliver Hazzard, subbed off at 10') rotates back ON for m3 (James Rehill, 35m played)
+      // 45' -> m2 (Archie Thompson, subbed off at 20') rotates back ON
+      const strategy1 = plans[0];
+      assert.equal(strategy1.windows.length, 4);
+      const min20OnIds = strategy1.windows[1].subChanges.map((c) => c.onPlayerId);
+      const min35OnIds = strategy1.windows[2].subChanges.map((c) => c.onPlayerId);
+      assert.ok(min20OnIds.includes('sub2'), 'Caden Shough should come ON at 20m');
+      assert.equal(
+        min35OnIds.includes('sub2'),
+        false,
+        'Caden Shough is already on the pitch from 20m and must NOT be suggested to come ON again at 35m'
+      );
+      assert.ok(
+        min35OnIds.includes('m1'),
+        'Oliver Hazzard (subbed off at 10m with only 10m played) should rotate back ON at 35m'
+      );
+    });
   });
 
   describe('calculateMatchStats', () => {

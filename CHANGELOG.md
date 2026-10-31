@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Production Module-Scope Caching ([`changelogService.ts`](server/src/services/changelogService.ts)):** Cached parsed `CHANGELOG.md` AST and package version in memory when `NODE_ENV === 'production'` instead of running synchronous `readFileSync` on every request.
   - **Warm-Instance Auth & Claims Optimization ([`auth.ts`](server/src/middleware/auth.ts), [`claims.ts`](server/src/auth/claims.ts), [`api.ts`](server/src/routes/api.ts), [`index.ts`](server/src/index.ts)):** Added `bootstrappedOwnerUids` warm-instance cache to prevent redundant `setCustomUserClaims` network calls, parallelized user subscription enrichment via `Promise.all` in `listAllUsersWithClaims()`, moved `getAuth` to top-level static import in `api.ts`, and moved `import 'dotenv/config'` to the top of `index.ts` with an `.unref()`ed shutdown timer.
 
+### Fixed
+- **Forward-Looking Pitch & Bench State Continuity in Suggested Substitutions** ([#37](https://github.com/rossdevereux/team-organiser/issues/37)):
+  - Fixed a bug in `generateSuggestedSubstitutions` ([`rotationService.ts`](server/src/services/rotationService.ts)) where crossing into Period 2+ reset `isOnPitch` and `currentPosition` from the static period baseline lineup, causing players subbed ON in Period 1 (e.g. at Minute `20'`) to be suggested to come ON again in Period 2 (e.g. at Minute `35'`) while already on the pitch, or players subbed OFF in Period 1 to be suggested to come OFF again while already on the bench.
+  - Seeded `initSquadTracker()` once from Period 1's kick-off lineup (`squad.lineupsByPeriod[0]`) and maintained continuous forward-looking pitch/bench state, `minutesThisMatch`, and `stintMinutes` across all periods and all three strategies (*Equal Game Time & Unused Subs*, *Positional Match*, and *Rolling Single Sub*).
+  - Added state-continuity regression test in [`rotationService.test.ts`](server/src/tests/rotationService.test.ts) verifying that no player is ever suggested to come ON while already on the pitch or come OFF while already on the bench across any substitution window.
+
 ## [1.7.1] - 2026-10-31
 
 ### Changed

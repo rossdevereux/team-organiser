@@ -6,6 +6,11 @@
 - **Cloud Run Backend Performance & Reliability Hardening**:
   - Improved server cold-start speed, outbound request timeout protection, and warm-instance memory efficiency across matchday, billing, and support APIs.
 
+### Fixed
+- **Forward-Looking Live Substitution Suggestions Across Halves & Quarters** ([#37](https://github.com/rossdevereux/team-organiser/issues/37)):
+  - Fixed an issue in **Suggested Substitutions** where crossing into the second half (or later quarters) could reset the pitch/bench state to the starting lineup, occasionally suggesting a player who came on late in Period 1 to come on a second time in Period 2, or suggesting a player already resting on the bench to be subbed off again.
+  - All three substitution strategies (*Equal Game Time & Unused Subs*, *Positional Match*, and *Rolling Single Sub*) now track every earlier substitution continuously from kick-off to full-time so starters subbed off early in Period 1 are fairly rotated back onto the pitch in Period 2.
+
 ## [1.7.1] - 2026-10-31
 
 ### Changed
