@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-10-31
+
 ### Added
 - **Cloud Run & Firebase Functions Best Practices Skill (`cloud-run-functions-best-practices`)**:
   - Created [`.agents/skills/cloud-run-functions-best-practices/SKILL.md`](.agents/skills/cloud-run-functions-best-practices/SKILL.md) and [`references/cloud-run-and-firebase-tips.md`](.agents/skills/cloud-run-functions-best-practices/references/cloud-run-and-firebase-tips.md) encoding official Google Cloud Run and Firebase Functions guidelines on cold-start mitigation, global/lazy SDK initialization, HTTP keep-alive connection reuse, Promise lifecycle & CPU throttling guards, idempotency & out-of-order event reconciliation, `/tmp` (`tmpfs`) memory cleanup, and Secret Manager deployment hygiene.

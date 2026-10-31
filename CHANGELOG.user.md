@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.7.2] - 2026-10-31
+
 ### Changed
 - **Cloud Run Backend Performance & Reliability Hardening**:
   - Improved server cold-start speed, outbound request timeout protection, and warm-instance memory efficiency across matchday, billing, and support APIs.
