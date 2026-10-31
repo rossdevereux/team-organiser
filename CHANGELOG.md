@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Upgraded [`SuggestedSubsModal.tsx`](client/src/components/SuggestedSubsModal.tsx) with **Subs / Window** pills, the **Ensure everyone is a sub at least once** toggle, an **Apply Plan to Match Schedule** button (which saves multi-window plans to `plannedInGameSubs` and carries end-of-period lineups forward across breaks), and an interactive custom sub scheduler.
   - Upgraded [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx) so coaches can view multi-window scheduled substitutions, add new scheduled substitutions mid-match via **+ Schedule Sub**, or remove individual scheduled subs directly on the touchline.
   - Added unit tests in [`rotationService.test.ts`](server/src/tests/rotationService.test.ts) verifying `subsPerWindow`, `ensureEveryoneSubbedOnce`, and multi-window `calculateMatchStats` calculation.
+- **Auto-Stop Match Period Timer at Period Duration & Stoppage Time Controls** ([#40](https://github.com/rossdevereux/team-organiser/issues/40)):
+  - Added `stoppageSeconds` to [`LiveMatchPeriodTimer`](server/src/types.ts) and implemented [`clampLiveMatchStateTimers`](server/src/services/rotationService.ts) in `rotationService.ts` and [`api.ts`](server/src/routes/api.ts) (`PUT /api/fixtures/:id/live-state` and `GET /api/fixtures/:id/live-status`) to automatically stop running timers at `periodDurationMinutes` (plus optional stoppage time) and prevent runaway clocks when a match tab is closed.
+  - Updated [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx) to clamp `elapsedSeconds` at `periodDurationSeconds`, sound the referee whistle and persist `isRunning: false` when a period completes, and display a **Period Complete** banner with 1-tap **Go to Period {N+1}** / **Complete Match** actions alongside **+1m Stoppage** and **+3m Stoppage** extensions.
+  - Added unit tests in [`rotationService.test.ts`](server/src/tests/rotationService.test.ts) verifying runaway clock clamping and stoppage time extensions.
 
 ### Changed
 - **Repository Licensing (`PolyForm-Noncommercial-1.0.0` + Commercial Dual-License)**:

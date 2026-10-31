@@ -164,6 +164,7 @@ export interface LiveMatchPeriodTimer {
   elapsedSeconds: number;
   isRunning: boolean;
   startedAt?: string; // ISO string when timer was started
+  stoppageSeconds?: number; // Optional added injury/stoppage time in seconds
 }
 
 export interface LiveMatchState {

@@ -15,6 +15,7 @@ import {
   generateWhatsAppAnnouncement,
   filterActivePlannedInGameSubs,
   reconcileMatchSquadPlannedSubs,
+  clampLiveMatchStateTimers,
 } from '../services/rotationService.js';
 import { Player, Fixture, TeamSettings } from '../types.js';
 
@@ -1717,6 +1718,72 @@ describe('rotationService: Position Preference & Substitutions Suite', () => {
       assert.equal(p1Stats.minutesPlayed, 16, 'p1 played 0-8m and 16-24m = 16m');
       assert.equal(p2Stats.minutesPlayed, 16, 'p2 played 0-16m = 16m');
       assert.equal(p3Stats.minutesPlayed, 16, 'p3 played 8-24m = 16m');
+    });
+
+    it('auto-stops period timer at periodDurationMinutes and clamps forgotten runaway clocks while respecting stoppageSeconds (Issue #40)', () => {
+      const nowMs = new Date('2026-10-31T12:00:00Z').getTime();
+      // Started 3 hours ago (runaway clock if not clamped)
+      const threeHoursAgoIso = new Date(nowMs - 3 * 3600 * 1000).toISOString();
+
+      const runawayState = {
+        isRunning: true,
+        currentPeriod: 1,
+        startedAt: threeHoursAgoIso,
+        elapsedSeconds: 0,
+        periodTimers: {
+          1: {
+            isRunning: true,
+            startedAt: threeHoursAgoIso,
+            elapsedSeconds: 0,
+          },
+        },
+        subLog: [],
+      };
+
+      const { state: clamped, didAutoStop } = clampLiveMatchStateTimers(runawayState, 25, nowMs);
+      assert.equal(didAutoStop, true, 'Runaway timer must trigger auto-stop');
+      assert.equal(clamped.isRunning, false, 'Timer must transition to isRunning = false');
+      assert.equal(clamped.startedAt, undefined, 'startedAt must be cleared');
+      assert.equal(clamped.elapsedSeconds, 25 * 60, 'Elapsed seconds must be capped at 1500s (25m)');
+      assert.equal(clamped.periodTimers?.[1]?.isRunning, false);
+      assert.equal(clamped.periodTimers?.[1]?.elapsedSeconds, 25 * 60);
+
+      // Verify a timer with +3m (180s) stoppage time added continues running until 28:00 (1680s)
+      const startedOneMinAgoIso = new Date(nowMs - 60 * 1000).toISOString();
+      const stoppageRunningState = {
+        isRunning: true,
+        currentPeriod: 1,
+        startedAt: startedOneMinAgoIso,
+        elapsedSeconds: 25 * 60,
+        periodTimers: {
+          1: {
+            isRunning: true,
+            startedAt: startedOneMinAgoIso,
+            elapsedSeconds: 25 * 60,
+            stoppageSeconds: 180,
+          },
+        },
+        subLog: [],
+      };
+
+      const { state: activeStoppage, didAutoStop: stoppedEarly } = clampLiveMatchStateTimers(
+        stoppageRunningState,
+        25,
+        nowMs
+      );
+      assert.equal(stoppedEarly, false, 'Timer at 26:00 with +3m stoppage (max 28:00) must keep running');
+      assert.equal(activeStoppage.isRunning, true);
+
+      // Once 4 minutes have elapsed into +3m stoppage, it auto-stops at 28:00 (1680s)
+      const fourMinsLaterMs = nowMs + 3 * 60 * 1000;
+      const { state: finishedStoppage, didAutoStop: stoppedAtEnd } = clampLiveMatchStateTimers(
+        stoppageRunningState,
+        25,
+        fourMinsLaterMs
+      );
+      assert.equal(stoppedAtEnd, true);
+      assert.equal(finishedStoppage.isRunning, false);
+      assert.equal(finishedStoppage.elapsedSeconds, 28 * 60, 'Capped at 25m + 3m stoppage = 1680s');
     });
   });
 
