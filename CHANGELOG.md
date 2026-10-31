@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-31
+
 ### Added
 - **Interactive Match Sub Scheduler, Multi-Player Swaps & "Everyone Rests Once" Rule** ([#39](https://github.com/rossdevereux/team-organiser/issues/39)):
   - Added `SubsPerWindowOption` (`'auto' | 'all_bench' | number`) and `SuggestedSubsOptions` (`subsPerWindow`, `ensureEveryoneSubbedOnce`) to [`server/src/types.ts`](server/src/types.ts) and [`client/src/types.ts`](client/src/types.ts).
