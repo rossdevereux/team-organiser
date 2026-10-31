@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-10-31
+
+### Changed
+- **Release Pipeline & Support Telemetry Refinement**: Synchronized release versioning across matchday client and support desk telemetry (`v1.7.1`).
+
 ## [1.7.0] - 2026-10-31
 
 ### Added

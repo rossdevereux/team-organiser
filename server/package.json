@@ -1,6 +1,6 @@
 {
   "name": "team-organiser-server",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Standalone Node.js + Express TypeScript API containerised for Google Cloud Run",
   "type": "module",
   "main": "dist/index.js",

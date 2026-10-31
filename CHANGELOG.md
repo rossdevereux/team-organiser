@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-10-31
+
+### Changed
+- **GitHub Issue Lifecycle Skill (`github-issue-lifecycle`)**:
+  - Updated [`.agents/skills/github-issue-lifecycle/SKILL.md`](.agents/skills/github-issue-lifecycle/SKILL.md) to support creating structured GitHub issues directly from chat conversations (`Workflow 1`), enforcing `beta`-first staging branches (`Workflow 2` & `Workflow 3`), cutting monorepo semantic versions on `beta` (`Workflow 4`), and promoting `beta` into `main` with automated GitHub Release creation (`Workflow 5`).
+
 ## [1.7.0] - 2026-10-31
 
 ### Added

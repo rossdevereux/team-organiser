@@ -30,7 +30,7 @@ export interface SupportTicketModalProps {
   initialDescription?: string;
 }
 
-const APP_VERSION = '1.7.0';
+const APP_VERSION = '1.7.1';
 
 export function gatherSupportTelemetry(context: {
   userEmail?: string;
