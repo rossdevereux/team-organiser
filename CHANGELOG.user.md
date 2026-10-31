@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Added
+- **Dedicated Beta Testing Environment (`beta.subshuffle.com`)** ([#33](https://github.com/rossdevereux/team-organiser/issues/33)):
+  - Launched a dedicated staging environment at `beta.subshuffle.com` with a clear **Beta Test** header badge so new features can be tested safely before Sunday morning matchdays.
 - **Payment History & VAT Receipts in Settings** ([#35](https://github.com/rossdevereux/team-organiser/issues/35)):
   - Coaches can now view their complete subscription payment history directly inside **Settings → Billing & Plan**.
   - Download official PDF VAT receipts with one click (`📄 Receipt ↗`) for grassroots club expense claims, automatically retained for 24 months.

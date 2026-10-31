@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Staging Environment (`beta.subshuffle.com`), Multi-Site Firebase Hosting & Dual-Branch CI/CD Pipeline** ([#33](https://github.com/rossdevereux/team-organiser/issues/33)):
+  - Configured multi-site Firebase Hosting targets (`live` -> `team-organiser-prod` and `beta` -> `subshuffle-beta`) in [`.firebaserc`](.firebaserc) and [`firebase.json`](firebase.json), routing `/api/**` rewrites to `team-organiser-api` (production) and `backend-api-beta` (staging) in `europe-west1`.
+  - Provisioned the `backend-api-beta` Cloud Run service in `europe-west1` (zero-idle scaling from 0 to 2 instances) and whitelisted `beta.subshuffle.com`, `subshuffle-beta.web.app`, and `subshuffle-beta.firebaseapp.com` in Firebase Authentication Authorized Domains.
+  - Refactored [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) into a dual-branch CI/CD pipeline (`main` and `beta`) with a `set-env` resolution job that automatically targets `backend-api-beta` + `subshuffle-beta` on `beta` pushes and `team-organiser-api` + `live` on `main` pushes.
+  - Added a visual **Beta Test** environment badge in [`Navbar.tsx`](client/src/components/Navbar.tsx) when running on the `beta` or `localhost` origin.
+  - Added automated pipeline configuration test suite in [`stagingPipeline.test.ts`](server/src/tests/stagingPipeline.test.ts).
 - **Resilient Stripe Webhook Processing, Out-of-Order Reconciliation, User Payment History & 24-Month Firestore TTL** ([#35](https://github.com/rossdevereux/team-organiser/issues/35)):
   - Implemented idempotent Stripe webhook ingestion using a `stripe_events/{eventId}` collection with a 30-day Firestore `Timestamp` TTL (`hasProcessedStripeEvent` and `recordProcessedStripeEvent` in [`storage.ts`](server/src/db/storage.ts)).
   - Added timestamp-based webhook ordering guard (`lastWebhookCreated`) in [`billing.ts`](server/src/routes/billing.ts) to detect out-of-order/stale webhook deliveries (`event.created < lastWebhookCreated`) and reconcile authoritative status via `stripe.subscriptions.retrieve()`.

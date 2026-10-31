@@ -98,6 +98,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const periodCount = settings.matchPeriodCount || 2;
+  const isBeta =
+    typeof window !== 'undefined' &&
+    (window.location.hostname.includes('beta') || window.location.hostname.includes('localhost'));
 
   return (
     <header className="border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-40 print:hidden w-full max-w-full">
@@ -119,9 +122,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
               <span className="sr-only">SubShuffle</span>
               <div className="hidden sm:block leading-tight shrink-0">
-                <div className="flex items-center font-extrabold text-base sm:text-lg tracking-tight font-sans">
-                  <span className="text-[#00e676] drop-shadow-[0_0_12px_rgba(0,230,118,0.35)]">Sub</span>
-                  <span className="text-white">Shuffle</span>
+                <div className="flex items-center gap-1.5 font-extrabold text-base sm:text-lg tracking-tight font-sans">
+                  <div>
+                    <span className="text-[#00e676] drop-shadow-[0_0_12px_rgba(0,230,118,0.35)]">Sub</span>
+                    <span className="text-white">Shuffle</span>
+                  </div>
+                  {isBeta && (
+                    <span
+                      className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider"
+                      data-testid="beta-environment-badge"
+                    >
+                      Beta Test
+                    </span>
+                  )}
                 </div>
                 <p className="text-[9px] uppercase font-bold tracking-wider text-slate-400">
                   {t('nav.brandSubtitle')}

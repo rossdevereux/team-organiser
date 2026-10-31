@@ -209,35 +209,64 @@ gcloud run deploy team-organiser-api \
 
 ---
 
-### Step 5: Configure Firebase Hosting Rewrites
-Your `firebase.json` in the root directory already configures Firebase Hosting to proxy API calls directly to Cloud Run:
+### Step 5: Configure Multi-Site Firebase Hosting Rewrites (`live` & `beta`)
+Your `firebase.json` in the root directory configures multi-site Firebase Hosting targets (`live` for `subshuffle.com` and `beta` for `beta.subshuffle.com`) to proxy API calls directly to their respective Cloud Run services:
 ```json
 {
-  "hosting": {
-    "public": "client/dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [
-      {
-        "source": "/api/**",
-        "run": {
-          "serviceId": "team-organiser-api",
-          "region": "europe-west1"
+  "hosting": [
+    {
+      "target": "live",
+      "public": "client/dist",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "/api/**",
+          "run": {
+            "serviceId": "team-organiser-api",
+            "region": "europe-west1"
+          }
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
         }
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  }
+      ]
+    },
+    {
+      "target": "beta",
+      "public": "client/dist",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "/api/**",
+          "run": {
+            "serviceId": "backend-api-beta",
+            "region": "europe-west1"
+          }
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
 }
 ```
 
-Set your default project in `.firebaserc`:
+Set your default project and hosting target aliases in `.firebaserc`:
 ```json
 {
   "projects": {
     "default": "team-organiser-prod"
+  },
+  "targets": {
+    "team-organiser-prod": {
+      "hosting": {
+        "live": ["team-organiser-prod"],
+        "beta": ["subshuffle-beta"]
+      }
+    }
   }
 }
 ```
