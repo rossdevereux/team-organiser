@@ -13,6 +13,10 @@ import {
   EarlyDeparture,
   PlannedInGameSub,
   SubstitutionTimingMode,
+  SubsPerWindowOption,
+  SuggestedSubsOptions,
+  LiveMatchState,
+  LiveMatchPeriodTimer,
 } from '../types.js';
 import { findFormation } from '../db/formations.js';
 
@@ -224,7 +228,8 @@ export const filterActivePlannedInGameSubs = (
   const restedSet = new Set(matchSquad.restedPlayerIds || []);
   const selectedSet = new Set(matchSquad.selectedPlayerIds || []);
 
-  return matchSquad.plannedInGameSubs.filter((s) => {
+  // 1. Basic membership & eligibility filter
+  const baseValid = matchSquad.plannedInGameSubs.filter((s) => {
     if (!s.playerOutId || !s.playerInId || s.playerOutId === s.playerInId) return false;
     if (restedSet.has(s.playerOutId) || restedSet.has(s.playerInId)) return false;
     if (departedPlayerIds && (departedPlayerIds.has(s.playerOutId) || departedPlayerIds.has(s.playerInId))) {
@@ -238,21 +243,53 @@ export const filterActivePlannedInGameSubs = (
     if (lineup) {
       const pitchSet = new Set(lineup.onPitch.map((op) => op.playerId));
       const benchSet = new Set(lineup.subs);
-      const outOnPitch = pitchSet.has(s.playerOutId);
-      const outOnBench = benchSet.has(s.playerOutId);
-      const inOnPitch = pitchSet.has(s.playerInId);
-      const inOnBench = benchSet.has(s.playerInId);
-
-      // Both players must be part of the active period lineup (one on pitch, one on bench)
-      const isPreSubState = outOnPitch && inOnBench;
-      const isExecutedPostSubState = outOnBench && inOnPitch;
-      if (!isPreSubState && !isExecutedPostSubState) {
+      const outInLineup = pitchSet.has(s.playerOutId) || benchSet.has(s.playerOutId);
+      const inInLineup = pitchSet.has(s.playerInId) || benchSet.has(s.playerInId);
+      if (!outInLineup || !inInLineup) {
         return false;
       }
     }
 
     return true;
   });
+
+  // 2. Simulate each period's windows chronologically so multi-window schedules
+  // (where a player subbed off at window 1 comes back on at window 2, or vice versa)
+  // are validated accurately while rejecting stale subs where both players start on the same side.
+  const acceptedSubs = new Set<PlannedInGameSub>();
+  const periods = Array.from(new Set(baseValid.map((s) => s.period)));
+
+  for (const period of periods) {
+    const periodSubs = baseValid
+      .filter((s) => s.period === period)
+      .sort((a, b) => a.targetMinute - b.targetMinute);
+
+    const lineup = matchSquad.lineupsByPeriod?.find((l) => l.period === period);
+    if (!lineup) {
+      periodSubs.forEach((s) => acceptedSubs.add(s));
+      continue;
+    }
+
+    const simPitch = new Set(lineup.onPitch.map((op) => op.playerId));
+    const simBench = new Set(lineup.subs);
+
+    for (const s of periodSubs) {
+      const isPreSubState = simPitch.has(s.playerOutId) && simBench.has(s.playerInId);
+      const isExecutedPostSubState = simBench.has(s.playerOutId) && simPitch.has(s.playerInId);
+
+      if (isPreSubState) {
+        acceptedSubs.add(s);
+        simPitch.delete(s.playerOutId);
+        simBench.add(s.playerOutId);
+        simBench.delete(s.playerInId);
+        simPitch.add(s.playerInId);
+      } else if (isExecutedPostSubState) {
+        acceptedSubs.add(s);
+      }
+    }
+  }
+
+  return baseValid.filter((s) => acceptedSubs.has(s));
 };
 
 /**
@@ -298,27 +335,45 @@ export const calculateMatchStats = (
       for (let p = 1; p <= periodCount; p++) {
         const lineup = matchSquad.lineupsByPeriod.find((l) => l.period === p);
         const pitchEntry = lineup?.onPitch.find((item) => item.playerId === playerId);
-        const subOut = activePlannedSubs.find(
-          (s) => s.period === p && s.playerOutId === playerId
-        );
-        const subIn = activePlannedSubs.find(
-          (s) => s.period === p && s.playerInId === playerId
-        );
+        const playerPeriodSubs = activePlannedSubs
+          .filter((s) => s.period === p && (s.playerOutId === playerId || s.playerInId === playerId))
+          .sort((a, b) => a.targetMinute - b.targetMinute);
 
-        if (subOut) {
-          if (!periodsPlayed.includes(p)) periodsPlayed.push(p);
-          if (pitchEntry && !positionsPlayed.includes(pitchEntry.position)) {
-            positionsPlayed.push(pitchEntry.position);
-            if (pitchEntry.position === 'GK') playedAsGoalkeeper = true;
+        if (playerPeriodSubs.length > 0) {
+          // Determine whether player started the period on the pitch from their first scheduled event
+          const firstEvent = playerPeriodSubs[0];
+          let isOnPitch = firstEvent.playerOutId === playerId;
+          let lastMinute = 0;
+
+          if (isOnPitch) {
+            if (!periodsPlayed.includes(p)) periodsPlayed.push(p);
+            const startPos = pitchEntry?.position || firstEvent.position;
+            if (startPos && !positionsPlayed.includes(startPos)) {
+              positionsPlayed.push(startPos);
+              if (startPos === 'GK') playedAsGoalkeeper = true;
+            }
           }
-          calculatedMinutes += subOut.targetMinute;
-        } else if (subIn) {
-          if (!periodsPlayed.includes(p)) periodsPlayed.push(p);
-          if (subIn.position && !positionsPlayed.includes(subIn.position)) {
-            positionsPlayed.push(subIn.position);
-            if (subIn.position === 'GK') playedAsGoalkeeper = true;
+
+          for (const sub of playerPeriodSubs) {
+            const clampedMinute = Math.max(lastMinute, Math.min(duration, sub.targetMinute));
+            if (sub.playerOutId === playerId && isOnPitch) {
+              calculatedMinutes += clampedMinute - lastMinute;
+              isOnPitch = false;
+              lastMinute = clampedMinute;
+            } else if (sub.playerInId === playerId && !isOnPitch) {
+              lastMinute = clampedMinute;
+              isOnPitch = true;
+              if (!periodsPlayed.includes(p)) periodsPlayed.push(p);
+              if (sub.position && !positionsPlayed.includes(sub.position)) {
+                positionsPlayed.push(sub.position);
+                if (sub.position === 'GK') playedAsGoalkeeper = true;
+              }
+            }
           }
-          calculatedMinutes += Math.max(0, duration - subIn.targetMinute);
+
+          if (isOnPitch) {
+            calculatedMinutes += Math.max(0, duration - lastMinute);
+          }
         } else if (pitchEntry) {
           if (!periodsPlayed.includes(p)) periodsPlayed.push(p);
           if (!positionsPlayed.includes(pitchEntry.position)) {
@@ -1019,12 +1074,18 @@ export const reconcileMatchSquadPlannedSubs = (
       (id) => !restedSet.has(id) && !departedSet.has(id) && activeSelectedIds.includes(id)
     );
     const periodSubs = validExisting.filter((s) => s.period === lineup.period);
-    if (periodSubs.length !== activeBenchIds.length) return false;
+    if (activeBenchIds.length === 0) return periodSubs.length === 0;
+    if (periodSubs.length === 0) return false;
     const scheduledInIds = new Set(periodSubs.map((s) => s.playerInId));
-    return activeBenchIds.every((id) => scheduledInIds.has(id));
+    const onPitchIds = new Set(lineup.onPitch.map((op) => op.playerId));
+    return activeBenchIds.every((id) => scheduledInIds.has(id) || onPitchIds.has(id));
   });
 
-  if (hasExistingPlannedSubs && validExisting.length === matchSquad.plannedInGameSubs!.length && allPeriodsSynced) {
+  if (
+    hasExistingPlannedSubs &&
+    validExisting.length === matchSquad.plannedInGameSubs!.length &&
+    (matchSquad.manualOverrides || allPeriodsSynced)
+  ) {
     return {
       ...matchSquad,
       plannedInGameSubs: validExisting.length > 0 ? validExisting : undefined,
@@ -1384,7 +1445,9 @@ export interface InMatchTracker {
   player: Player;
   minutesThisMatch: number;
   timesSubbedOn: number;
+  timesSubbedOff?: number;
   hasPlayedThisMatch: boolean;
+  hasBeenSubThisMatch?: boolean;
   isOnPitch: boolean;
   currentPosition?: string;
   stintMinutes: number;
@@ -1401,14 +1464,38 @@ export interface OutgoingPitchMatch {
  * Finds the best on-pitch outfield player to rotate off for an incoming bench player,
  * strictly evaluating the incoming player's positional preferences in priority order,
  * while never rotating off players who are locked/fixed in position all match.
+ * When `ensureEveryoneSubbedOnce` is true, strictly prioritises on-pitch players who have NOT
+ * spent any time on the bench yet this match (`!t.hasBeenSubThisMatch`) before rotating anyone off twice.
  */
 export const findBestOutgoingPitchPlayer = (
   incomingPlayer: Player,
   onPitchOutfield: InMatchTracker[],
-  fixedPlayerIds: Set<string> = new Set()
+  fixedPlayerIds: Set<string> = new Set(),
+  ensureEveryoneSubbedOnce: boolean = false
 ): OutgoingPitchMatch | null => {
-  const availableOutfield = onPitchOutfield.filter((t) => !fixedPlayerIds.has(t.playerId));
-  if (availableOutfield.length === 0) return null;
+  const baseAvailableOutfield = onPitchOutfield.filter((t) => !fixedPlayerIds.has(t.playerId));
+  if (baseAvailableOutfield.length === 0) return null;
+
+  const unbenchedOutfield = ensureEveryoneSubbedOnce
+    ? baseAvailableOutfield.filter((t) => !t.hasBeenSubThisMatch)
+    : [];
+  const availableOutfield =
+    unbenchedOutfield.length > 0 ? unbenchedOutfield : baseAvailableOutfield;
+
+  const sortOutgoingCandidates = (a: InMatchTracker, b: InMatchTracker): number => {
+    const aOff = a.timesSubbedOff ?? 0;
+    const bOff = b.timesSubbedOff ?? 0;
+    if (ensureEveryoneSubbedOnce && aOff !== bOff) {
+      return aOff - bOff;
+    }
+    if (a.minutesThisMatch !== b.minutesThisMatch) {
+      return b.minutesThisMatch - a.minutesThisMatch;
+    }
+    if ((a.player.totalMinutesPlayed || 0) !== (b.player.totalMinutesPlayed || 0)) {
+      return (b.player.totalMinutesPlayed || 0) - (a.player.totalMinutesPlayed || 0);
+    }
+    return b.stintMinutes - a.stintMinutes;
+  };
 
   // 1. Check each preferred position in strict preference order:
   // Index 0 (Primary), Index 1 (Secondary), etc.
@@ -1422,17 +1509,7 @@ export const findBestOutgoingPitchPlayer = (
     );
 
     if (candidates.length > 0) {
-      // Pick the on-pitch player who has played the most minutes (needs rest most)
-      // Tie-break: highest season minutes, then longest current stint
-      candidates.sort((a, b) => {
-        if (a.minutesThisMatch !== b.minutesThisMatch) {
-          return b.minutesThisMatch - a.minutesThisMatch;
-        }
-        if ((a.player.totalMinutesPlayed || 0) !== (b.player.totalMinutesPlayed || 0)) {
-          return (b.player.totalMinutesPlayed || 0) - (a.player.totalMinutesPlayed || 0);
-        }
-        return b.stintMinutes - a.stintMinutes;
-      });
+      candidates.sort(sortOutgoingCandidates);
 
       const chosen = candidates[0];
       const targetPos = chosen.currentPosition || 'MID';
@@ -1455,7 +1532,7 @@ export const findBestOutgoingPitchPlayer = (
         positionToBroad(t.currentPosition || '') === specBroad
       );
       if (candidates.length > 0) {
-        candidates.sort((a, b) => b.minutesThisMatch - a.minutesThisMatch);
+        candidates.sort(sortOutgoingCandidates);
         const chosen = candidates[0];
         return {
           outgoing: chosen,
@@ -1476,7 +1553,7 @@ export const findBestOutgoingPitchPlayer = (
   }
 
   // 4. Fallback: only if incoming player can play outfield positions
-  const sorted = [...availableOutfield].sort((a, b) => b.minutesThisMatch - a.minutesThisMatch);
+  const sorted = [...availableOutfield].sort(sortOutgoingCandidates);
   const chosen = sorted[0];
   const targetPos = chosen.currentPosition || 'MID';
   return {
@@ -1492,18 +1569,19 @@ export const findBestOutgoingPitchPlayer = (
  * Returns multiple strategic options taking into account:
  * 1. Spreading out in-game pitch minutes fairly across all squad members
  * 2. Strictly prioritising players who have NOT been subbed on yet in the game
- * 3. Balancing historical season minutes for tie-breaking
- * 4. Aligning with player preferred and specific positions
+ * 3. Optional `subsPerWindow` ('auto' | 'all_bench' | number) and `ensureEveryoneSubbedOnce` rules
+ * 4. Balancing historical season minutes for tie-breaking
+ * 5. Aligning with player preferred and specific positions
  */
 export const generateSuggestedSubstitutions = (
   fixture: Fixture,
   players: Player[],
   settings: TeamSettings,
-  intervalMinutes: number = 10
+  intervalMinutes: number = 10,
+  options?: SuggestedSubsOptions
 ): SuggestedSubPlan[] => {
   const periodCount = fixture.matchPeriodCount || settings.matchPeriodCount || 2;
   const duration = fixture.periodDurationMinutes || settings.periodDurationMinutes || 25;
-  const totalMatchMinutes = periodCount * duration;
   const squad = fixture.matchSquad;
   const playerMap = new Map(players.map((p) => [p.id, p]));
 
@@ -1516,6 +1594,18 @@ export const generateSuggestedSubstitutions = (
   const fixedPlayerIds = new Set(fixedMap.keys());
 
   const safeInterval = Math.max(5, Math.min(25, intervalMinutes));
+  const subsPerWindowOpt: SubsPerWindowOption = options?.subsPerWindow ?? 'auto';
+  const ensureEveryoneSubbedOnce = Boolean(options?.ensureEveryoneSubbedOnce);
+
+  // Calculate total windows per period & across the whole match
+  const windowsPerPeriodCount = (() => {
+    let count = 0;
+    for (let m = safeInterval; m < duration; m += safeInterval) {
+      count += 1;
+    }
+    return Math.max(1, count);
+  })();
+  const totalMatchWindows = Math.max(1, windowsPerPeriodCount * squad.lineupsByPeriod.length);
 
   // Helper to initialise a clean match tracking state for all squad players from Period 1 kick-off
   const restedSet = new Set(squad.restedPlayerIds || []);
@@ -1538,7 +1628,9 @@ export const generateSuggestedSubstitutions = (
         player: pl,
         minutesThisMatch: 0,
         timesSubbedOn: 0,
+        timesSubbedOff: 0,
         hasPlayedThisMatch: false,
+        hasBeenSubThisMatch: false,
         isOnPitch: false,
         stintMinutes: 0,
       });
@@ -1554,6 +1646,7 @@ export const generateSuggestedSubstitutions = (
           t.isOnPitch = true;
           t.currentPosition = entry.position;
           t.hasPlayedThisMatch = true;
+          t.hasBeenSubThisMatch = false;
           t.stintMinutes = 0;
         }
       });
@@ -1563,6 +1656,8 @@ export const generateSuggestedSubstitutions = (
         if (t) {
           t.isOnPitch = false;
           t.currentPosition = undefined;
+          t.hasPlayedThisMatch = false;
+          t.hasBeenSubThisMatch = true;
           t.stintMinutes = 0;
         }
       });
@@ -1571,14 +1666,46 @@ export const generateSuggestedSubstitutions = (
     return tracker;
   };
 
-  // Helper to determine if a position matches player's preferences
-  const matchesPositionPreference = (pl: Player, posCode: string): boolean => {
-    const broad = positionToBroad(posCode);
-    if (pl.preferredPositions.includes(broad)) return true;
-    if (pl.specificPositions && pl.specificPositions.some((sp) => sp.toLowerCase().includes(broad.toLowerCase()))) {
-      return true;
+  // Count how many rotatable outfield starters begin Period 1 on the pitch
+  const initialRotatableStartersCount = (() => {
+    const initialLineup = squad.lineupsByPeriod[0];
+    if (!initialLineup) return 0;
+    return initialLineup.onPitch.filter(
+      (entry) =>
+        !restedSet.has(entry.playerId) &&
+        !departedSet.has(entry.playerId) &&
+        !fixedPlayerIds.has(entry.playerId) &&
+        entry.position !== 'GK'
+    ).length;
+  })();
+
+  const resolveWindowSubCount = (
+    benchCount: number,
+    outfieldCount: number,
+    windowsInPeriod: number,
+    isSingleRollingStrategy: boolean = false
+  ): number => {
+    const maxPossible = Math.min(benchCount, outfieldCount);
+    if (maxPossible <= 0) return 0;
+
+    if (subsPerWindowOpt === 'all_bench') {
+      return maxPossible;
     }
-    return false;
+    if (typeof subsPerWindowOpt === 'number' && subsPerWindowOpt >= 1) {
+      return Math.min(maxPossible, Math.floor(subsPerWindowOpt));
+    }
+
+    // 'auto' mode
+    const minNeededForEveryoneOnce = ensureEveryoneSubbedOnce
+      ? Math.ceil(initialRotatableStartersCount / totalMatchWindows)
+      : 1;
+
+    if (isSingleRollingStrategy) {
+      return Math.min(maxPossible, Math.max(1, minNeededForEveryoneOnce));
+    }
+
+    const baseAuto = Math.max(1, Math.floor(benchCount / Math.max(1, windowsInPeriod)) || 1);
+    return Math.min(maxPossible, Math.max(baseAuto, minNeededForEveryoneOnce));
   };
 
   // =========================================================================
@@ -1648,9 +1775,11 @@ export const generateSuggestedSubstitutions = (
       });
 
       const subChanges: SingleSubChange[] = [];
-      const numToSub = Math.min(
+      const numToSub = resolveWindowSubCount(
         benchCandidates.length,
-        Math.max(1, Math.floor(benchCandidates.length / Math.max(1, subMinutes.length)) || 1)
+        onPitchOutfield.length,
+        subMinutes.length,
+        false
       );
 
       for (let s = 0; s < numToSub; s++) {
@@ -1663,10 +1792,16 @@ export const generateSuggestedSubstitutions = (
         }
 
         // Find best outgoing player among onPitchOutfield matching incoming's preference order
-        const matchResult = findBestOutgoingPitchPlayer(incoming.player, onPitchOutfield, fixedPlayerIds);
+        const matchResult = findBestOutgoingPitchPlayer(
+          incoming.player,
+          onPitchOutfield,
+          fixedPlayerIds,
+          ensureEveryoneSubbedOnce
+        );
         if (!matchResult) continue;
 
         const { outgoing, targetPos, targetCategory, preferenceRank } = matchResult;
+        const wasFirstRest = ensureEveryoneSubbedOnce && !outgoing.hasBeenSubThisMatch;
 
         // Remove from available lists for this window
         const outgoingIdx = onPitchOutfield.findIndex((item) => item.playerId === outgoing.playerId);
@@ -1686,6 +1821,8 @@ export const generateSuggestedSubstitutions = (
         let reason = '';
         if (!incoming.hasPlayedThisMatch) {
           reason = `Unused sub: ${incoming.player.name} rotated into ${targetCategory} (${rankLabel})`;
+        } else if (wasFirstRest) {
+          reason = `Everyone rests once: ${outgoing.player.name} (${outgoing.minutesThisMatch}m played) takes 1st bench stint for ${incoming.player.name} into ${targetCategory}`;
         } else if (outgoing.minutesThisMatch > incoming.minutesThisMatch) {
           reason = `Game time balance: ${outgoing.player.name} (${outgoing.minutesThisMatch}m played) rotated for ${incoming.player.name} into ${targetCategory} (${rankLabel})`;
         } else {
@@ -1706,6 +1843,8 @@ export const generateSuggestedSubstitutions = (
         outgoing.isOnPitch = false;
         outgoing.currentPosition = undefined;
         outgoing.stintMinutes = 0;
+        outgoing.hasBeenSubThisMatch = true;
+        outgoing.timesSubbedOff = (outgoing.timesSubbedOff ?? 0) + 1;
 
         incoming.isOnPitch = true;
         incoming.currentPosition = targetPos;
@@ -1784,9 +1923,11 @@ export const generateSuggestedSubstitutions = (
         return (a.player.totalMinutesPlayed || 0) - (b.player.totalMinutesPlayed || 0);
       });
 
-      const maxSwaps = Math.min(
+      const maxSwaps = resolveWindowSubCount(
         bench.length,
-        Math.max(1, Math.floor(bench.length / Math.max(1, subMinutes.length)) || 1)
+        onPitch.length,
+        subMinutes.length,
+        false
       );
 
       for (const inc of bench) {
@@ -1795,20 +1936,31 @@ export const generateSuggestedSubstitutions = (
         // Skip pure goalkeepers from outfield rotations
         if (inc.player.preferredPositions.length === 1 && inc.player.preferredPositions[0] === 'Goalkeeper') continue;
 
+        const remainingOnPitch = onPitch.filter(
+          (out) => out.isOnPitch && !subChanges.some((c) => c.offPlayerId === out.playerId)
+        );
+        const unbenchedPool = ensureEveryoneSubbedOnce
+          ? remainingOnPitch.filter((out) => !out.hasBeenSubThisMatch)
+          : [];
+        const candidatePool = unbenchedPool.length > 0 ? unbenchedPool : remainingOnPitch;
+
+        let matched = false;
         // Try preferences in order: 1st preference, then 2nd, then 3rd
         for (let rank = 0; rank < inc.player.preferredPositions.length; rank++) {
           const broad = inc.player.preferredPositions[rank];
           if (broad === 'Goalkeeper') continue;
 
-          const matchingOutfield = onPitch.filter(
-            (out) =>
-              out.isOnPitch &&
-              positionToBroad(out.currentPosition || '') === broad &&
-              !subChanges.some((c) => c.offPlayerId === out.playerId)
+          const matchingOutfield = candidatePool.filter(
+            (out) => positionToBroad(out.currentPosition || '') === broad
           );
 
           if (matchingOutfield.length > 0) {
             matchingOutfield.sort((a, b) => {
+              const aOff = a.timesSubbedOff ?? 0;
+              const bOff = b.timesSubbedOff ?? 0;
+              if (ensureEveryoneSubbedOnce && aOff !== bOff) {
+                return aOff - bOff;
+              }
               if (b.minutesThisMatch !== a.minutesThisMatch) return b.minutesThisMatch - a.minutesThisMatch;
               return b.stintMinutes - a.stintMinutes;
             });
@@ -1830,12 +1982,51 @@ export const generateSuggestedSubstitutions = (
             out.isOnPitch = false;
             out.currentPosition = undefined;
             out.stintMinutes = 0;
+            out.hasBeenSubThisMatch = true;
+            out.timesSubbedOff = (out.timesSubbedOff ?? 0) + 1;
+
             inc.isOnPitch = true;
             inc.currentPosition = pos;
             inc.hasPlayedThisMatch = true;
             inc.timesSubbedOn += 1;
             inc.stintMinutes = 0;
+            matched = true;
             break;
+          }
+        }
+
+        // If ensureEveryoneSubbedOnce is active and no exact broad category matched in unbenchedPool,
+        // fallback to rotating the unbenched starter so everyone still gets their rest stint.
+        if (!matched && ensureEveryoneSubbedOnce && candidatePool.length > 0) {
+          const fallbackMatch = findBestOutgoingPitchPlayer(
+            inc.player,
+            candidatePool,
+            fixedPlayerIds,
+            true
+          );
+          if (fallbackMatch) {
+            const { outgoing: out, targetPos, targetCategory } = fallbackMatch;
+            subChanges.push({
+              offPlayerId: out.playerId,
+              offPlayerName: out.player.name,
+              onPlayerId: inc.playerId,
+              onPlayerName: inc.player.name,
+              position: targetPos,
+              positionCategory: targetCategory,
+              reason: `Everyone rests once: ${out.player.name} (${out.minutesThisMatch}m played) rotated for ${inc.player.name} (${targetCategory})`,
+            });
+
+            out.isOnPitch = false;
+            out.currentPosition = undefined;
+            out.stintMinutes = 0;
+            out.hasBeenSubThisMatch = true;
+            out.timesSubbedOff = (out.timesSubbedOff ?? 0) + 1;
+
+            inc.isOnPitch = true;
+            inc.currentPosition = targetPos;
+            inc.hasPlayedThisMatch = true;
+            inc.timesSubbedOn += 1;
+            inc.stintMinutes = 0;
           }
         }
       }
@@ -1861,7 +2052,7 @@ export const generateSuggestedSubstitutions = (
   }
 
   // =========================================================================
-  // Strategy 3: Smooth Rolling Single Sub (1 swap per window)
+  // Strategy 3: Smooth Rolling Sub (1 swap per window by default, or subsPerWindow)
   // =========================================================================
   const rollingWindows: SuggestedSubWindow[] = [];
   const tracker3 = initSquadTracker();
@@ -1886,48 +2077,79 @@ export const generateSuggestedSubstitutions = (
         }
       });
 
-      const bench = Array.from(tracker3.values()).filter(
+      const initialBench = Array.from(tracker3.values()).filter(
         (t) => !t.isOnPitch && !fixedPlayerIds.has(t.playerId)
       );
-      const onPitch = Array.from(tracker3.values()).filter(
+      const initialOnPitch = Array.from(tracker3.values()).filter(
         (t) => t.isOnPitch && t.currentPosition !== 'GK' && !fixedPlayerIds.has(t.playerId)
       );
 
-      if (bench.length === 0 || onPitch.length === 0) break;
+      if (initialBench.length === 0 || initialOnPitch.length === 0) break;
 
-      // Pick top bench candidate (unplayed first, then lowest match minutes, then fewest timesSubbedOn, then lowest season minutes)
-      bench.sort((a, b) => {
-        if (a.hasPlayedThisMatch !== b.hasPlayedThisMatch) return a.hasPlayedThisMatch ? 1 : -1;
-        if (a.minutesThisMatch !== b.minutesThisMatch) return a.minutesThisMatch - b.minutesThisMatch;
-        if (a.timesSubbedOn !== b.timesSubbedOn) return a.timesSubbedOn - b.timesSubbedOn;
-        return (a.player.totalMinutesPlayed || 0) - (b.player.totalMinutesPlayed || 0);
-      });
+      const windowSubCount = resolveWindowSubCount(
+        initialBench.length,
+        initialOnPitch.length,
+        windowsPerPeriodCount,
+        true
+      );
 
-      // For each bench candidate, find their best outgoing pitch match
-      let bestPair: {
-        inc: InMatchTracker;
-        outgoingMatch: OutgoingPitchMatch;
-        score: number;
-      } | null = null;
+      const windowChanges: SingleSubChange[] = [];
 
-      for (const inc of bench) {
-        if (inc.player.preferredPositions.length === 1 && inc.player.preferredPositions[0] === 'Goalkeeper') continue;
-        const match = findBestOutgoingPitchPlayer(inc.player, onPitch, fixedPlayerIds);
-        if (!match) continue;
+      for (let swapIdx = 0; swapIdx < windowSubCount; swapIdx++) {
+        const bench = Array.from(tracker3.values()).filter(
+          (t) =>
+            !t.isOnPitch &&
+            !fixedPlayerIds.has(t.playerId) &&
+            !windowChanges.some((c) => c.onPlayerId === t.playerId || c.offPlayerId === t.playerId)
+        );
+        const onPitch = Array.from(tracker3.values()).filter(
+          (t) =>
+            t.isOnPitch &&
+            t.currentPosition !== 'GK' &&
+            !fixedPlayerIds.has(t.playerId) &&
+            !windowChanges.some((c) => c.offPlayerId === t.playerId || c.onPlayerId === t.playerId)
+        );
 
-        // Prioritize unplayed bench players, preference rank (0 = primary highest), minutes difference
-        let score = (match.outgoing.minutesThisMatch - inc.minutesThisMatch) * 10;
-        if (!inc.hasPlayedThisMatch) score += 500;
-        if (match.preferenceRank === 0) score += 300;
-        else if (match.preferenceRank === 1) score += 150;
-        else if (match.preferenceRank === 2) score += 75;
+        if (bench.length === 0 || onPitch.length === 0) break;
 
-        if (!bestPair || score > (bestPair as { score: number }).score) {
-          bestPair = { inc, outgoingMatch: match, score };
+        bench.sort((a, b) => {
+          if (a.hasPlayedThisMatch !== b.hasPlayedThisMatch) return a.hasPlayedThisMatch ? 1 : -1;
+          if (a.minutesThisMatch !== b.minutesThisMatch) return a.minutesThisMatch - b.minutesThisMatch;
+          if (a.timesSubbedOn !== b.timesSubbedOn) return a.timesSubbedOn - b.timesSubbedOn;
+          return (a.player.totalMinutesPlayed || 0) - (b.player.totalMinutesPlayed || 0);
+        });
+
+        let bestPair: {
+          inc: InMatchTracker;
+          outgoingMatch: OutgoingPitchMatch;
+          score: number;
+        } | null = null;
+
+        for (const inc of bench) {
+          if (inc.player.preferredPositions.length === 1 && inc.player.preferredPositions[0] === 'Goalkeeper') continue;
+          const match = findBestOutgoingPitchPlayer(
+            inc.player,
+            onPitch,
+            fixedPlayerIds,
+            ensureEveryoneSubbedOnce
+          );
+          if (!match) continue;
+
+          // Prioritize unplayed bench players, preference rank (0 = primary highest), minutes difference
+          let score = (match.outgoing.minutesThisMatch - inc.minutesThisMatch) * 10;
+          if (!inc.hasPlayedThisMatch) score += 500;
+          if (ensureEveryoneSubbedOnce && !match.outgoing.hasBeenSubThisMatch) score += 400;
+          if (match.preferenceRank === 0) score += 300;
+          else if (match.preferenceRank === 1) score += 150;
+          else if (match.preferenceRank === 2) score += 75;
+
+          if (!bestPair || score > (bestPair as { score: number }).score) {
+            bestPair = { inc, outgoingMatch: match, score };
+          }
         }
-      }
 
-      if (bestPair) {
+        if (!bestPair) break;
+
         const { inc, outgoingMatch } = bestPair;
         const { outgoing: out, targetPos, targetCategory, preferenceRank } = outgoingMatch;
 
@@ -1942,33 +2164,41 @@ export const generateSuggestedSubstitutions = (
             ? `${preferenceRank + 1}th preference`
             : 'Tactical rotation';
 
-        rollingWindows.push({
-          minute: matchClockMinute,
-          period,
-          subChanges: [
-            {
-              offPlayerId: out.playerId,
-              offPlayerName: out.player.name,
-              onPlayerId: inc.playerId,
-              onPlayerName: inc.player.name,
-              position: targetPos,
-              positionCategory: targetCategory,
-              reason: !inc.hasPlayedThisMatch
-                ? `Unused sub priority: ${inc.player.name} rotated into ${targetCategory} (${rankLabel})`
-                : `Single rolling rotation: ${out.player.name} (${out.minutesThisMatch}m played) rested for ${inc.player.name} into ${targetCategory} (${rankLabel})`,
-            },
-          ],
-          description: `Single rolling sub at ${matchClockMinute}'`,
+        windowChanges.push({
+          offPlayerId: out.playerId,
+          offPlayerName: out.player.name,
+          onPlayerId: inc.playerId,
+          onPlayerName: inc.player.name,
+          position: targetPos,
+          positionCategory: targetCategory,
+          reason: !inc.hasPlayedThisMatch
+            ? `Unused sub priority: ${inc.player.name} rotated into ${targetCategory} (${rankLabel})`
+            : `Rolling rotation: ${out.player.name} (${out.minutesThisMatch}m played) rested for ${inc.player.name} into ${targetCategory} (${rankLabel})`,
         });
 
         out.isOnPitch = false;
         out.currentPosition = undefined;
         out.stintMinutes = 0;
+        out.hasBeenSubThisMatch = true;
+        out.timesSubbedOff = (out.timesSubbedOff ?? 0) + 1;
+
         inc.isOnPitch = true;
         inc.currentPosition = targetPos;
         inc.hasPlayedThisMatch = true;
         inc.timesSubbedOn += 1;
         inc.stintMinutes = 0;
+      }
+
+      if (windowChanges.length > 0) {
+        rollingWindows.push({
+          minute: matchClockMinute,
+          period,
+          subChanges: windowChanges,
+          description:
+            windowChanges.length === 1
+              ? `Single rolling sub at ${matchClockMinute}'`
+              : `${windowChanges.length} rolling subs at ${matchClockMinute}'`,
+        });
       }
     }
 
@@ -2113,4 +2343,79 @@ ${restedNames || 'None'}
 • Please confirm availability in the group chat!
 
 _Generated by SubShuffle_`;
+};
+
+/**
+ * Clamps and auto-stops any period timers in `LiveMatchState` that have reached or exceeded
+ * their configured period duration (plus optional stoppage time), preventing runaway clocks
+ * if a coach leaves a period timer running in the background.
+ */
+export const clampLiveMatchStateTimers = (
+  liveMatchState: LiveMatchState,
+  periodDurationMinutes: number = 25,
+  nowMs: number = Date.now()
+): { state: LiveMatchState; didAutoStop: boolean } => {
+  const effectiveDurationMins =
+    liveMatchState.periodDurationMinutes || periodDurationMinutes || 25;
+  const baseDurationSec = Math.max(60, effectiveDurationMins * 60);
+  let didAutoStop = false;
+
+  const clampTimer = (timer: LiveMatchPeriodTimer): LiveMatchPeriodTimer => {
+    const maxSec = baseDurationSec + (timer.stoppageSeconds || 0);
+    if (timer.isRunning && timer.startedAt) {
+      const startedMs = new Date(timer.startedAt).getTime();
+      const additional = Number.isFinite(startedMs)
+        ? Math.max(0, Math.floor((nowMs - startedMs) / 1000))
+        : 0;
+      const totalElapsed = (timer.elapsedSeconds || 0) + additional;
+      if (totalElapsed >= maxSec) {
+        didAutoStop = true;
+        return {
+          ...timer,
+          isRunning: false,
+          startedAt: undefined,
+          elapsedSeconds: maxSec,
+        };
+      }
+      return timer;
+    }
+
+    if ((timer.elapsedSeconds || 0) > maxSec) {
+      didAutoStop = true;
+      return {
+        ...timer,
+        isRunning: false,
+        startedAt: undefined,
+        elapsedSeconds: maxSec,
+      };
+    }
+
+    return timer;
+  };
+
+  const currentPeriod = liveMatchState.currentPeriod || 1;
+  const updatedPeriodTimers: Record<number, LiveMatchPeriodTimer> = {};
+  if (liveMatchState.periodTimers) {
+    Object.entries(liveMatchState.periodTimers).forEach(([pKey, pTimer]) => {
+      updatedPeriodTimers[Number(pKey)] = clampTimer(pTimer);
+    });
+  }
+
+  const activeTimerSource: LiveMatchPeriodTimer = updatedPeriodTimers[currentPeriod] || clampTimer({
+    elapsedSeconds: liveMatchState.elapsedSeconds || 0,
+    isRunning: Boolean(liveMatchState.isRunning),
+    startedAt: liveMatchState.startedAt,
+  });
+
+  updatedPeriodTimers[currentPeriod] = activeTimerSource;
+
+  const clampedState: LiveMatchState = {
+    ...liveMatchState,
+    isRunning: activeTimerSource.isRunning,
+    startedAt: activeTimerSource.startedAt,
+    elapsedSeconds: activeTimerSource.elapsedSeconds,
+    periodTimers: updatedPeriodTimers,
+  };
+
+  return { state: clampedState, didAutoStop };
 };

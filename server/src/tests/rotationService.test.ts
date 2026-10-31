@@ -15,6 +15,7 @@ import {
   generateWhatsAppAnnouncement,
   filterActivePlannedInGameSubs,
   reconcileMatchSquadPlannedSubs,
+  clampLiveMatchStateTimers,
 } from '../services/rotationService.js';
 import { Player, Fixture, TeamSettings } from '../types.js';
 
@@ -1531,6 +1532,258 @@ describe('rotationService: Position Preference & Substitutions Suite', () => {
         false,
         'WhatsApp planned rolling subs section must not include rested Player 8'
       );
+    });
+
+    it('supports subsPerWindow (multi-player swaps) and ensureEveryoneSubbedOnce rule (Issue #39)', () => {
+      const players: Player[] = [
+        createMockPlayer('gk1', 'Keeper One', ['Goalkeeper'], { isFixedPosition: true, fixedPosition: 'GK' }),
+        createMockPlayer('s1', 'Starter 1', ['Defence']),
+        createMockPlayer('s2', 'Starter 2', ['Defence']),
+        createMockPlayer('s3', 'Starter 3', ['Midfield']),
+        createMockPlayer('s4', 'Starter 4', ['Midfield']),
+        createMockPlayer('s5', 'Starter 5', ['Midfield']),
+        createMockPlayer('s6', 'Starter 6', ['Attack']),
+        createMockPlayer('b1', 'Bench 1', ['Midfield']),
+        createMockPlayer('b2', 'Bench 2', ['Defence']),
+        createMockPlayer('b3', 'Bench 3', ['Attack']),
+      ];
+
+      const settings = createMockSettings({
+        pitchPlayerCount: 7,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+      });
+
+      const fixture = createMockFixture({
+        pitchPlayerCount: 7,
+        matchPeriodCount: 2,
+        periodDurationMinutes: 25,
+        fixedPlayerPositions: { gk1: 'GK' },
+        matchSquad: {
+          fixtureId: 'fix-39',
+          manualOverrides: false,
+          selectedPlayerIds: players.map((p) => p.id),
+          restedPlayerIds: [],
+          lineupsByPeriod: [
+            {
+              period: 1,
+              onPitch: [
+                { playerId: 'gk1', position: 'GK' },
+                { playerId: 's1', position: 'CB' },
+                { playerId: 's2', position: 'LB' },
+                { playerId: 's3', position: 'CM' },
+                { playerId: 's4', position: 'LM' },
+                { playerId: 's5', position: 'RM' },
+                { playerId: 's6', position: 'ST' },
+              ],
+              subs: ['b1', 'b2', 'b3'],
+            },
+            {
+              period: 2,
+              onPitch: [
+                { playerId: 'gk1', position: 'GK' },
+                { playerId: 's1', position: 'CB' },
+                { playerId: 's2', position: 'LB' },
+                { playerId: 's3', position: 'CM' },
+                { playerId: 's4', position: 'LM' },
+                { playerId: 's5', position: 'RM' },
+                { playerId: 's6', position: 'ST' },
+              ],
+              subs: ['b1', 'b2', 'b3'],
+            },
+          ],
+        },
+      });
+
+      // 1. Verify subsPerWindow = 2 produces 2 swaps per window across all strategies
+      const plansTwoPerWindow = generateSuggestedSubstitutions(fixture, players, settings, 10, {
+        subsPerWindow: 2,
+        ensureEveryoneSubbedOnce: false,
+      });
+      assert.equal(plansTwoPerWindow.length, 3);
+      plansTwoPerWindow.forEach((plan) => {
+        assert.ok(plan.windows.length > 0);
+        plan.windows.forEach((win) => {
+          assert.equal(
+            win.subChanges.length,
+            2,
+            `Expected 2 subs per window in ${plan.strategyName} at ${win.minute}', got ${win.subChanges.length}`
+          );
+        });
+      });
+
+      // 2. Verify subsPerWindow = 'all_bench' produces 3 swaps per window (all 3 bench players)
+      const plansAllBench = generateSuggestedSubstitutions(fixture, players, settings, 10, {
+        subsPerWindow: 'all_bench',
+      });
+      plansAllBench[0].windows.forEach((win) => {
+        assert.equal(win.subChanges.length, 3, 'All 3 bench players should swap in each window');
+      });
+
+      // 3. Verify ensureEveryoneSubbedOnce = true rotates all 6 non-fixed starters ('s1'..'s6')
+      // onto the bench at least once before any player is subbed off a 2nd time.
+      const plansEveryoneOnce = generateSuggestedSubstitutions(fixture, players, settings, 10, {
+        subsPerWindow: 2,
+        ensureEveryoneSubbedOnce: true,
+      });
+
+      for (const plan of plansEveryoneOnce) {
+        const subbedOffSequence: string[] = [];
+        plan.windows.forEach((w) => {
+          w.subChanges.forEach((ch) => {
+            subbedOffSequence.push(ch.offPlayerId);
+          });
+        });
+
+        // The first 6 players subbed off must be the 6 distinct non-fixed starters ('s1'..'s6')
+        const firstSixOff = subbedOffSequence.slice(0, 6);
+        const uniqueFirstSix = new Set(firstSixOff);
+        assert.equal(
+          uniqueFirstSix.size,
+          6,
+          `In ${plan.strategyName}, all 6 non-fixed starters should be subbed off once before anyone is subbed off twice. Got: ${firstSixOff.join(', ')}`
+        );
+        ['s1', 's2', 's3', 's4', 's5', 's6'].forEach((starterId) => {
+          assert.equal(
+            uniqueFirstSix.has(starterId),
+            true,
+            `Starter ${starterId} was not rotated to the bench in ${plan.strategyName}`
+          );
+        });
+      }
+    });
+
+    it('calculates exact player minutes across multi-window plannedInGameSubs within the same period (Issue #39)', () => {
+      const players: Player[] = [
+        createMockPlayer('p1', 'Player 1', ['Midfield']),
+        createMockPlayer('p2', 'Player 2', ['Midfield']),
+        createMockPlayer('p3', 'Player 3', ['Midfield']),
+      ];
+
+      const settings = createMockSettings({
+        pitchPlayerCount: 2,
+        matchPeriodCount: 1,
+        periodDurationMinutes: 24,
+      });
+
+      const matchSquad = {
+        fixtureId: 'fix-multi-win',
+        manualOverrides: true,
+        selectedPlayerIds: ['p1', 'p2', 'p3'],
+        restedPlayerIds: [],
+        lineupsByPeriod: [
+          {
+            period: 1,
+            onPitch: [
+              { playerId: 'p1', position: 'CM' },
+              { playerId: 'p2', position: 'LM' },
+            ],
+            subs: ['p3'],
+          },
+        ],
+        // Window 1 at 8': p1 OFF, p3 ON (p1 played 0..8 = 8m)
+        // Window 2 at 16': p2 OFF, p1 ON (p2 played 0..16 = 16m; p1 plays 16..24 = 8m -> total 16m; p3 plays 8..24 = 16m)
+        plannedInGameSubs: [
+          {
+            period: 1,
+            targetMinute: 8,
+            matchMinute: 8,
+            playerOutId: 'p1',
+            playerOutName: 'Player 1',
+            playerInId: 'p3',
+            playerInName: 'Player 3',
+            position: 'CM',
+          },
+          {
+            period: 1,
+            targetMinute: 16,
+            matchMinute: 16,
+            playerOutId: 'p2',
+            playerOutName: 'Player 2',
+            playerInId: 'p1',
+            playerInName: 'Player 1',
+            position: 'LM',
+          },
+        ],
+      };
+
+      const activeSubs = filterActivePlannedInGameSubs(matchSquad);
+      assert.equal(activeSubs.length, 2, 'Both multi-window planned subs in Period 1 must be accepted');
+
+      const stats = calculateMatchStats(matchSquad, players, settings);
+      const p1Stats = stats.find((s) => s.playerId === 'p1')!;
+      const p2Stats = stats.find((s) => s.playerId === 'p2')!;
+      const p3Stats = stats.find((s) => s.playerId === 'p3')!;
+
+      assert.equal(p1Stats.minutesPlayed, 16, 'p1 played 0-8m and 16-24m = 16m');
+      assert.equal(p2Stats.minutesPlayed, 16, 'p2 played 0-16m = 16m');
+      assert.equal(p3Stats.minutesPlayed, 16, 'p3 played 8-24m = 16m');
+    });
+
+    it('auto-stops period timer at periodDurationMinutes and clamps forgotten runaway clocks while respecting stoppageSeconds (Issue #40)', () => {
+      const nowMs = new Date('2026-10-31T12:00:00Z').getTime();
+      // Started 3 hours ago (runaway clock if not clamped)
+      const threeHoursAgoIso = new Date(nowMs - 3 * 3600 * 1000).toISOString();
+
+      const runawayState = {
+        isRunning: true,
+        currentPeriod: 1,
+        startedAt: threeHoursAgoIso,
+        elapsedSeconds: 0,
+        periodTimers: {
+          1: {
+            isRunning: true,
+            startedAt: threeHoursAgoIso,
+            elapsedSeconds: 0,
+          },
+        },
+        subLog: [],
+      };
+
+      const { state: clamped, didAutoStop } = clampLiveMatchStateTimers(runawayState, 25, nowMs);
+      assert.equal(didAutoStop, true, 'Runaway timer must trigger auto-stop');
+      assert.equal(clamped.isRunning, false, 'Timer must transition to isRunning = false');
+      assert.equal(clamped.startedAt, undefined, 'startedAt must be cleared');
+      assert.equal(clamped.elapsedSeconds, 25 * 60, 'Elapsed seconds must be capped at 1500s (25m)');
+      assert.equal(clamped.periodTimers?.[1]?.isRunning, false);
+      assert.equal(clamped.periodTimers?.[1]?.elapsedSeconds, 25 * 60);
+
+      // Verify a timer with +3m (180s) stoppage time added continues running until 28:00 (1680s)
+      const startedOneMinAgoIso = new Date(nowMs - 60 * 1000).toISOString();
+      const stoppageRunningState = {
+        isRunning: true,
+        currentPeriod: 1,
+        startedAt: startedOneMinAgoIso,
+        elapsedSeconds: 25 * 60,
+        periodTimers: {
+          1: {
+            isRunning: true,
+            startedAt: startedOneMinAgoIso,
+            elapsedSeconds: 25 * 60,
+            stoppageSeconds: 180,
+          },
+        },
+        subLog: [],
+      };
+
+      const { state: activeStoppage, didAutoStop: stoppedEarly } = clampLiveMatchStateTimers(
+        stoppageRunningState,
+        25,
+        nowMs
+      );
+      assert.equal(stoppedEarly, false, 'Timer at 26:00 with +3m stoppage (max 28:00) must keep running');
+      assert.equal(activeStoppage.isRunning, true);
+
+      // Once 4 minutes have elapsed into +3m stoppage, it auto-stops at 28:00 (1680s)
+      const fourMinsLaterMs = nowMs + 3 * 60 * 1000;
+      const { state: finishedStoppage, didAutoStop: stoppedAtEnd } = clampLiveMatchStateTimers(
+        stoppageRunningState,
+        25,
+        fourMinsLaterMs
+      );
+      assert.equal(stoppedAtEnd, true);
+      assert.equal(finishedStoppage.isRunning, false);
+      assert.equal(finishedStoppage.elapsedSeconds, 28 * 60, 'Capped at 25m + 3m stoppage = 1680s');
     });
   });
 

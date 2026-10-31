@@ -26,6 +26,7 @@ import {
   LiveMatchSubLogEntry,
   EarlyDeparture,
   UserSubscription,
+  SuggestedSubsOptions,
 } from '../types';
 import { getFormationsForTeamSize, findFormation, DEFAULT_FORMATIONS } from '../utils/formations';
 import { DEMO_TEAMS, DEMO_PLAYERS, DEMO_FIXTURES, isDemoTeamId } from '../utils/demoData';
@@ -130,7 +131,11 @@ interface MatchdayContextType {
     minute?: number,
     matchMinute?: number
   ) => Promise<{ success: boolean; earlyDeparture?: EarlyDeparture }>;
-  getSuggestedSubs: (fixtureId: string, interval?: number) => Promise<SuggestedSubPlan[]>;
+  getSuggestedSubs: (
+    fixtureId: string,
+    interval?: number,
+    options?: SuggestedSubsOptions
+  ) => Promise<SuggestedSubPlan[]>;
   isPlayerFixed: (playerId: string, fixture?: Fixture) => boolean;
   getFixedPlayerPosition: (playerId: string, fixture?: Fixture) => string | undefined;
   toggleFixedPlayerPosition: (playerId: string, position?: string, fixtureId?: string) => Promise<{ isFixed: boolean; position: string }>;
@@ -793,8 +798,23 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const duration = activeFixture.periodDurationMinutes || settings.periodDurationMinutes || 25;
     const totalMatchMinutes = periodCount * duration;
     const playerMap = new Map(players.map((p) => [p.id, p]));
+    const restedSet = new Set(activeFixture.matchSquad.restedPlayerIds || []);
+    const departedSet = new Set((activeFixture.earlyDepartures || []).map((d) => d.playerId));
+    const activeSelectedIds = activeFixture.matchSquad.selectedPlayerIds.filter(
+      (id) => !restedSet.has(id)
+    );
+    const activePlannedSubs = (activeFixture.matchSquad.plannedInGameSubs || []).filter(
+      (s) =>
+        s.playerOutId &&
+        s.playerInId &&
+        s.playerOutId !== s.playerInId &&
+        !restedSet.has(s.playerOutId) &&
+        !restedSet.has(s.playerInId) &&
+        !departedSet.has(s.playerOutId) &&
+        !departedSet.has(s.playerInId)
+    );
 
-    return activeFixture.matchSquad.selectedPlayerIds.map((playerId) => {
+    return activeSelectedIds.map((playerId) => {
       const player = playerMap.get(playerId) || {
         id: playerId,
         teamId: activeFixture.teamId || '',
@@ -808,19 +828,76 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const periodsPlayed: number[] = [];
       let playedAsGoalkeeper = false;
       const positionsPlayed: string[] = [];
+      let calculatedMinutes = 0;
 
-      activeFixture.matchSquad!.lineupsByPeriod.forEach((lineup) => {
-        const pitchEntry = lineup.onPitch.find((item) => item.playerId === playerId);
-        if (pitchEntry) {
-          periodsPlayed.push(lineup.period);
-          positionsPlayed.push(pitchEntry.position);
-          if (pitchEntry.position === 'GK') {
-            playedAsGoalkeeper = true;
+      if (activePlannedSubs.length > 0 && !departedSet.has(playerId)) {
+        for (let p = 1; p <= periodCount; p++) {
+          const lineup = activeFixture.matchSquad!.lineupsByPeriod.find((l) => l.period === p);
+          const pitchEntry = lineup?.onPitch.find((item) => item.playerId === playerId);
+          const playerPeriodSubs = activePlannedSubs
+            .filter(
+              (s) => s.period === p && (s.playerOutId === playerId || s.playerInId === playerId)
+            )
+            .sort((a, b) => a.targetMinute - b.targetMinute);
+
+          if (playerPeriodSubs.length > 0) {
+            const firstEvent = playerPeriodSubs[0];
+            let isOnPitch = firstEvent.playerOutId === playerId;
+            let lastMinute = 0;
+
+            if (isOnPitch) {
+              if (!periodsPlayed.includes(p)) periodsPlayed.push(p);
+              const startPos = pitchEntry?.position || firstEvent.position;
+              if (startPos && !positionsPlayed.includes(startPos)) {
+                positionsPlayed.push(startPos);
+                if (startPos === 'GK') playedAsGoalkeeper = true;
+              }
+            }
+
+            for (const sub of playerPeriodSubs) {
+              const clampedMinute = Math.max(lastMinute, Math.min(duration, sub.targetMinute));
+              if (sub.playerOutId === playerId && isOnPitch) {
+                calculatedMinutes += clampedMinute - lastMinute;
+                isOnPitch = false;
+                lastMinute = clampedMinute;
+              } else if (sub.playerInId === playerId && !isOnPitch) {
+                lastMinute = clampedMinute;
+                isOnPitch = true;
+                if (!periodsPlayed.includes(p)) periodsPlayed.push(p);
+                if (sub.position && !positionsPlayed.includes(sub.position)) {
+                  positionsPlayed.push(sub.position);
+                  if (sub.position === 'GK') playedAsGoalkeeper = true;
+                }
+              }
+            }
+
+            if (isOnPitch) {
+              calculatedMinutes += Math.max(0, duration - lastMinute);
+            }
+          } else if (pitchEntry) {
+            if (!periodsPlayed.includes(p)) periodsPlayed.push(p);
+            if (!positionsPlayed.includes(pitchEntry.position)) {
+              positionsPlayed.push(pitchEntry.position);
+              if (pitchEntry.position === 'GK') playedAsGoalkeeper = true;
+            }
+            calculatedMinutes += duration;
           }
         }
-      });
+      } else {
+        activeFixture.matchSquad!.lineupsByPeriod.forEach((lineup) => {
+          const pitchEntry = lineup.onPitch.find((item) => item.playerId === playerId);
+          if (pitchEntry) {
+            periodsPlayed.push(lineup.period);
+            positionsPlayed.push(pitchEntry.position);
+            if (pitchEntry.position === 'GK') {
+              playedAsGoalkeeper = true;
+            }
+          }
+        });
+        calculatedMinutes = periodsPlayed.length * duration;
+      }
 
-      let minutesPlayed = periodsPlayed.length * duration;
+      let minutesPlayed = calculatedMinutes;
       let isPostMatchRecorded = false;
 
       // Check early departures to freeze departed player's logged minutes
@@ -2007,11 +2084,19 @@ export const MatchdayProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const getSuggestedSubs = async (
     fixtureId: string,
-    interval: number = 10
+    interval: number = 10,
+    options?: SuggestedSubsOptions
   ): Promise<SuggestedSubPlan[]> => {
     try {
       const headers = await getAuthHeaders();
-      const res = await fetch(`/api/fixtures/${fixtureId}/suggested-subs?interval=${interval}`, {
+      const params = new URLSearchParams({ interval: String(interval) });
+      if (options?.subsPerWindow !== undefined) {
+        params.set('subsPerWindow', String(options.subsPerWindow));
+      }
+      if (options?.ensureEveryoneSubbedOnce !== undefined) {
+        params.set('ensureEveryoneSubbedOnce', String(Boolean(options.ensureEveryoneSubbedOnce)));
+      }
+      const res = await fetch(`/api/fixtures/${fixtureId}/suggested-subs?${params.toString()}`, {
         headers,
       });
       if (res.ok) {

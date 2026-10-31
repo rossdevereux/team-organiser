@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Interactive Match Sub Scheduler, Multi-Player Swaps & "Everyone Rests Once" Rule** ([#39](https://github.com/rossdevereux/team-organiser/issues/39)):
+  - Added `SubsPerWindowOption` (`'auto' | 'all_bench' | number`) and `SuggestedSubsOptions` (`subsPerWindow`, `ensureEveryoneSubbedOnce`) to [`server/src/types.ts`](server/src/types.ts) and [`client/src/types.ts`](client/src/types.ts).
+  - Enhanced `InMatchTracker`, `findBestOutgoingPitchPlayer`, and `generateSuggestedSubstitutions` in [`rotationService.ts`](server/src/services/rotationService.ts) to support configurable swap counts per window (`Auto`, `1`, `2`, `3`, `All Bench`) and the **Ensure everyone is a sub at least once** (`ensureEveryoneSubbedOnce`) invariant that rotates all non-fixed outfield starters onto the bench before any player is subbed off twice.
+  - Updated `filterActivePlannedInGameSubs` and `calculateMatchStats` in [`rotationService.ts`](server/src/services/rotationService.ts) and the `stats` `useMemo` in [`MatchdayContext.tsx`](client/src/context/MatchdayContext.tsx) to chronologically simulate multi-window `plannedInGameSubs` within the same period and compute exact player stints.
+  - Upgraded [`SuggestedSubsModal.tsx`](client/src/components/SuggestedSubsModal.tsx) with **Subs / Window** pills, the **Ensure everyone is a sub at least once** toggle, an **Apply Plan to Match Schedule** button (which saves multi-window plans to `plannedInGameSubs` and carries end-of-period lineups forward across breaks), and an interactive custom sub scheduler.
+  - Upgraded [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx) so coaches can view multi-window scheduled substitutions, add new scheduled substitutions mid-match via **+ Schedule Sub**, or remove individual scheduled subs directly on the touchline.
+  - Added unit tests in [`rotationService.test.ts`](server/src/tests/rotationService.test.ts) verifying `subsPerWindow`, `ensureEveryoneSubbedOnce`, and multi-window `calculateMatchStats` calculation.
+- **Auto-Stop Match Period Timer at Period Duration & Stoppage Time Controls** ([#40](https://github.com/rossdevereux/team-organiser/issues/40)):
+  - Added `stoppageSeconds` to [`LiveMatchPeriodTimer`](server/src/types.ts) and implemented [`clampLiveMatchStateTimers`](server/src/services/rotationService.ts) in `rotationService.ts` and [`api.ts`](server/src/routes/api.ts) (`PUT /api/fixtures/:id/live-state` and `GET /api/fixtures/:id/live-status`) to automatically stop running timers at `periodDurationMinutes` (plus optional stoppage time) and prevent runaway clocks when a match tab is closed.
+  - Updated [`LiveMatchModal.tsx`](client/src/components/LiveMatchModal.tsx) to clamp `elapsedSeconds` at `periodDurationSeconds`, sound the referee whistle and persist `isRunning: false` when a period completes, and display a **Period Complete** banner with 1-tap **Go to Period {N+1}** / **Complete Match** actions alongside **+1m Stoppage** and **+3m Stoppage** extensions.
+  - Added unit tests in [`rotationService.test.ts`](server/src/tests/rotationService.test.ts) verifying runaway clock clamping and stoppage time extensions.
+
+### Changed
+- **Repository Licensing (`PolyForm-Noncommercial-1.0.0` + Commercial Dual-License)**:
+  - Updated [`LICENSE`](LICENSE), [`README.md`](README.md), [`package.json`](package.json), [`client/package.json`](client/package.json), and [`server/package.json`](server/package.json) to dual-license SubShuffle under the **PolyForm Noncommercial License 1.0.0** for personal/non-commercial use while requiring a separate commercial agreement for any paid hosting, resale, or commercial monetization.
+
 ## [1.7.3] - 2026-10-31
 
 ### Fixed

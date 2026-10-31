@@ -164,6 +164,7 @@ export interface LiveMatchPeriodTimer {
   elapsedSeconds: number;
   isRunning: boolean;
   startedAt?: string; // ISO string when timer was started
+  stoppageSeconds?: number; // Optional added injury/stoppage time in seconds
 }
 
 export interface LiveMatchState {
@@ -267,6 +268,13 @@ export interface SeasonPlayerStats {
 }
 
 // Sideline Substitution Guidance Models
+export type SubsPerWindowOption = 'auto' | 'all_bench' | number;
+
+export interface SuggestedSubsOptions {
+  subsPerWindow?: SubsPerWindowOption;
+  ensureEveryoneSubbedOnce?: boolean;
+}
+
 export interface SingleSubChange {
   offPlayerId: string;
   offPlayerName: string;

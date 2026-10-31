@@ -8,6 +8,7 @@ import {
   generateSuggestedSubstitutions,
   rebalanceRemainingPeriods,
   reconcileMatchSquadPlannedSubs,
+  clampLiveMatchStateTimers,
 } from '../services/rotationService.js';
 import { calculateSeasonDashboardSummary } from '../services/dashboardService.js';
 import { getChangelogData } from '../services/changelogService.js';
@@ -28,6 +29,7 @@ import {
   EarlyDeparture,
   UserOnboardingState,
   DEFAULT_ONBOARDING_STATE,
+  SubsPerWindowOption,
 } from '../types.js';
 
 const router = Router();
@@ -1266,7 +1268,16 @@ router.put('/fixtures/:id/live-state', requireActiveSubscription, async (req: Au
       await storage.updateMatchSquad(id, matchSquad);
     }
 
-    const updated = await storage.updateLiveMatchState(id, liveMatchState);
+    const existingFixture = await storage.getFixtureById(id);
+    const settings = existingFixture ? await storage.getSettings(existingFixture.teamId) : undefined;
+    const periodDurationMins =
+      existingFixture?.periodDurationMinutes || settings?.periodDurationMinutes || 25;
+    const { state: clampedLiveState } = clampLiveMatchStateTimers(
+      liveMatchState,
+      periodDurationMins
+    );
+
+    const updated = await storage.updateLiveMatchState(id, clampedLiveState);
     if (!updated) {
       return res.status(404).json({ error: 'Fixture not found' });
     }
@@ -1284,9 +1295,23 @@ router.put('/fixtures/:id/live-state', requireActiveSubscription, async (req: Au
 router.get('/fixtures/:id/live-status', async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const fixture = await storage.getFixtureById(id);
+    let fixture = await storage.getFixtureById(id);
     if (!fixture) {
       return res.status(404).json({ error: 'Fixture not found' });
+    }
+
+    if (fixture.liveMatchState) {
+      const settings = await storage.getSettings(fixture.teamId);
+      const periodDurationMins =
+        fixture.periodDurationMinutes || settings?.periodDurationMinutes || 25;
+      const { state: clampedState, didAutoStop } = clampLiveMatchStateTimers(
+        fixture.liveMatchState,
+        periodDurationMins
+      );
+      if (didAutoStop) {
+        const persisted = await storage.updateLiveMatchState(id, clampedState);
+        if (persisted) fixture = persisted;
+      }
     }
 
     // Determine normalized match runtime status
@@ -1361,6 +1386,18 @@ router.get('/fixtures/:id/suggested-subs', async (req: Request, res: Response) =
   try {
     const id = req.params.id as string;
     const interval = req.query.interval ? parseInt(req.query.interval as string, 10) : 10;
+    const rawSubsPerWindow = req.query.subsPerWindow as string | undefined;
+    let subsPerWindow: SubsPerWindowOption = 'auto';
+    if (rawSubsPerWindow === 'all_bench' || rawSubsPerWindow === 'auto') {
+      subsPerWindow = rawSubsPerWindow;
+    } else if (rawSubsPerWindow) {
+      const parsedCount = parseInt(rawSubsPerWindow, 10);
+      if (!isNaN(parsedCount) && parsedCount >= 1) {
+        subsPerWindow = parsedCount;
+      }
+    }
+    const ensureEveryoneSubbedOnce = req.query.ensureEveryoneSubbedOnce === 'true';
+
     const fixture = await storage.getFixtureById(id);
     if (!fixture) {
       return res.status(404).json({ error: 'Fixture not found' });
@@ -1368,11 +1405,16 @@ router.get('/fixtures/:id/suggested-subs', async (req: Request, res: Response) =
 
     const players = await storage.getPlayers(fixture.teamId);
     const settings = await storage.getSettings(fixture.teamId);
-    const plans = generateSuggestedSubstitutions(fixture, players, settings, interval);
+    const plans = generateSuggestedSubstitutions(fixture, players, settings, interval, {
+      subsPerWindow,
+      ensureEveryoneSubbedOnce,
+    });
 
     res.json({
       fixtureId: fixture.id,
       interval,
+      subsPerWindow,
+      ensureEveryoneSubbedOnce,
       plans,
     });
   } catch (err: any) {

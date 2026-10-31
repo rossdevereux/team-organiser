@@ -240,13 +240,18 @@ On matchday morning, tap **Live Match** in the top toolbar:
 - Tap **Start Period** to start the pitchside stopwatch.
 - The timer runs accurately pitchside and automatically synchronizes with the cloud — if your phone battery dies, you refresh your screen, or you switch apps, the clock continues running with zero time drift.
 - Tap **Pause** at any point for referee injury stoppages.
+- **Auto-Stop at Period End & Stoppage Time:** When the stopwatch reaches your configured period duration (e.g. `25:00`), it automatically stops and sounds the referee whistle so the clock never runs on forever if you put your phone in your pocket. A **Period Complete** banner appears with a 1-tap button to advance to the next period (or **Complete Match** at full-time), plus **+1m Stoppage** and **+3m Stoppage** buttons if the referee plays injury time.
 - **Period Continuity Banner:** When rolling substitutions or lineup continuity is active, kicking off Period 2 highlights a reassuring banner (`⚡ Starting Half 2 with the same lineup`), confirming that your active outfield players resume without an unnecessary half-time reset.
 
 ### Sideline Substitution Alarms
-If you use rolling substitutions within halves (e.g. every 10–12.5 minutes):
-- SubShuffle triggers a visual notification and audio cue (referee whistle) when your scheduled substitution window opens.
-- The **Scheduled In-Game Subs** card displays the exact player stepping off, substitute stepping on, and pitch position with a **1-tap Execute Sub** button that logs the exact match minute and updates Fair Play equity meters instantly.
-- The **Suggested Subs** drawer displays tactical recommendations for all periods, keeping touchline panic to zero.
+If you use rolling substitutions within halves (e.g. every 5, 8, 10, 12, or 15 minutes):
+- **Suggested Substitutions & Sub Scheduler:** Open **Suggested Subs** on the Pitch view to configure your match rotation plan:
+  - **Subs per Window:** Choose whether to swap `Auto`, `1 Sub`, `2 Subs`, `3 Subs`, or `All Bench` at each interval mark.
+  - **Ensure Everyone is a Sub at Least Once:** Enable the `⚖️ Ensure everyone is a sub at least once` toggle to guarantee every non-fixed starter rotates onto the bench at least once before any player is subbed off a second time.
+  - **Apply Plan to Match Schedule:** Tap **Apply Plan to Match Schedule** to sync your multi-window timeline directly into **Live Match**, **Fair Play Minutes**, and **WhatsApp** exports (automatically carrying end-of-period pitch and bench states forward into the next period).
+- **Live Match Scheduled Substitutions:** Inside **Live Match**, SubShuffle triggers a visual notification and audio cue (referee whistle) when your scheduled substitution window opens:
+  - The **Scheduled Mid-Game Rolling Substitutions** panel displays each upcoming swap with a **1-tap Execute Sub** button that logs the exact match minute and updates the pitch lineup immediately.
+  - Need to queue another swap or adjust your plan pitchside? Tap **+ Schedule Sub** right inside **Live Match** (or tap the trash icon on any queued card) to add or remove scheduled substitutions on the fly.
 
 ### Mid-Match Injuries & Early Departure Rebalancing
 Grassroots football is unpredictable — a player gets injured in the 12th minute or has to leave early:

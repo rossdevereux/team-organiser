@@ -6,6 +6,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8.svg)](https://tailwindcss.com/)
 [![Google Cloud Run](https://img.shields.io/badge/Google_Cloud_Run-Zero_Idle_Cost-4285f4.svg)](https://cloud.google.com/run)
 [![Firebase Hosting](https://img.shields.io/badge/Firebase_Hosting-Edge_CDN-ffca28.svg)](https://firebase.google.com/)
+[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/License-PolyForm_Noncommercial_1.0.0-amber.svg)](LICENSE)
 
 **SubShuffle** is a modern, decoupled full-stack application designed specifically for grassroots youth football coaches, team managers, and club secretaries. It eliminates the sideline headache of managing fair playing time, substitution rotations, tactical formations, and matchday attendance while strictly complying with FA youth development rules and international privacy regulations (GDPR / UK DPA 2018).
 
@@ -473,5 +474,12 @@ All notable changes and release versions are documented in [CHANGELOG.md](CHANGE
 ---
 
 ## 📜 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+This project is **dual-licensed** (see [`LICENSE`](LICENSE) for full legal terms):
+
+1. **Non-Commercial & Personal Use ([PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0)):**
+   - You are free to view, fork, study, modify, and contribute to the source code for personal, educational, or non-commercial charity/grassroots purposes.
+2. **Commercial Use (Commercial License Required):**
+   - Any commercial use, paid SaaS hosting, resale, white-labeling, or monetization of this software (or derivative works) is **strictly prohibited** under the non-commercial license and requires a separate prior written **Commercial License / Revenue-Share Agreement** from the copyright holder (**Ross Devereux**).
+
 
