@@ -57,7 +57,8 @@ jobs:
             --max-instances 10 \
             --memory 512Mi \
             --cpu 1 \
-            --set-env-vars NODE_ENV=production
+            --update-env-vars NODE_ENV=production \
+            --update-secrets STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest,STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest
 
   deploy-frontend:
     name: Build & Deploy Frontend to Firebase Hosting

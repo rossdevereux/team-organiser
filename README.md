@@ -203,7 +203,7 @@ gcloud run deploy team-organiser-api \
   --max-instances 10 \
   --memory 512Mi \
   --cpu 1 \
-  --set-env-vars NODE_ENV=production
+  --update-env-vars NODE_ENV=production
 ```
 *Note: Note the service URL or ensure the serviceId matches `team-organiser-api` in `firebase.json`.*
 
@@ -369,12 +369,33 @@ To test Stripe Checkout and webhook events locally against `http://localhost:808
    You will see the Express API log: `[Stripe Webhook] Activated coach_monthly subscription for UID: ...`.
 
 #### 6. Production Deployment on Google Cloud Run
-When deploying your containerised Express API to Cloud Run, provide the Stripe secrets via command line or Google Secret Manager:
+To persist your Stripe keys securely across all future Cloud Run deployments and GitHub Actions upgrades using **Google Cloud Secret Manager**, run the included PowerShell setup script once:
+
+```powershell
+.\scripts\setup-stripe-secrets.ps1
+```
+
+Alternatively, provide them directly via `--update-env-vars`:
 
 ```bash
 gcloud run services update team-organiser-api \
   --region europe-west1 \
   --update-env-vars STRIPE_SECRET_KEY=sk_live_...,STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+#### 7. Enable Firestore 24-Month Native TTL Policy (Accounting & GDPR Hygiene)
+Payment receipts (`users/{uid}/payments/{paymentId}`) automatically include an `expireAt` timestamp set 24 months ahead of the payment date, and webhook idempotency records (`stripe_events/{eventId}`) include a 30-day `expireAt` timestamp. Enable Cloud Firestore's native TTL policy so expired records are purged automatically at zero operational cost:
+
+```bash
+gcloud firestore fields ttls update expireAt \
+  --collection-group=payments \
+  --enable-ttl \
+  --project=team-organiser-prod
+
+gcloud firestore fields ttls update expireAt \
+  --collection-group=stripe_events \
+  --enable-ttl \
+  --project=team-organiser-prod
 ```
 
 ---

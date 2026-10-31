@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Resilient Stripe Webhook Processing, Out-of-Order Reconciliation, User Payment History & 24-Month Firestore TTL** ([#35](https://github.com/rossdevereux/team-organiser/issues/35)):
+  - Implemented idempotent Stripe webhook ingestion using a `stripe_events/{eventId}` collection with a 30-day Firestore `Timestamp` TTL (`hasProcessedStripeEvent` and `recordProcessedStripeEvent` in [`storage.ts`](server/src/db/storage.ts)).
+  - Added timestamp-based webhook ordering guard (`lastWebhookCreated`) in [`billing.ts`](server/src/routes/billing.ts) to detect out-of-order/stale webhook deliveries (`event.created < lastWebhookCreated`) and reconcile authoritative status via `stripe.subscriptions.retrieve()`.
+  - Built per-user payment ledger (`users/{uid}/payments/{invoiceId}`) recording `invoice.payment_succeeded` and `invoice.payment_failed` events with card brand/last4 metadata, invoice PDF/hosted links, and a 24-month native Firestore `Timestamp` TTL (`expireAt`).
+  - Added `GET /api/billing/history` endpoint and `fetchBillingHistory()` client helper in [`adminApi.ts`](client/src/utils/adminApi.ts).
+  - Added **Payment History & Receipts** panel in [`SettingsModal.tsx`](client/src/components/SettingsModal.tsx) under the **Billing & Plan** tab, featuring a responsive desktop table (`sm:table`), mobile stacked cards, status pills (`Paid`, `Failed`, `Refunded`), direct PDF receipt links (`📄 Receipt ↗`), and a free-trial empty state.
+  - Added unit test suite in [`billing.test.ts`](server/src/tests/billing.test.ts) covering 24-month `expireAt` Firestore `Timestamp` generation, duplicate event idempotency, out-of-order reconciliation via `stripe.subscriptions.retrieve()`, and descending payment history ordering.
+
+### Changed
+- **Persist Cloud Run Stripe Secrets Across Deployments**:
+  - Added [`scripts/setup-stripe-secrets.ps1`](scripts/setup-stripe-secrets.ps1) to provision `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in Google Cloud Secret Manager (without trailing CRLF newlines), grant Secret Manager IAM access to the Cloud Run runtime service account, and mount the secrets onto `team-organiser-api`.
+  - Updated [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) and [`README.md`](README.md) to use `--update-env-vars NODE_ENV=production` and `--update-secrets` instead of `--set-env-vars`, preventing deployments from wiping existing Cloud Run environment variables.
+
 ## [1.6.1] - 2026-10-25
 
 ### Fixed

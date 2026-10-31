@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+- **Payment History & VAT Receipts in Settings** ([#35](https://github.com/rossdevereux/team-organiser/issues/35)):
+  - Coaches can now view their complete subscription payment history directly inside **Settings → Billing & Plan**.
+  - Download official PDF VAT receipts with one click (`📄 Receipt ↗`) for grassroots club expense claims, automatically retained for 24 months.
+  - Enhanced subscription renewal reliability to ensure delayed payment notifications never interrupt active matchday accounts.
+
 ## [1.6.1] - 2026-10-25
 
 ### Fixed

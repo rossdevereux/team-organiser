@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Timestamp } from '@google-cloud/firestore';
 import {
   Player,
   TeamSettings,
@@ -17,6 +18,8 @@ import {
   BackupData,
   GoalScorer,
   LiveMatchState,
+  PaymentRecord,
+  StripeEventRecord,
 } from '../types.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -496,6 +499,17 @@ interface DataStore {
   fixtures: Fixture[];
   clubSettings?: ClubSettings;
   adminUsers?: AdminUser[];
+  stripeEvents?: Record<string, StripeEventRecord>;
+  userPayments?: Record<string, PaymentRecord[]>;
+}
+
+/**
+ * Computes the 24-month TTL expiration date from a given payment date.
+ */
+export function calculatePaymentExpireDate(paidDate: Date): Date {
+  const expireDate = new Date(paidDate.getTime());
+  expireDate.setMonth(expireDate.getMonth() + 24);
+  return expireDate;
 }
 
 /**
@@ -556,6 +570,8 @@ export class StorageManager {
       fixtures: [...SEED_FIXTURES],
       clubSettings: { ...DEFAULT_CLUB_SETTINGS },
       adminUsers: [],
+      stripeEvents: {},
+      userPayments: {},
     };
     if (customFirestore !== undefined) {
       this.firestoreInstance = customFirestore;
@@ -608,6 +624,8 @@ export class StorageManager {
             fixtures: parsed.fixtures,
             clubSettings: parsed.clubSettings || DEFAULT_CLUB_SETTINGS,
             adminUsers: parsed.adminUsers || [],
+            stripeEvents: parsed.stripeEvents || {},
+            userPayments: parsed.userPayments || {},
           };
           console.log(` Loaded ${this.memoryStore.teams.length} teams, ${this.memoryStore.players.length} players, and ${this.memoryStore.fixtures.length} fixtures from file.`);
           return;
@@ -1563,6 +1581,166 @@ export class StorageManager {
     await this.ensureInitialized();
     const users = await this.getAdminUsers();
     return users.find((u) => u.subscription?.stripeCustomerId === customerId) || null;
+  }
+
+  async getAdminUserByEmail(email: string): Promise<AdminUser | null> {
+    if (!email) return null;
+    await this.ensureInitialized();
+    const normalized = email.trim().toLowerCase();
+    const users = await this.getAdminUsers();
+    return users.find((u) => u.email?.trim().toLowerCase() === normalized) || null;
+  }
+
+  // ================= Stripe Webhook Idempotency & Payment Ledger =================
+  async hasProcessedStripeEvent(eventId: string): Promise<boolean> {
+    if (!eventId) return false;
+    await this.ensureInitialized();
+
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        const doc = await this.firestoreInstance.collection('stripe_events').doc(eventId).get();
+        if (doc.exists) return true;
+      } catch (err) {
+        console.warn('Firestore check stripe_events error, using memory fallback:', err);
+      }
+    }
+
+    return Boolean(this.memoryStore.stripeEvents && this.memoryStore.stripeEvents[eventId]);
+  }
+
+  async recordProcessedStripeEvent(
+    eventId: string,
+    type: string,
+    processedDate: Date = new Date()
+  ): Promise<StripeEventRecord> {
+    await this.ensureInitialized();
+    const expireDate = new Date(processedDate.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days TTL
+
+    const record: StripeEventRecord = {
+      eventId,
+      type,
+      processedAt: processedDate.toISOString(),
+      expireAt: expireDate.toISOString(),
+    };
+
+    if (!this.memoryStore.stripeEvents) {
+      this.memoryStore.stripeEvents = {};
+    }
+    this.memoryStore.stripeEvents[eventId] = record;
+    this.saveToFile();
+
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        await this.firestoreInstance
+          .collection('stripe_events')
+          .doc(eventId)
+          .set({
+            eventId,
+            type,
+            processedAt: Timestamp.fromDate(processedDate),
+            expireAt: Timestamp.fromDate(expireDate),
+          });
+      } catch (err) {
+        console.error('Firestore save stripe_events error:', err);
+      }
+    }
+
+    return record;
+  }
+
+  private getUserPaymentsCollection(uid: string) {
+    const userDoc = this.firestoreInstance.collection('users').doc(uid);
+    if (typeof userDoc.collection === 'function') {
+      return userDoc.collection('payments');
+    }
+    return this.firestoreInstance.collection(`users/${uid}/payments`);
+  }
+
+  async saveUserPayment(
+    uid: string,
+    paymentInput: Omit<PaymentRecord, 'expireAt' | 'userId'> & { userId?: string; expireAt?: string }
+  ): Promise<PaymentRecord> {
+    await this.ensureInitialized();
+    const paidDate = paymentInput.paidAt ? new Date(paymentInput.paidAt) : new Date();
+    const expireDate = paymentInput.expireAt
+      ? new Date(paymentInput.expireAt)
+      : calculatePaymentExpireDate(paidDate);
+
+    const payment: PaymentRecord = {
+      ...paymentInput,
+      userId: uid,
+      paidAt: paidDate.toISOString(),
+      expireAt: expireDate.toISOString(),
+    };
+
+    if (!this.memoryStore.userPayments) {
+      this.memoryStore.userPayments = {};
+    }
+    if (!this.memoryStore.userPayments[uid]) {
+      this.memoryStore.userPayments[uid] = [];
+    }
+
+    const existingIdx = this.memoryStore.userPayments[uid].findIndex((p) => p.id === payment.id);
+    if (existingIdx >= 0) {
+      this.memoryStore.userPayments[uid][existingIdx] = payment;
+    } else {
+      this.memoryStore.userPayments[uid].unshift(payment);
+    }
+    this.saveToFile();
+
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        const firestoreDoc = cleanUndefined({
+          ...payment,
+          paidAt: paidDate.toISOString(),
+          expireAt: Timestamp.fromDate(expireDate),
+        });
+        await this.getUserPaymentsCollection(uid).doc(payment.id).set(firestoreDoc);
+      } catch (err) {
+        console.error('Firestore save user payment error:', err);
+      }
+    }
+
+    return payment;
+  }
+
+  async getUserPayments(uid: string, limit: number = 24): Promise<PaymentRecord[]> {
+    await this.ensureInitialized();
+
+    if (this.isFirestoreAvailable && this.firestoreInstance) {
+      try {
+        const snap = await this.getUserPaymentsCollection(uid).get();
+        if (!snap.empty) {
+          const payments: PaymentRecord[] = snap.docs.map((doc: any) => {
+            const raw = doc.data();
+            const expireAtIso =
+              raw.expireAt && typeof raw.expireAt.toDate === 'function'
+                ? raw.expireAt.toDate().toISOString()
+                : raw.expireAt;
+            const paidAtIso =
+              raw.paidAt && typeof raw.paidAt.toDate === 'function'
+                ? raw.paidAt.toDate().toISOString()
+                : raw.paidAt;
+            return {
+              id: doc.id,
+              ...raw,
+              paidAt: paidAtIso,
+              expireAt: expireAtIso,
+            } as PaymentRecord;
+          });
+          return payments
+            .sort((a, b) => (b.paidAt || '').localeCompare(a.paidAt || ''))
+            .slice(0, limit);
+        }
+      } catch (err) {
+        console.warn('Firestore getUserPayments error, using memory fallback:', err);
+      }
+    }
+
+    const list = this.memoryStore.userPayments?.[uid] || [];
+    return [...list]
+      .sort((a, b) => (b.paidAt || '').localeCompare(a.paidAt || ''))
+      .slice(0, limit);
   }
 
   // ================= User Onboarding =================

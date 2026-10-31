@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMatchday } from '../context/MatchdayContext';
-import { TeamSettings } from '../types';
+import { TeamSettings, PaymentRecord } from '../types';
 import { getFormationsForTeamSize } from '../utils/formations';
-import { Sliders, X, Check, Plus, CreditCard, Sparkles, ExternalLink, ShieldCheck, Clock, Zap, Crown } from 'lucide-react';
+import { Sliders, X, Check, Plus, CreditCard, Sparkles, ExternalLink, ShieldCheck, Clock, Zap, Crown, FileText } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
 import { getAuthToken } from '../firebase';
+import { fetchBillingHistory } from '../utils/adminApi';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -24,6 +25,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [activeModalTab, setActiveModalTab] = useState<'rules' | 'billing'>('rules');
   const [formData, setFormData] = useState<TeamSettings>(settings);
   const [loadingPortal, setLoadingPortal] = useState(false);
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || activeModalTab !== 'billing') return;
+    let cancelled = false;
+    setLoadingPayments(true);
+    fetchBillingHistory()
+      .then((list) => {
+        if (!cancelled) setPayments(list);
+      })
+      .catch((err) => {
+        console.warn('Could not load billing history:', err);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPayments(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, activeModalTab]);
 
   useEffect(() => {
     setFormData(settings);
@@ -306,6 +328,190 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <span>Printable FA-format match sheet PDFs</span>
                 </div>
               </div>
+            </div>
+
+            {/* Payment History & Receipts */}
+            <div
+              className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-3"
+              data-testid="payment-history-panel"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-slate-200 font-bold text-xs flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Payment History &amp; Receipts</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    Download VAT invoices for grassroots club expense reimbursement (retained for 24 months)
+                  </div>
+                </div>
+              </div>
+
+              {loadingPayments ? (
+                <div className="py-4 text-center text-slate-400 text-[11px]">
+                  Loading payment history...
+                </div>
+              ) : payments.length === 0 ? (
+                <div
+                  className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-slate-400 text-[11px] leading-relaxed text-center"
+                  data-testid="payment-history-empty"
+                >
+                  You are currently on the 14-day free trial. Your first invoice will appear here once your subscription begins.
+                </div>
+              ) : (
+                <>
+                  {/* Desktop / Tablet Table View */}
+                  <div className="overflow-x-auto">
+                    <table
+                      className="hidden sm:table w-full text-left border-collapse text-[11px]"
+                      data-testid="payment-history-table"
+                    >
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 font-semibold text-[10px] uppercase tracking-wider">
+                          <th className="py-2 pr-2">Date</th>
+                          <th className="py-2 px-2">Description</th>
+                          <th className="py-2 px-2">Amount</th>
+                          <th className="py-2 px-2">Card</th>
+                          <th className="py-2 px-2">Status</th>
+                          <th className="py-2 pl-2 text-right">Receipt</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/70">
+                        {payments.map((payment) => {
+                          const formattedDate = new Date(payment.paidAt).toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          });
+                          const formattedAmount = new Intl.NumberFormat('en-GB', {
+                            style: 'currency',
+                            currency: (payment.currency || 'gbp').toUpperCase(),
+                          }).format((payment.amountPaid || 0) / 100);
+                          const cardBrand = payment.paymentMethod?.brand
+                            ? payment.paymentMethod.brand.toUpperCase()
+                            : 'CARD';
+                          const cardDisplay = payment.paymentMethod?.last4
+                            ? `${cardBrand} •••• ${payment.paymentMethod.last4}`
+                            : 'Card';
+                          const receiptUrl = payment.invoicePdfUrl || payment.hostedInvoiceUrl;
+
+                          return (
+                            <tr key={payment.id} className="text-slate-200">
+                              <td className="py-2.5 pr-2 whitespace-nowrap text-slate-300">
+                                {formattedDate}
+                              </td>
+                              <td className="py-2.5 px-2 font-medium text-white">
+                                {payment.description}
+                              </td>
+                              <td className="py-2.5 px-2 font-mono font-semibold text-white whitespace-nowrap">
+                                {formattedAmount}
+                              </td>
+                              <td className="py-2.5 px-2 font-mono text-[10px] text-slate-400 whitespace-nowrap">
+                                {cardDisplay}
+                              </td>
+                              <td className="py-2.5 px-2 whitespace-nowrap">
+                                {payment.status === 'paid' ? (
+                                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                                    Paid
+                                  </span>
+                                ) : payment.status === 'failed' ? (
+                                  <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">
+                                    Failed
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold">
+                                    Refunded
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-2.5 pl-2 text-right whitespace-nowrap">
+                                {receiptUrl ? (
+                                  <a
+                                    href={receiptUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-sky-200 text-[10px] font-semibold transition"
+                                    data-testid={`receipt-link-${payment.id}`}
+                                  >
+                                    <span>📄 Receipt ↗</span>
+                                  </a>
+                                ) : (
+                                  <span className="text-slate-600 text-[10px]">—</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Stacked Card Layout */}
+                  <div className="sm:hidden space-y-2.5" data-testid="payment-history-cards">
+                    {payments.map((payment) => {
+                      const formattedDate = new Date(payment.paidAt).toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                      });
+                      const formattedAmount = new Intl.NumberFormat('en-GB', {
+                        style: 'currency',
+                        currency: (payment.currency || 'gbp').toUpperCase(),
+                      }).format((payment.amountPaid || 0) / 100);
+                      const cardBrand = payment.paymentMethod?.brand
+                        ? payment.paymentMethod.brand.toUpperCase()
+                        : 'CARD';
+                      const cardDisplay = payment.paymentMethod?.last4
+                        ? `${cardBrand} •••• ${payment.paymentMethod.last4}`
+                        : 'Card';
+                      const receiptUrl = payment.invoicePdfUrl || payment.hostedInvoiceUrl;
+
+                      return (
+                        <div
+                          key={payment.id}
+                          className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-bold text-white text-xs truncate">
+                              {payment.description}
+                            </span>
+                            {payment.status === 'paid' ? (
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold shrink-0">
+                                Paid
+                              </span>
+                            ) : payment.status === 'failed' ? (
+                              <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold shrink-0">
+                                Failed
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold shrink-0">
+                                Refunded
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] text-slate-400">
+                            <span>{formattedDate}</span>
+                            <span className="font-mono font-bold text-white">{formattedAmount}</span>
+                          </div>
+                          <div className="flex items-center justify-between pt-1 border-t border-slate-800/60">
+                            <span className="font-mono text-[10px] text-slate-400">{cardDisplay}</span>
+                            {receiptUrl && (
+                              <a
+                                href={receiptUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 text-[10px] font-semibold transition"
+                              >
+                                <span>📄 Receipt ↗</span>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         ) : (

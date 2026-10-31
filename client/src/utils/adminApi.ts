@@ -1,5 +1,5 @@
 import { getAuthToken, UserRole } from '../firebase';
-import { AdminUser, ClubSettings, BackupData, SubscriptionStatus, SubscriptionTier, UserSubscription } from '../types';
+import { AdminUser, ClubSettings, BackupData, SubscriptionStatus, SubscriptionTier, UserSubscription, PaymentRecord } from '../types';
 
 export async function getAdminHeaders(): Promise<Record<string, string>> {
   const token = await getAuthToken();
@@ -120,4 +120,18 @@ export async function restoreBackupData(backupData: BackupData): Promise<any> {
     throw new Error(errorData.error || 'Restore failed');
   }
   return res.json();
+}
+
+export async function fetchBillingHistory(): Promise<PaymentRecord[]> {
+  const token = await getAuthToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: token ? `Bearer ${token}` : 'Bearer mock-dev-token',
+  };
+  const res = await fetch('/api/billing/history', { headers });
+  if (!res.ok) {
+    throw new Error('Failed to fetch billing history');
+  }
+  const data = await res.json();
+  return data.payments || [];
 }

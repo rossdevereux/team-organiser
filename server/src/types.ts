@@ -304,6 +304,32 @@ export interface UserSubscription {
   stripeSubscriptionId?: string;
   currentPeriodEnd?: string; // ISO 8601
   cancelAtPeriodEnd?: boolean;
+  lastWebhookCreated?: number; // Unix timestamp (seconds) of the latest applied Stripe webhook event
+}
+
+export interface StripeEventRecord {
+  eventId: string;     // e.g. "evt_1O..."
+  type: string;        // e.g. "invoice.payment_succeeded"
+  processedAt: string; // ISO 8601
+  expireAt: string;    // ISO 8601 (processedAt + 30 days)
+}
+
+export interface PaymentRecord {
+  id: string;                    // Stripe Invoice ID (in_...) or Charge ID (ch_...)
+  userId: string;                // Firebase Auth UID
+  customerEmail: string;
+  amountPaid: number;            // In pence/cents (e.g. 150 for £1.50, 1500 for £15.00)
+  currency: string;              // e.g. "gbp"
+  status: 'paid' | 'failed' | 'refunded';
+  description: string;           // e.g. "SubShuffle Coach Monthly", "SubShuffle Coach Annual"
+  paidAt: string;                // ISO 8601
+  hostedInvoiceUrl?: string;     // Link to view/print Stripe invoice
+  invoicePdfUrl?: string;        // Direct PDF receipt download link
+  paymentMethod: {
+    brand?: string;              // "visa", "mastercard", "amex"
+    last4?: string;              // "4242"
+  };
+  expireAt: string;              // ISO 8601 (paidAt + 24 months)
 }
 
 // Role-Based Access Control (RBAC) & Custom Claims Models

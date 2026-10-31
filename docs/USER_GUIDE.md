@@ -353,6 +353,9 @@ In the **Admin Portal** under **Backups & Disaster Recovery**:
 **Q: How does SubShuffle ensure fast pitchside responsiveness on mobile devices?**  
 *A: SubShuffle monitors network latency and client operations in real-time using Firebase Performance Monitoring. Core workflows like rotation calculations and live touchline substitutions are benchmarked continuously to ensure smooth performance even on low-end mobile devices and flaky touchline connections.*
 
+**Q: How can I download a VAT receipt to claim my subscription back from my grassroots club?**  
+*A: Open **Settings** (gear icon) and select the **Billing & Plan** tab. Under **Payment History & Receipts**, you can view your past payments and click **📄 Receipt ↗** next to any invoice to view or download an official PDF receipt for your club treasurer. Receipts are automatically retained for 24 months.*
+
 ---
 
 *SubShuffle — Grassroots Football Rotations Made Fair & Stress-Free.*
